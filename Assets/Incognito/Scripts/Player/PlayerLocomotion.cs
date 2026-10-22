@@ -1,3 +1,4 @@
+using Incognito.Terminal;
 using UnityEngine;
 
 namespace Incognito.Player
@@ -37,9 +38,11 @@ namespace Incognito.Player
 
         private void Update()
         {
-            bool moveLeft = Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A);
-            bool moveRight = Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D);
-            bool sprint = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+            // While the typed console is open the keyboard is typing, not walking (U.INC-T10).
+            bool keys = !CommandPrompt.CapturesKeyboard;
+            bool moveLeft = keys && (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A));
+            bool moveRight = keys && (Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D));
+            bool sprint = keys && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift));
 
             State.Step(Time.deltaTime, moveLeft, moveRight, sprint);
 

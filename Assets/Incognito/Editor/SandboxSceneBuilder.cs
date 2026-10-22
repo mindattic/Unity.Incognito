@@ -2,6 +2,7 @@ using System.IO;
 using Incognito.CameraRig;
 using Incognito.Eye;
 using Incognito.Player;
+using Incognito.Terminal;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -11,8 +12,8 @@ namespace Incognito.EditorTools
     /// <summary>
     /// Builds Assets/Incognito/Scenes/PlayerSandbox.unity: a flat-ground, placeholder-sprite
     /// street00-sized scene to exercise <see cref="PlayerLocomotion"/>,
-    /// <see cref="CloseFramingCamera"/>, <see cref="PlayerEyeball"/> and <see cref="EyeCursor"/>
-    /// in Play mode before real art (U.INC-T11) exists. Safe to re-run (overwrites the scene and
+    /// <see cref="CloseFramingCamera"/>, <see cref="PlayerEyeball"/>, <see cref="EyeCursor"/> and
+    /// the typed <see cref="CommandPrompt"/> in Play mode before real art (U.INC-T11) exists. Safe to re-run (overwrites the scene and
     /// its placeholder sprites, and re-applies the original sprites' import settings).
     /// </summary>
     public static class SandboxSceneBuilder
@@ -99,6 +100,18 @@ namespace Incognito.EditorTools
             cursorSo.FindProperty("reticleSprite").objectReferenceValue = ImportOriginal("spr_cursor_reticle", 16, 16);
             cursorSo.ApplyModifiedPropertiesWithoutUndo();
 
+            // Typed console (U.INC-T10): Q opens it, Escape closes it. Placeholder console
+            // targets around the player's start: two civilians and a camera in vicinity (one
+            // view width), and one civilian far down the street that `list sheep` must not see.
+            var console = new GameObject("Command Prompt");
+            console.AddComponent<CommandPrompt>().Origin = player.transform;
+
+            var targets = new GameObject("Console Targets");
+            AddConsoleTarget(targets.transform, groundSprite, ConsoleObjectType.Sheep, "0097", roomWidth * 0.5f + 15f);
+            AddConsoleTarget(targets.transform, groundSprite, ConsoleObjectType.Sheep, "0102", roomWidth * 0.5f - 25f);
+            AddConsoleTarget(targets.transform, groundSprite, ConsoleObjectType.Camera, "07", roomWidth * 0.5f + 40f);
+            AddConsoleTarget(targets.transform, groundSprite, ConsoleObjectType.Sheep, "0451", roomWidth * 0.5f + 120f);
+
             if (!AssetDatabase.IsValidFolder(SceneDir))
             {
                 AssetDatabase.CreateFolder("Assets/Incognito", "Scenes");
@@ -174,6 +187,18 @@ namespace Incognito.EditorTools
             Object.DestroyImmediate(tex);
 
             return ImportPixelSprite(path, originX, originY);
+        }
+
+        private static void AddConsoleTarget(Transform parent, Sprite sprite, ConsoleObjectType type, string id, float x)
+        {
+            var go = new GameObject($"{type} {id}", typeof(SpriteRenderer));
+            var sr = go.GetComponent<SpriteRenderer>();
+            sr.sprite = sprite;
+            sr.color = type == ConsoleObjectType.Sheep ? new Color(0.8f, 0.3f, 0.3f) : new Color(0.3f, 0.6f, 0.9f);
+            go.transform.SetParent(parent);
+            go.transform.localScale = type == ConsoleObjectType.Sheep ? new Vector3(4f, 8f, 1f) : new Vector3(1.5f, 1.5f, 1f);
+            go.transform.position = new Vector3(x, type == ConsoleObjectType.Sheep ? 4f : 14f, 0.5f);
+            go.AddComponent<ConsoleTarget>().Configure(type, id);
         }
 
         private static Sprite CreateSolidSpriteAsset(string path, Color color)

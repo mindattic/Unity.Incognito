@@ -201,8 +201,12 @@ switch statement:
 - anything else — `"Command not recognized"`.
 
 Output strings use `#` as an explicit line break (consistent with NPC `description` strings) and
-`##` for a blank line — rendered by `obj_typewriter`/`scripts/type_text.gml` as a character-by-
-character teletype effect (with `sfx_type` playing per character, from the asset list).
+`##` for a blank line. `obj_command_prompt` itself draws the output in one go (its output fade,
+`alarm[1]`, is commented out, so output stays until replaced or `clear`ed); `sfx_type` plays per
+keystroke (not while Shift is held). The character-by-character teletype is
+`obj_typewriter`/`scripts/type_text.gml`, used for the `look` descriptions (§4), not the console.
+The prompt is a 580x200 panel that eases in from the left (`x += 1 + ceil(|x| * 0.1)` per step),
+slides out at 20px/step, and blinks a `_` i-beam every 30 steps.
 
 ## 7. Rooms and world — `rooms/*.room.gmx`, `objects/obj_room*.object.gmx`, `objects/obj_cloud*`,
 `objects/obj_rain_emitter.object.gmx`, `objects/obj_prop_*`
@@ -233,6 +237,7 @@ ones when porting.
 - No wired-up consequence for suspicion reaching 100% (no alert/detected state in the objects
   read) — the rebuild needs to design what happens, since the original only displays the number.
 - `help`'s `reboot`/`overwrite` commands and `list all` are stubs with no implementation to port —
-  treat as design-your-own, not reconstruction.
+  treat as design-your-own, not reconstruction. (Decided in U.INC-T10 — see BIBLE.md "Decisions
+  made".)
 - No save/menu/inventory objects were found — this was a short vertical-slice prototype, not a
   full game; the rebuild's scope (per the ticket breakdown) covers the slice that exists.

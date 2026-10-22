@@ -51,8 +51,6 @@ of the usual wide adventure-game establishing shot — the game's whole premise 
 
 - What happens at 100% suspicion (the original never wired a consequence — RECONSTRUCTION, Open
   questions).
-- Whether `list all`/`reboot`/`overwrite` console commands get real implementations or stay flavor
-  stubs.
 
 ## Decisions made
 
@@ -77,6 +75,16 @@ of the usual wide adventure-game establishing shot — the game's whole premise 
   verbatim from the 2013 project (`Assets/Incognito/Art/Original/`) at their GM origins. Aiming is
   an `Aiming` flag on both components for U.INC-T9 to set; look/talk scrolling (U.INC-T6) and
   pointer mode (U.INC-T7) write `EyeCursor.Mode`.
+- **Typed console stubs (U.INC-T10).** `help`, `list`, `list sheep`, `clear` and "Command not
+  recognized" are ported verbatim (`#` line breaks become `\n`). The original's stubs get small,
+  consequence-free implementations: `list camera`/`list computer` follow `list sheep`'s pattern
+  (`CAM#<id>`, `CMP#<id>`), `list all` prints every type present, and `reboot <id>`/`overwrite
+  <id>` resolve a target by handle (`shp#0097`) or bare id and raise an event on its
+  `ConsoleTarget` — what a reboot or overwrite actually *does* is left to whichever later ticket
+  needs it. "Vicinity" means within one view width (1920 original px) of the player, the same
+  outer range the suspicion cue uses; the original listed every NPC in the room. Until the hacking
+  overlay (U.INC-T7) opens the prompt from its program icons, Q opens it and Escape closes it, and
+  movement keys are ignored while it is open. See `Assets/Incognito/Scripts/Terminal/`.
 
 ## Laws
 
