@@ -34,8 +34,8 @@ _Nothing recorded yet._
 | ID | Date | Type | Status | Summary | Ref |
 |---|---|---|---|---|---|
 | U.INC-T1 | 2026-10-21 | docs | closed | Start the permanent ticket log in the ticket database | — |
-| U.INC-T2 | 2026-10-21 | chore | open | Bootstrap Unity 6 project, workspace docs, and reverse-engineering notes from the 2013 GameMaker source | U.INC-US-A1,U.INC-US-A2,U.INC-US-A3,U.INC-US-A4,U.INC-US-A5,U.INC-US-A6,U.INC-US-A7,U.INC-US-A8,U.INC-US-A9 |
-| U.INC-T3 | 2026-10-21 | feature | open | Port player locomotion: triangle-wave walk bob, sprint acceleration/friction, and facing flip | U.INC-US-A1 |
+| U.INC-T2 | 2026-10-21 | chore | closed | Bootstrap Unity 6 project, workspace docs, and reverse-engineering notes from the 2013 GameMaker source | eae442c |
+| U.INC-T3 | 2026-10-21 | feature | closed | Port player locomotion: triangle-wave walk bob, sprint acceleration/friction, and facing flip | 923bc95 |
 | U.INC-T4 | 2026-10-21 | feature | open | Port the close-framing camera: edge-pinned horizontal lock by facing with mouse-driven vertical pan | U.INC-US-A2 |
 | U.INC-T5 | 2026-10-21 | feature | open | Port the eyeball cursor: pupil parallax tracking, randomized blink, and mode-based cursor sprite swap | U.INC-US-A3 |
 | U.INC-T6 | 2026-10-21 | feature | open | Port cursor mode cycling: mouse-wheel toggle between look (hover description) and talk (walk-to NPC, start conversation) | U.INC-US-A4 |
