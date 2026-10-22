@@ -3,7 +3,7 @@ codex: 1
 project: Unity.Incognito
 layer: bible
 status: living
-updated: 2026-10-21
+updated: 2026-10-22
 ---
 
 # Incognito — rebuild bible
@@ -63,6 +63,20 @@ of the usual wide adventure-game establishing shot — the game's whole premise 
   (its room was exactly view-height), so the rebuild makes it a direct, instant, bounded pan: mouse
   height on screen maps linearly onto ±135 original px (one eighth of the view height) around the
   camera's resting height. See `Assets/Incognito/Scripts/CameraRig/CloseFramingCameraState.cs`.
+- **Eyeball and eye cursor (U.INC-T5).** Two systems, as in the original: `PlayerEyeball` (obj_eye)
+  and `EyeCursor` (obj_mouse), both under `Assets/Incognito/Scripts/Eye/`. The eye keeps obj_eye's
+  numbers verbatim (socket -108/+93 px by facing, pupil `7 + dx/160`, `-3 + mouse_y/160`, aim snap
+  -1/15, 20px lid at 2px/step, 1-in-161 blink roll). `mouse_y` is read as the cursor's height from
+  the top of a 1080px screen — what it equalled in the original's view-tall room — so the T4
+  vertical pan doesn't feed back into the pupil. The blink runs in whole 60Hz steps (accumulated
+  from frame time) so its odds and lid speed don't change with frame rate. The eye stack renders
+  behind the player sprite (obj_eye depth 1 vs. obj_walker depth 0) and shows through the art's
+  eye socket; the sandbox placeholder player is therefore spr_player-sized (512x1024, origin
+  256,168) with a socket hole. The cursor hides the OS pointer and is an in-world sprite at the
+  original 32px size, drawn in front of everything. Original eye and cursor sprites are imported
+  verbatim from the 2013 project (`Assets/Incognito/Art/Original/`) at their GM origins. Aiming is
+  an `Aiming` flag on both components for U.INC-T9 to set; look/talk scrolling (U.INC-T6) and
+  pointer mode (U.INC-T7) write `EyeCursor.Mode`.
 
 ## Laws
 
