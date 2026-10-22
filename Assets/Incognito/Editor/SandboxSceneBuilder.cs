@@ -4,6 +4,7 @@ using Incognito.Eye;
 using Incognito.Npc;
 using Incognito.Player;
 using Incognito.Terminal;
+using Incognito.Weapon;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -14,7 +15,8 @@ namespace Incognito.EditorTools
     /// Builds Assets/Incognito/Scenes/PlayerSandbox.unity: a flat-ground, placeholder-sprite
     /// street00-sized scene to exercise <see cref="PlayerLocomotion"/>,
     /// <see cref="CloseFramingCamera"/>, <see cref="PlayerEyeball"/>, <see cref="EyeCursor"/> and
-    /// the typed <see cref="CommandPrompt"/>, plus a patrolling <see cref="NpcController"/>, in
+    /// the typed <see cref="CommandPrompt"/> and <see cref="PlayerWeapon"/>, plus a patrolling
+    /// (and shootable) <see cref="NpcController"/>, in
     /// Play mode before real art (U.INC-T11) exists. Safe to re-run (overwrites the scene and its
     /// placeholder sprites, and re-applies the original sprites' import settings).
     /// </summary>
@@ -24,6 +26,9 @@ namespace Incognito.EditorTools
         private const string ScenePath = SceneDir + "/PlayerSandbox.unity";
         private const string ArtDir = "Assets/Incognito/Art/Placeholder";
         private const string OriginalArtDir = "Assets/Incognito/Art/Original";
+
+        // Street backdrop sits behind everything, including the bullet (obj_bullet depth 5).
+        private const int BackdropOrder = -10;
 
         [MenuItem("Incognito/Build Player Sandbox Scene")]
         public static void Build()
@@ -42,6 +47,7 @@ namespace Incognito.EditorTools
 
             var ground = new GameObject("Ground", typeof(SpriteRenderer));
             ground.GetComponent<SpriteRenderer>().sprite = groundSprite;
+            ground.GetComponent<SpriteRenderer>().sortingOrder = BackdropOrder;
             ground.transform.localScale = new Vector3(roomWidth, 2f, 1f);
             ground.transform.position = new Vector3(roomWidth * 0.5f, -1f, 0f);
 
@@ -51,6 +57,7 @@ namespace Incognito.EditorTools
             {
                 var marker = new GameObject($"Marker {x:0}", typeof(SpriteRenderer));
                 marker.GetComponent<SpriteRenderer>().sprite = groundSprite;
+                marker.GetComponent<SpriteRenderer>().sortingOrder = BackdropOrder;
                 marker.transform.SetParent(markers.transform);
                 marker.transform.localScale = new Vector3(0.5f, 12f, 1f);
                 marker.transform.position = new Vector3(x, 6f, 1f);
@@ -64,6 +71,24 @@ namespace Incognito.EditorTools
             player.transform.position = new Vector3(roomWidth * 0.5f, 512f * px, 0f);
             var locomotion = player.AddComponent<PlayerLocomotion>();
 
+            // obj_arm x2 (U.INC-T9): arm1 (support) in front of the body (depth -1), arm2 (gun)
+            // behind it (depth 1, also behind the eye stack). Placeholders carry the original
+            // sprites' sizes and GM origins so the pivots and muzzle line up.
+            var armRest = CreateSolidSprite(ArtDir + "/placeholder_arm_rest.png", new Color(0.8f, 0.7f, 0.6f), 219, 379, 100, 60);                     // spr_arm
+            var supportRaise = CreateSolidSprite(ArtDir + "/placeholder_arm_support_raise.png", new Color(0.75f, 0.65f, 0.55f), 380, 258, 320, 142);  // spr_arm_left_aim1
+            var supportHold = CreateSolidSprite(ArtDir + "/placeholder_arm_support_hold.png", new Color(0.75f, 0.65f, 0.55f), 550, 137, 500, 86);     // spr_arm_left_aim2
+            var gunDrawing = CreateSolidSprite(ArtDir + "/placeholder_arm_gun_drawing.png", new Color(0.3f, 0.3f, 0.35f), 380, 258, 320, 142);        // spr_arm_right_drawing
+            var gunAim = CreateSolidSprite(ArtDir + "/placeholder_arm_gun_aim.png", new Color(0.2f, 0.2f, 0.25f), 550, 137, 500, 100);                // spr_arm_right_aim
+            var gunFire = CreateSolidSprite(ArtDir + "/placeholder_arm_gun_fire.png", new Color(0.9f, 0.6f, 0.1f), 550, 137, 500, 100);               // spr_arm_right_fire
+            var bulletSprite = CreateSolidSprite(ArtDir + "/placeholder_bullet.png", new Color(1f, 0.9f, 0.3f), 12, 12, 6, 6);                        // spr_bullet
+
+            var supportArm = CreateArm("Support Arm (arm1)", player.transform, armRest, 1);
+            var gunArm = CreateArm("Gun Arm (arm2)", player.transform, armRest, -4);
+
+            var weapon = player.AddComponent<PlayerWeapon>();
+            var audio = player.AddComponent<AudioSource>();
+            audio.playOnAwake = false;
+
             // One patrolling NPC at the original street00 placement (x = 2400). The original's
             // only waypoint was x = 12000, past the room's end; the sandbox patrols the street
             // instead so the NPC keeps crossing the player's path. Like obj_walker, obj_npc's
@@ -71,6 +96,8 @@ namespace Incognito.EditorTools
             var npc = new GameObject("NPC", typeof(SpriteRenderer));
             npc.GetComponent<SpriteRenderer>().sprite = npcSprite;
             npc.transform.position = new Vector3(2400f * px, 512f * px, 0.5f);
+            npc.AddComponent<BoxCollider2D>(); // after the sprite, so it fits the sprite's bounds
+            npc.AddComponent<BulletTarget>();  // U.INC-T9: a shot shoves the NPC 100px
             var npcController = npc.AddComponent<NpcController>();
             npcController.Player = locomotion;
 
@@ -133,6 +160,25 @@ namespace Incognito.EditorTools
             cursorSo.FindProperty("pointerSprite").objectReferenceValue = ImportOriginal("spr_cursor_pointer", 0, 0);
             cursorSo.FindProperty("reticleSprite").objectReferenceValue = ImportOriginal("spr_cursor_reticle", 16, 16);
             cursorSo.ApplyModifiedPropertiesWithoutUndo();
+
+            // Weapon (U.INC-T9): Z draws/holsters, hold right button to aim, left button fires.
+            var weaponSo = new SerializedObject(weapon);
+            weaponSo.FindProperty("supportArm").objectReferenceValue = supportArm;
+            weaponSo.FindProperty("gunArm").objectReferenceValue = gunArm;
+            weaponSo.FindProperty("restArm").objectReferenceValue = armRest;
+            weaponSo.FindProperty("supportAimRaise").objectReferenceValue = supportRaise;
+            weaponSo.FindProperty("supportAimHold").objectReferenceValue = supportHold;
+            weaponSo.FindProperty("gunDrawing").objectReferenceValue = gunDrawing;
+            weaponSo.FindProperty("gunAim").objectReferenceValue = gunAim;
+            weaponSo.FindProperty("gunFire").objectReferenceValue = gunFire;
+            weaponSo.FindProperty("bulletSprite").objectReferenceValue = bulletSprite;
+            weaponSo.FindProperty("bulletSortingOrder").intValue = -5; // obj_bullet depth 5: behind the player
+            weaponSo.FindProperty("audioSource").objectReferenceValue = audio;
+            weaponSo.FindProperty("eyeCursor").objectReferenceValue = cursor;
+            weaponSo.FindProperty("playerEyeball").objectReferenceValue = eye;
+            // Bullets die when they leave the room: the street's width, and the resting view's height.
+            weaponSo.FindProperty("room").rectValue = new Rect(0f, -2f, roomWidth, viewHeight);
+            weaponSo.ApplyModifiedPropertiesWithoutUndo();
 
             // Typed console (U.INC-T10): Q opens it, Escape closes it. Placeholder console
             // targets around the player's start: two civilians and a camera in vicinity (one
@@ -253,6 +299,34 @@ namespace Incognito.EditorTools
             Object.DestroyImmediate(tex);
 
             return ImportPixelSprite(path, 256, 440);
+        }
+
+        private static SpriteRenderer CreateArm(string name, Transform player, Sprite sprite, int sortingOrder)
+        {
+            var arm = new GameObject(name, typeof(SpriteRenderer));
+            arm.transform.SetParent(player, false);
+            var sr = arm.GetComponent<SpriteRenderer>();
+            sr.sprite = sprite;
+            sr.sortingOrder = sortingOrder;
+            return sr;
+        }
+
+        /// <summary>A solid <paramref name="width"/>x<paramref name="height"/> stand-in for an
+        /// original sprite, pivoted at its GM origin (from the top-left).</summary>
+        private static Sprite CreateSolidSprite(string path, Color color, int width, int height, int originX, int originY)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+
+            var tex = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            var pixels = new Color[width * height];
+            for (int i = 0; i < pixels.Length; i++) pixels[i] = color;
+            tex.SetPixels(pixels);
+            tex.Apply();
+
+            File.WriteAllBytes(path, tex.EncodeToPNG());
+            Object.DestroyImmediate(tex);
+
+            return ImportPixelSprite(path, originX, originY);
         }
 
         private static Sprite CreateSolidSpriteAsset(string path, Color color)

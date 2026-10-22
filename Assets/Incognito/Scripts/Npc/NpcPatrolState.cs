@@ -45,6 +45,10 @@ namespace Incognito.Npc
 
         public void SetInitialPositionX(float x) => PositionX = x;
 
+        /// <summary>obj_npc's obj_bullet collision (U.INC-T9): x -= / += 100, nothing else — the
+        /// patrol carries on from the new spot.</summary>
+        public void Knockback(float dx) => PositionX += dx;
+
         /// <summary>Replaces the patrol route (original-pixel X positions, walked in order and
         /// looped) and heads for its first waypoint.</summary>
         public void SetRoute(IEnumerable<float> waypoints)

@@ -42,11 +42,30 @@ sets `mode = "walking"`, flips `facing`/`image_xscale`, and accelerates `dx` tow
 snapping). Key-up (events 65/68 release) sets `mode = "stopping"`, which applies `dx *= 0.9`
 friction until `abs(dx) < 1`, then `mode = "idle"`.
 
-**Aiming** is a separate state (`aimmode`: `"off" -> "equip" -> "aiming"`), toggled by right-click
-events (56/57) with a 5-frame alarm between equip and aiming. While `aimmode == "aiming"`,
-`mode` is forced `"idle"` (no walking while aiming) and the arm objects swap sprites
-(`spr_arm_left_aim1`, `spr_arm_right_aim`/`spr_arm_right_fire`). Firing calls `shoot_bullet()`
-(`scripts/shoot_bullet.gml`).
+**Aiming** is a separate state (`aimmode`: `"off" | "equip" | "aiming"`). Re-read for U.INC-T9
+(GM mouse event numbers: 53/54 = global left/right *pressed*, 56/57 = global left/right
+*released*):
+
+- **Draw/holster** — `scripts/toggle_gun.gml`, called from the `Z` key-press event (`9`/`90`) and
+  from clicking the HUD `obj_icon_pistol` (`obj_mouse_gui`). `"off"` -> `"equip"` plays
+  `sfx_reload` and puts arm2 in `spr_arm_right_drawing`; anything else -> `"off"` plays
+  `sfx_holster` and returns both arms to `spr_arm` (so holstering works mid-aim too).
+- **Aim** — right *pressed* (54), only from `"equip"`: `aimmode = "aiming"`, `mode = "idle"`,
+  `dx = 0`, `sfx_whoosh`, arm1 -> `spr_arm_left_aim1`, both arm angles zeroed, `alarm[0] = 5`.
+  Five steps later the alarm (event `2`/`0`) settles arm1 -> `spr_arm_left_aim2` and arm2 ->
+  `spr_arm_right_aim`. Right *released* (57) drops back to `"equip"` (arm2 drawing, arm1 rest). The
+  walk-key events are gated on `aimmode != "aiming"`, so you can't walk or turn while aiming —
+  aiming is *hold* right button, not a toggle.
+- **Fire** — left *pressed* (53) while aiming: arm2 -> `spr_arm_right_fire` and `shoot_bullet()`;
+  left *released* (56) puts arm2 back to `spr_arm_right_aim`.
+
+`shoot_bullet.gml`: the bullet spawns 500px along arm2's angle from its pivot (mirrored when facing
+left) and then 88px up, travels at `speed = 60` px/step in the arm's direction (`image_angle - 180`
+facing left), plays `sfx_fire_cannon` and puffs `ef_smoke` at the muzzle. It also nudges both arms'
+`x` by 10px along the shot, but that's a no-op: the arms' own step event re-pins `x` to the player
+before they are drawn. `obj_bullet` (`spr_bullet`, 12x12) just destroys itself once it leaves the
+room. `obj_npc`'s collision with `obj_bullet` shoves the NPC 100px away from the side the bullet
+came from and destroys the bullet — no health, death or suspicion change is wired to a hit.
 
 **Arm swing** — `objects/obj_arm.object.gmx` — is the *other* oscillator in the game, also a
 triangle wave, not trig:
@@ -55,9 +74,14 @@ triangle wave, not trig:
 if (swing_forward) { image_angle -= rot_speed; angle += rot_speed; if (angle > swing_range) { angle = 0; swing_forward = false; } }
 else                { image_angle += rot_speed; angle += rot_speed; if (angle > swing_range) { angle = 0; swing_forward = true; } }
 ```
-Only runs while `player.mode == "walking"` and not aiming; relaxes back toward 0 when idle. While
-aiming, `image_angle` is driven directly by mouse Y (`(mouse_y - room_height/2) / 30`, mirrored by
-facing) — the arm points at the cursor.
+Only runs while `player.mode == "walking"` and not aiming; relaxes back toward 0 when idle (and
+holds still while `"stopping"` — there's no branch for it). Defaults `swing_range = 3`,
+`rot_speed = 0.06`; the walk-left key sets 6/0.24 while Shift is held and 3/0.06 otherwise (the
+walk-right key never touches them). `arm1` starts `swing_forward = true` and `arm2` `false`
+(`scripts/start_game.gml`), so the arms swing in opposition. Both sit at `player.x ± 60` (behind
+the facing direction), `player.y + 220`; arm1 draws in front of the body (depth -1), arm2 behind
+(depth 1). While aiming, `image_angle` is driven directly by mouse Y (`(mouse_y - room_height/2) /
+30`, mirrored by facing — at most ±18°) — the arm points at the cursor.
 
 **Unity port note:** reproduce both oscillators as an explicit ping-pong ramp (`Mathf.PingPong` or
 a hand-rolled increment, matching the *linear* feel) rather than `Mathf.Sin` — a true sine reads

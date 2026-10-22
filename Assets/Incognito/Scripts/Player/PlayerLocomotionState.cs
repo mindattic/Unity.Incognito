@@ -47,6 +47,15 @@ namespace Incognito.Player
 
         private readonly TriangleWaveBob bob = new TriangleWaveBob();
 
+        /// <summary>Original aim entry (obj_walker right-pressed): mode = "idle", dx = 0, and the
+        /// idle branch zeroes walkY. Used while aiming locks movement (U.INC-T9).</summary>
+        public void ForceIdle()
+        {
+            CurrentMode = WalkMode.Idle;
+            HorizontalSpeed = 0f;
+            bob.Reset();
+        }
+
         public void Step(float deltaTime, bool moveLeft, bool moveRight, bool sprint)
         {
             float steps = Mathf.Max(deltaTime, 0f) * ReferenceFps;

@@ -53,6 +53,11 @@ namespace Incognito.Npc
             Patrol.SetRoute(waypoints);
 
             Suspicion = new SuspicionMeter(suspicion);
+
+            // U.INC-T9: a shot NPC is shoved 100px. The patrol owns the position, so the shove
+            // goes there too or the next Update would put the NPC back.
+            var target = GetComponent<Incognito.Weapon.BulletTarget>();
+            if (target != null) target.Hit += Patrol.Knockback;
         }
 
         private void Update()

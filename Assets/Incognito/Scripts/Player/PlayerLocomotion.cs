@@ -5,8 +5,8 @@ namespace Incognito.Player
 {
     /// <summary>
     /// Drives <see cref="PlayerLocomotionState"/> from input and applies it to the
-    /// transform/sprite. See docs/RECONSTRUCTION.md §1. Arm swing, aiming, camera and eye
-    /// tracking are other tickets (U.INC-T4/T5/T9) and are not handled here.
+    /// transform/sprite. See docs/RECONSTRUCTION.md §1. Arm swing and aiming live in
+    /// Incognito.Weapon.PlayerWeapon (U.INC-T9), which locks movement here while aiming.
     /// </summary>
     [RequireComponent(typeof(SpriteRenderer))]
     public sealed class PlayerLocomotion : MonoBehaviour
@@ -36,6 +36,10 @@ namespace Incognito.Player
             State.SetInitialPositionX(transform.position.x / WorldUnitsPerOriginalPixel);
         }
 
+        /// <summary>Set while aiming (U.INC-T9): the original forced mode = "idle", dx = 0 and
+        /// ignored the walk keys, so facing can't flip either.</summary>
+        public bool MovementLocked { get; set; }
+
         private void Update()
         {
             // While the typed console is open the keyboard is typing, not walking (U.INC-T10).
@@ -43,6 +47,12 @@ namespace Incognito.Player
             bool moveLeft = keys && (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A));
             bool moveRight = keys && (Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D));
             bool sprint = keys && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift));
+
+            if (MovementLocked)
+            {
+                State.ForceIdle();
+                moveLeft = moveRight = sprint = false;
+            }
 
             State.Step(Time.deltaTime, moveLeft, moveRight, sprint);
 

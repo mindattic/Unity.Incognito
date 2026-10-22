@@ -97,6 +97,19 @@ of the usual wide adventure-game establishing shot — the game's whole premise 
   half of the screen (the original's `mouse_y > room_height/2`, which equalled the screen since
   room and view were the same height). The range bands use the live view width. What 100% *does*
   is still open (below). See `Assets/Incognito/Scripts/Npc/SuspicionMeter.cs`.
+- **Weapon (U.INC-T9).** Ported as the original had it: Z draws/holsters, holding the right button
+  aims (walking locked), the left button fires a bullet that travels and shoves an NPC 100px on a
+  hit (`BulletTarget`). GM quirks cleaned up rather than ported: releasing aim within the 5-step
+  raise cancels it (the original's alarm still snapped the arms into the aim pose); the sprint arm
+  swing (6°/0.24) applies walking either direction, not only left; the idle relax lands exactly on 0
+  instead of jittering. The 10px arm "recoil" in `shoot_bullet.gml` was a no-op and is not ported.
+  Aim angle stays screen-relative (cursor height in the view), as the original's was. Bullets are
+  swept per frame (linecast) so the 60px/step shot can't skip a thin target. Sounds and the muzzle
+  smoke are optional fields until U.INC-T11 imports the assets. `PlayerWeapon` sets the T5
+  `Aiming` flag on `EyeCursor` (reticle) and `PlayerEyeball` (fixed gaze) every frame. The sandbox
+  NPC carries a `BulletTarget`, and `NpcController` routes the shove into its patrol position. The
+  arm and bullet placeholders carry the original sprites' sizes and origins, so pivots and the
+  muzzle line up as they did in GM. See `Assets/Incognito/Scripts/Weapon/`.
 
 ## Laws
 
