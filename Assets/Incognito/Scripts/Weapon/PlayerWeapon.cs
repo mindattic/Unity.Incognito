@@ -79,7 +79,11 @@ namespace Incognito.Weapon
             if (Input.GetMouseButtonUp(0)) State.FireReleased();
 
             locomotion.MovementLocked = State.IsAiming;
-            if (eyeCursor != null) eyeCursor.Aiming = State.IsAiming;
+            if (eyeCursor != null)
+            {
+                eyeCursor.Aiming = State.IsAiming;
+                eyeCursor.WeaponDrawn = State.Mode != PlayerWeaponState.AimMode.Off;
+            }
             if (playerEyeball != null) playerEyeball.Aiming = State.IsAiming;
         }
 

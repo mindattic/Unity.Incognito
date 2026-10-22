@@ -6,8 +6,9 @@ namespace Incognito.Eye
     /// The eye-shaped mouse cursor (obj_mouse, RECONSTRUCTION.md §3): hides the OS cursor, follows
     /// the real mouse 1:1 as an in-world sprite drawn in front of everything (original depth
     /// -5000), and swaps its sprite by <see cref="Mode"/> — with the aim reticle overriding the
-    /// mode while aiming. Scroll-wheel look/talk cycling is U.INC-T6; pointer mode is set by the
-    /// NPC/console flow (U.INC-T7). Both just write <see cref="Mode"/>.
+    /// mode while aiming. The mouse wheel (and a right click while the gun is holstered) cycles
+    /// look/talk (U.INC-T6); pointer mode is set by the NPC/console flow (U.INC-T7), which just
+    /// writes <see cref="Mode"/>.
     /// </summary>
     [DefaultExecutionOrder(100)] // after the camera's LateUpdate, so the cursor never lags it
     [RequireComponent(typeof(SpriteRenderer))]
@@ -29,6 +30,10 @@ namespace Incognito.Eye
         /// <summary>Set by the weapon system (U.INC-T9) while aimmode == "aiming".</summary>
         public bool Aiming { get; set; }
 
+        /// <summary>Set by the weapon system while the gun is out (aimmode != "off"): a right
+        /// click then aims rather than cycling look/talk.</summary>
+        public bool WeaponDrawn { get; set; }
+
         public EyeCursorSprite CurrentSprite => EyeCursorSprites.For(mode, Aiming);
 
         public Camera ViewCamera { get => viewCamera; set => viewCamera = value; }
@@ -43,6 +48,15 @@ namespace Incognito.Eye
 
         private void OnEnable() => Cursor.visible = false;
         private void OnDisable() => Cursor.visible = true;
+
+        // Runs after PlayerWeapon.Update (execution order 100), so WeaponDrawn is this frame's.
+        private void Update()
+        {
+            if (EyeCursorModes.ShouldCycle(Input.mouseScrollDelta.y, Input.GetMouseButtonDown(1), WeaponDrawn))
+            {
+                mode = EyeCursorModes.Cycle(mode);
+            }
+        }
 
         private void LateUpdate()
         {

@@ -148,9 +148,14 @@ Two separate things share the name "eye":
   drawn as an eye/eyeball icon*, separate from the in-world character eyeballs above). It tracks
   real mouse position 1:1 (`x = mouse_x; y = mouse_y;`) and swaps its own sprite by `mode`:
   `"look"` -> `spr_cursor_eye`, `"talk"` -> `spr_cursor_talk`, `"pointer"` -> `spr_cursor_pointer`,
-  or `spr_cursor_reticle` whenever `player.aimmode == "aiming"` (aim reticle overrides mode). Mouse
-  wheel up/down (events 54/53) toggles `mode` between `"look"` and `"talk"` only — `"pointer"` is
-  set elsewhere (by an NPC left-click, see §5) and is not reachable by scrolling.
+  or `spr_cursor_reticle` whenever `player.aimmode == "aiming"` (aim reticle overrides mode). A
+  global **right press** (mouse event 54) toggles `mode` between `"look"` and `"talk"` only —
+  `"pointer"` is set elsewhere (by an NPC left-click, see §5) and is not reachable by toggling.
+  (Re-read for U.INC-T6: events 53/54 are global left/right *pressed*, not the wheel — GM's wheel
+  events are 60/61 and nothing in the project uses them. obj_mouse's 53 is an empty,
+  commented-out click-to-walk. The same right press also enters aim from `"equip"` in obj_walker,
+  so with the gun out it aimed and silently flipped the mode underneath the reticle.)
+  `last_mode` is kept so the console toggle (§5) can restore the mode after forcing `"pointer"`.
 
 **Unity port note:** this is two distinct eye systems — a diegetic in-world eyeball glued to each
 character's face (parallax pupil + blink) and a cursor-replacement icon shaped like an eye. Both
@@ -208,6 +213,17 @@ NPCs reuse the player's walk-bob and eye-tracking verbatim, plus:
   description string, e.g. *"A young woman with tell tale red eyes and a meandering gait. #Bless
   the young and stoned."* — `#` is this engine's inline newline); `"pointer"` opens the
   hacking/console overlay targeted at that NPC (see §5) and switches the active camera view to it.
+  Talk details (re-read for U.INC-T6): the click sets `waypoint_x = player.x + sprite_width` when
+  the NPC is left of the player (else `player.x - sprite_width`) — the *far* side, so the NPC walks
+  through the player. The walking branch runs for `"talking"` too (bob, head for the waypoint), and
+  like patrol it never stops on arrival; the stop-and-face-each-other block (NPC faces the player,
+  player turned to face the NPC) sits inside the `"stopping"` branch under `if (mode ==
+  "talking")`, so it can never run. While the player holds a walk key, obj_walker re-arms every
+  talking NPC's `alarm[0]` (200 steps holding right, 100 holding left); when it fires the NPC goes
+  back to `"walking"` toward `previous_waypoint_x`. `type_text` destroys any typewriter already
+  printing the same text, then spawns `obj_typewriter` at the click: one character per 2 steps,
+  then `alpha -= 0.01` per 2 steps until gone, over a 0.5-alpha `spr_desc_border` box drawn from
+  (x - 40, y - 20).
   NPCs also carry a `sheep_id` (e.g. `"0097"`) used by the `list sheep` console command (§6) —
   "sheep" is the in-fiction slang for a targetable civilian.
 

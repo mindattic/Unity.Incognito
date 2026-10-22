@@ -161,6 +161,16 @@ namespace Incognito.EditorTools
             cursorSo.FindProperty("reticleSprite").objectReferenceValue = ImportOriginal("spr_cursor_reticle", 16, 16);
             cursorSo.ApplyModifiedPropertiesWithoutUndo();
 
+            // Look/talk clicks on the NPC (U.INC-T6): the wheel cycles the cursor; a look click
+            // types obj_npc's description, a talk click walks the NPC over to the player.
+            var interaction = npc.AddComponent<NpcInteraction>();
+            interaction.Cursor = cursor;
+            interaction.Description = "A young woman with tell tale red eyes and a meandering gait.\nBless the young and stoned.";
+            var interactionSo = new SerializedObject(interaction);
+            interactionSo.FindProperty("viewCamera").objectReferenceValue = cam;
+            interactionSo.FindProperty("descriptionBorder").objectReferenceValue = ImportOriginal("spr_desc_border", 0, 0).texture;
+            interactionSo.ApplyModifiedPropertiesWithoutUndo();
+
             // Weapon (U.INC-T9): Z draws/holsters, hold right button to aim, left button fires.
             var weaponSo = new SerializedObject(weapon);
             weaponSo.FindProperty("supportArm").objectReferenceValue = supportArm;

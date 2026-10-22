@@ -56,6 +56,17 @@ namespace Incognito.Player
             bob.Reset();
         }
 
+        /// <summary>
+        /// Turns the player in place, as a talking NPC that arrives does (obj_npc's stop-and-face
+        /// block, U.INC-T6). Only while idle, so it never fights the walk keys. True if applied.
+        /// </summary>
+        public bool TurnToFace(FacingDirection facing)
+        {
+            if (CurrentMode != WalkMode.Idle) return false;
+            Facing = facing;
+            return true;
+        }
+
         public void Step(float deltaTime, bool moveLeft, bool moveRight, bool sprint)
         {
             float steps = Mathf.Max(deltaTime, 0f) * ReferenceFps;

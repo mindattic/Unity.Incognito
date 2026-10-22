@@ -23,4 +23,31 @@ namespace Incognito.Eye
             }
         }
     }
+
+    public static class EyeCursorModes
+    {
+        /// <summary>
+        /// obj_mouse's mode toggle (U.INC-T6): "look" -> "talk" -> "look". "pointer" is left
+        /// alone: it is set by the NPC/console flow (U.INC-T7) and is not reachable by cycling.
+        /// </summary>
+        public static EyeCursorMode Cycle(EyeCursorMode mode)
+        {
+            switch (mode)
+            {
+                case EyeCursorMode.Look: return EyeCursorMode.Talk;
+                case EyeCursorMode.Talk: return EyeCursorMode.Look;
+                default: return mode;
+            }
+        }
+
+        /// <summary>
+        /// Whether this frame's input cycles the mode: any mouse-wheel movement, or a right-button
+        /// press while the gun is holstered. The original toggled on a global right press
+        /// (obj_mouse event 54); with the gun out that press aims instead (U.INC-T9).
+        /// </summary>
+        public static bool ShouldCycle(float wheelDelta, bool rightPressed, bool weaponDrawn)
+        {
+            return wheelDelta != 0f || (rightPressed && !weaponDrawn);
+        }
+    }
 }

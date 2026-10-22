@@ -75,6 +75,21 @@ of the usual wide adventure-game establishing shot — the game's whole premise 
   verbatim from the 2013 project (`Assets/Incognito/Art/Original/`) at their GM origins. Aiming is
   an `Aiming` flag on both components for U.INC-T9 to set; look/talk scrolling (U.INC-T6) and
   pointer mode (U.INC-T7) write `EyeCursor.Mode`.
+- **Look/talk cursor modes (U.INC-T6).** The mouse wheel (either direction) toggles look/talk, as
+  the ticket asks; the original actually toggled on a right press (RECONSTRUCTION §3), so a right
+  click also toggles while the gun is holstered — with it out, right click only aims (the original
+  flipped the mode under the reticle too). Pointer is never reached by toggling. A left click on an
+  NPC acts by mode, as obj_npc did: look types its description (per-NPC data on `NpcInteraction`)
+  at the click with obj_typewriter's timing and the original `spr_desc_border`; talk walks it over;
+  pointer raises `NpcInteraction.PointerClicked` for U.INC-T7. Cleanups: clicks do nothing while
+  aiming (that click is the trigger); the talker stands one body width from the player on the side
+  it came from instead of walking through to the far side, then coasts to a stop and runs the
+  original's unreachable stop-and-face block (it faces the player and turns the player to face it
+  if the player is idle and not aiming); it resumes its route 200 steps after the player's last
+  walking step whichever way they walk (the original used 100 when walking left); the description
+  box fades with its text and is sized to the text rather than `string_width * 3`. See
+  `Assets/Incognito/Scripts/Npc/NpcInteraction.cs`, `NpcPatrolState.cs` and
+  `Assets/Incognito/Scripts/Typing/`.
 - **Typed console stubs (U.INC-T10).** `help`, `list`, `list sheep`, `clear` and "Command not
   recognized" are ported verbatim (`#` line breaks become `\n`). The original's stubs get small,
   consequence-free implementations: `list camera`/`list computer` follow `list sheep`'s pattern

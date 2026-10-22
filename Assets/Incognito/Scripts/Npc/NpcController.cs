@@ -6,8 +6,8 @@ namespace Incognito.Npc
     /// <summary>
     /// Drives an NPC's <see cref="NpcPatrolState"/> and <see cref="SuspicionMeter"/> and applies
     /// them to the transform, sprite and the "NN%" suspicion label the original drew over the
-    /// NPC's head (draw_text_outline at y - 200). See docs/RECONSTRUCTION.md §4. Eyes (U.INC-T5)
-    /// and click interactions (U.INC-T6/T7) are other tickets.
+    /// NPC's head (draw_text_outline at y - 200). See docs/RECONSTRUCTION.md §4. Talk mode
+    /// (U.INC-T6) is driven from <see cref="NpcInteraction"/>; pointer mode is U.INC-T7.
     /// </summary>
     [RequireComponent(typeof(SpriteRenderer))]
     public sealed class NpcController : MonoBehaviour
@@ -58,10 +58,33 @@ namespace Incognito.Npc
             // goes there too or the next Update would put the NPC back.
             var target = GetComponent<Incognito.Weapon.BulletTarget>();
             if (target != null) target.Hit += Patrol.Knockback;
+
+            // U.INC-T6: an arriving talker turns the player to face it (unless aiming).
+            Patrol.ConversationStarted += facing =>
+            {
+                if (player != null && player.State != null && !player.MovementLocked)
+                {
+                    player.State.TurnToFace(facing);
+                }
+            };
+        }
+
+        /// <summary>Talk-mode click (U.INC-T6): walk over to the player and start talking.</summary>
+        public void StartTalking()
+        {
+            if (player == null || player.State == null) return;
+            // GM's sprite_width: the NPC's on-screen width in original pixels.
+            Patrol.StartTalking(player.State.PositionX, spriteRenderer.bounds.size.x / Px);
         }
 
         private void Update()
         {
+            if (player != null && player.State != null
+                && player.State.CurrentMode == PlayerLocomotionState.WalkMode.Walking)
+            {
+                Patrol.PlayerWalked();
+            }
+
             Patrol.Step(Time.deltaTime);
 
             if (player != null && player.State != null)
