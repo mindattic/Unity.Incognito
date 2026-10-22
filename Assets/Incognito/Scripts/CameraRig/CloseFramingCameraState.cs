@@ -1,0 +1,117 @@
+using Incognito.Player;
+using UnityEngine;
+
+namespace Incognito.CameraRig
+{
+    /// <summary>
+    /// Pure, engine-loop-free simulation of the original obj_camera close framing
+    /// (RECONSTRUCTION.md §2), in original GameMaker pixel units.
+    ///
+    /// Horizontal: the camera target is pinned half a view minus one player-width ahead of the
+    /// player in the direction they face, so the player sits near the trailing edge with room
+    /// to walk into. Near the room ends the target falls back to the player's own x. The view
+    /// then follows that target the way GM8's view_object follow did in street00 (hborder=910
+    /// in a 1920 view, i.e. a 50px deadzone either side of centre, at most hspeed=20px per
+    /// step) and is clamped to the room, which is what makes a facing flip read as a quick
+    /// swing rather than a cut.
+    ///
+    /// Vertical: the original set y = mouse_y, but its room was exactly as tall as the view, so
+    /// that pan never actually moved anything. The rebuild's chosen interpretation (BIBLE.md
+    /// open question, decided in U.INC-T4) is a direct, instant, bounded pan: the mouse's
+    /// height on screen maps linearly onto ±MaxVerticalPan around the camera's resting height.
+    /// </summary>
+    public sealed class CloseFramingCameraState
+    {
+        // GM8 view speeds were per 60fps step; scaled by deltaTime like PlayerLocomotionState.
+        public const float ReferenceFps = PlayerLocomotionState.ReferenceFps;
+
+        /// <summary>View width (original: wview = 1920).</summary>
+        public float ViewWidth = 1920f;
+
+        /// <summary>Original: player_width = sprite_get_width(spr_player) = 512.</summary>
+        public float PlayerWidth = 512f;
+
+        /// <summary>Room extent (original street00: 0..11520).</summary>
+        public float RoomMinX = 0f;
+        public float RoomMaxX = 11520f;
+
+        /// <summary>Half-width of the follow deadzone around view centre (original: wview/2 - hborder = 960 - 910).</summary>
+        public float HorizontalDeadzone = 50f;
+
+        /// <summary>Max view travel per step (original: hspeed = 20). Zero or negative means instant.</summary>
+        public float HorizontalPanSpeed = 20f;
+
+        /// <summary>How far the view may pan up/down from rest when the mouse is at the screen top/bottom.</summary>
+        public float MaxVerticalPan = 135f;
+
+        public float CenterX { get; private set; }
+        public float VerticalOffset { get; private set; }
+
+        /// <summary>Where obj_camera itself would sit this step (before the view-follow lag).</summary>
+        public float TargetX(float playerX, PlayerLocomotionState.FacingDirection facing)
+        {
+            float halfView = ViewWidth * 0.5f;
+            bool awayFromRoomEnds =
+                playerX >= RoomMinX + halfView + PlayerWidth &&
+                playerX < RoomMaxX - halfView - PlayerWidth;
+
+            if (!awayFromRoomEnds)
+            {
+                return playerX;
+            }
+
+            return facing == PlayerLocomotionState.FacingDirection.Left
+                ? playerX - halfView + PlayerWidth
+                : playerX + halfView - PlayerWidth;
+        }
+
+        /// <summary>Jumps straight to the framed position (scene start), skipping the pan lag.</summary>
+        public void SnapTo(float playerX, PlayerLocomotionState.FacingDirection facing, float mouseViewportY = 0.5f)
+        {
+            CenterX = ClampToRoom(TargetX(playerX, facing));
+            VerticalOffset = VerticalPanFor(mouseViewportY);
+        }
+
+        /// <param name="mouseViewportY">Mouse height on screen, 0 = bottom, 1 = top.</param>
+        public void Step(float deltaTime, float playerX, PlayerLocomotionState.FacingDirection facing, float mouseViewportY)
+        {
+            float steps = Mathf.Max(deltaTime, 0f) * ReferenceFps;
+            float target = TargetX(playerX, facing);
+
+            float desired = CenterX;
+            if (target > CenterX + HorizontalDeadzone)
+            {
+                desired = target - HorizontalDeadzone;
+            }
+            else if (target < CenterX - HorizontalDeadzone)
+            {
+                desired = target + HorizontalDeadzone;
+            }
+
+            CenterX = HorizontalPanSpeed > 0f
+                ? Mathf.MoveTowards(CenterX, desired, HorizontalPanSpeed * steps)
+                : desired;
+            CenterX = ClampToRoom(CenterX);
+
+            VerticalOffset = VerticalPanFor(mouseViewportY);
+        }
+
+        private float ClampToRoom(float centerX)
+        {
+            float halfView = ViewWidth * 0.5f;
+            float min = RoomMinX + halfView;
+            float max = RoomMaxX - halfView;
+            if (min > max)
+            {
+                return (RoomMinX + RoomMaxX) * 0.5f;
+            }
+            return Mathf.Clamp(centerX, min, max);
+        }
+
+        private float VerticalPanFor(float mouseViewportY)
+        {
+            float normalized = Mathf.Clamp(mouseViewportY * 2f - 1f, -1f, 1f);
+            return normalized * MaxVerticalPan;
+        }
+    }
+}

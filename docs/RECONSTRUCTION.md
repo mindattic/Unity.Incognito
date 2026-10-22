@@ -79,9 +79,18 @@ if (player.x >= view_wview/2 + player_width && player.x < room_width - view_wvie
 y = mouse_y; // vertical pan follows the mouse directly
 ```
 
-(`player_width` is cached once in the Create event from `spr_player`.) Vertical framing is tied
-straight to `mouse_y`, uncapped in this snippet — the rebuild should decide a sensible vertical
-clamp/deadzone since the original room is a flat 1080px-tall strip with the player's feet fixed.
+(`player_width` is cached once in the Create event from `spr_player`, 512px wide.) Vertical framing
+is tied straight to `mouse_y`, uncapped in this snippet — the rebuild should decide a sensible
+vertical clamp/deadzone since the original room is a flat 1080px-tall strip with the player's feet
+fixed.
+
+`obj_camera` is only the *target*; the actual view follows it through GM8's view settings in
+`rooms/street00.room.gmx` (view 0: `objName="obj_camera" wview="1920" hview="1080" hborder="910"
+vborder="32" hspeed="20" vspeed="-1"`). So the view keeps the camera object within a 50px
+deadzone either side of centre (960 - 910), moves at most 20px per step horizontally (a facing flip
+is a ~0.75s swing across 896px, not a cut), and GM clamps it to the room. Because `hview` equals
+the room height, the view can never move vertically: `y = mouse_y` had no visible effect in the
+original. The rebuild's vertical pan is therefore a design decision (BIBLE.md, Decisions made).
 
 View object is swapped to the cursor (`view_object[0] = cursor`) when a console/hacking overlay is
 "inverted" on (see §5) — the camera handoff that makes the HUD scan feel like you're now looking

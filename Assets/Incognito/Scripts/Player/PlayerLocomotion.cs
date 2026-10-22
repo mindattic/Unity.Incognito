@@ -53,6 +53,6 @@ namespace Incognito.Player
         // The original ran in GameMaker pixel units; a real art pass (U.INC-T11) will set the
         // final scale. 1 original pixel ~= 1/32 Unity unit is a placeholder matching a typical
         // 32px-per-unit pixel-art import.
-        private const float WorldUnitsPerOriginalPixel = 1f / 32f;
+        public const float WorldUnitsPerOriginalPixel = 1f / 32f;
     }
 }

@@ -53,8 +53,16 @@ of the usual wide adventure-game establishing shot — the game's whole premise 
   questions).
 - Whether `list all`/`reboot`/`overwrite` console commands get real implementations or stay flavor
   stubs.
-- Target resolution/aspect ratio for the close camera in Unity (the original was a fixed-size GM8
-  window; decide this when building U.INC-T4).
+
+## Decisions made
+
+- **Close camera view size / vertical pan (U.INC-T4).** The reference view is the original
+  1920x1080 (orthographic size = 540 original px at the placeholder 1px = 1/32 unit scale); the
+  horizontal framing reads the live view width from the camera, so other aspect ratios keep the
+  same lead-room rule instead of needing a fixed window. The original's `y = mouse_y` was a no-op
+  (its room was exactly view-height), so the rebuild makes it a direct, instant, bounded pan: mouse
+  height on screen maps linearly onto ±135 original px (one eighth of the view height) around the
+  camera's resting height. See `Assets/Incognito/Scripts/CameraRig/CloseFramingCameraState.cs`.
 
 ## Laws
 
