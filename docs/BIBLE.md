@@ -85,6 +85,18 @@ of the usual wide adventure-game establishing shot — the game's whole premise 
   outer range the suspicion cue uses; the original listed every NPC in the room. Until the hacking
   overlay (U.INC-T7) opens the prompt from its program icons, Q opens it and Escape closes it, and
   movement keys are ignored while it is open. See `Assets/Incognito/Scripts/Terminal/`.
+- **NPC patrol routes (U.INC-T8).** The original had one off-street waypoint and never stopped on
+  arrival. The rebuild gives each NPC a data route of X waypoints walked in order and looped,
+  turning on arrival (`a_near_b` ±20px); a one-waypoint route walks there and coasts to a stop
+  through the original's otherwise-unreached `"stopping"` friction. Speed (5px/step), arrive range
+  and the 2-step start alarm are as the original. See `Assets/Incognito/Scripts/Npc/NpcPatrolState.cs`.
+- **Suspicion meter (U.INC-T8).** Rates, ranges and the accelerating out-of-range decay are the
+  original's, as serialized `SuspicionTuning` data. Three cleanups: suspicion is clamped to
+  0–100% (the original went negative and past 100); "facing each other" needs each to face toward
+  the other (the original also counted back to back); "looking down" is the cursor in the lower
+  half of the screen (the original's `mouse_y > room_height/2`, which equalled the screen since
+  room and view were the same height). The range bands use the live view width. What 100% *does*
+  is still open (below). See `Assets/Incognito/Scripts/Npc/SuspicionMeter.cs`.
 
 ## Laws
 

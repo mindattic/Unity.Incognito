@@ -1,6 +1,7 @@
 using System.IO;
 using Incognito.CameraRig;
 using Incognito.Eye;
+using Incognito.Npc;
 using Incognito.Player;
 using Incognito.Terminal;
 using UnityEditor;
@@ -13,8 +14,9 @@ namespace Incognito.EditorTools
     /// Builds Assets/Incognito/Scenes/PlayerSandbox.unity: a flat-ground, placeholder-sprite
     /// street00-sized scene to exercise <see cref="PlayerLocomotion"/>,
     /// <see cref="CloseFramingCamera"/>, <see cref="PlayerEyeball"/>, <see cref="EyeCursor"/> and
-    /// the typed <see cref="CommandPrompt"/> in Play mode before real art (U.INC-T11) exists. Safe to re-run (overwrites the scene and
-    /// its placeholder sprites, and re-applies the original sprites' import settings).
+    /// the typed <see cref="CommandPrompt"/>, plus a patrolling <see cref="NpcController"/>, in
+    /// Play mode before real art (U.INC-T11) exists. Safe to re-run (overwrites the scene and its
+    /// placeholder sprites, and re-applies the original sprites' import settings).
     /// </summary>
     public static class SandboxSceneBuilder
     {
@@ -30,6 +32,7 @@ namespace Incognito.EditorTools
 
             var groundSprite = CreateSolidSpriteAsset(ArtDir + "/placeholder_ground.png", new Color(0.35f, 0.35f, 0.35f));
             var playerSprite = CreatePlayerPlaceholder(ArtDir + "/placeholder_player.png");
+            var npcSprite = CreateNpcPlaceholder(ArtDir + "/placeholder_npc.png");
 
             // Room sized like the original street00 (11520x1080 px) at the placeholder
             // 1px = 1/32 unit scale: 360 units wide, ground top at y = 0.
@@ -60,6 +63,37 @@ namespace Incognito.EditorTools
             player.GetComponent<SpriteRenderer>().sprite = playerSprite;
             player.transform.position = new Vector3(roomWidth * 0.5f, 512f * px, 0f);
             var locomotion = player.AddComponent<PlayerLocomotion>();
+
+            // One patrolling NPC at the original street00 placement (x = 2400). The original's
+            // only waypoint was x = 12000, past the room's end; the sandbox patrols the street
+            // instead so the NPC keeps crossing the player's path. Like obj_walker, obj_npc's
+            // initialY = room_height - sprite_height/2 puts its origin 512px above the floor.
+            var npc = new GameObject("NPC", typeof(SpriteRenderer));
+            npc.GetComponent<SpriteRenderer>().sprite = npcSprite;
+            npc.transform.position = new Vector3(2400f * px, 512f * px, 0.5f);
+            var npcController = npc.AddComponent<NpcController>();
+            npcController.Player = locomotion;
+
+            var label = new GameObject("NPC Suspicion Label", typeof(TextMesh));
+            var text = label.GetComponent<TextMesh>();
+            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            label.GetComponent<MeshRenderer>().sharedMaterial = text.font.material;
+            label.GetComponent<MeshRenderer>().sortingOrder = 10;
+            text.text = "0%";
+            text.fontSize = 48;
+            text.characterSize = 0.3f;
+            text.anchor = TextAnchor.MiddleCenter;
+            text.alignment = TextAlignment.Center;
+            text.color = Color.white;
+            label.transform.position = new Vector3(npc.transform.position.x, npc.transform.position.y + 200f * px, -1f);
+
+            var npcSo = new SerializedObject(npcController);
+            var route = npcSo.FindProperty("waypoints");
+            route.arraySize = 2;
+            route.GetArrayElementAtIndex(0).floatValue = 9000f;
+            route.GetArrayElementAtIndex(1).floatValue = 2400f;
+            npcSo.FindProperty("suspicionLabel").objectReferenceValue = text;
+            npcSo.ApplyModifiedPropertiesWithoutUndo();
 
             // Orthographic view matching the original 1920x1080 window, resting with the
             // ground along the bottom (the original kept the player's feet at the room floor).
@@ -201,6 +235,26 @@ namespace Incognito.EditorTools
             go.AddComponent<ConsoleTarget>().Configure(type, id);
         }
 
+        /// <summary>A flat red stand-in for spr_npc_ia at its true 512x1024 size and origin
+        /// (256,440).</summary>
+        private static Sprite CreateNpcPlaceholder(string path)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+
+            const int width = 512, height = 1024;
+            var tex = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            var pixels = new Color[width * height];
+            var body = new Color(0.8f, 0.25f, 0.3f);
+            for (int i = 0; i < pixels.Length; i++) pixels[i] = body;
+            tex.SetPixels(pixels);
+            tex.Apply();
+
+            File.WriteAllBytes(path, tex.EncodeToPNG());
+            Object.DestroyImmediate(tex);
+
+            return ImportPixelSprite(path, 256, 440);
+        }
+
         private static Sprite CreateSolidSpriteAsset(string path, Color color)
         {
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
@@ -218,6 +272,9 @@ namespace Incognito.EditorTools
             AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
             var importer = (TextureImporter)AssetImporter.GetAtPath(path);
             importer.textureType = TextureImporterType.Sprite;
+            // Single, not the importer's default Multiple-with-no-slices, or LoadAssetAtPath<Sprite>
+            // returns null and every placeholder renders invisible.
+            importer.spriteImportMode = SpriteImportMode.Single;
             importer.spritePixelsPerUnit = size;
             importer.filterMode = FilterMode.Point;
             importer.SaveAndReimport();

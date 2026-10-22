@@ -1,4 +1,5 @@
 using System;
+using Incognito.Motion;
 using UnityEngine;
 
 namespace Incognito.Player
@@ -28,7 +29,7 @@ namespace Incognito.Player
 
         public WalkMode CurrentMode { get; private set; } = WalkMode.Idle;
         public FacingDirection Facing { get; private set; } = FacingDirection.Left;
-        public float BobOffset { get; private set; }
+        public float BobOffset => bob.Offset;
         public float HorizontalSpeed { get; private set; }
         public float PositionX { get; private set; }
 
@@ -38,9 +39,13 @@ namespace Incognito.Player
         /// <summary>Fires when the bob reaches its top and starts descending — the original's
         /// play_footstep() call site. No subscriber is wired up by this ticket (T3); the audio
         /// pipeline (T11+) hooks in here.</summary>
-        public event Action OnBobPeak;
+        public event Action OnBobPeak
+        {
+            add => bob.OnPeak += value;
+            remove => bob.OnPeak -= value;
+        }
 
-        private bool bobRising = true;
+        private readonly TriangleWaveBob bob = new TriangleWaveBob();
 
         public void Step(float deltaTime, bool moveLeft, bool moveRight, bool sprint)
         {
@@ -79,8 +84,7 @@ namespace Incognito.Player
             }
             else
             {
-                BobOffset = 0f;
-                bobRising = true;
+                bob.Reset();
             }
         }
 
@@ -106,26 +110,9 @@ namespace Incognito.Player
 
         private void Bob(float steps)
         {
-            float delta = BobRampSpeed * steps;
-            if (bobRising)
-            {
-                BobOffset += delta;
-                if (BobOffset >= BobAmplitude)
-                {
-                    BobOffset = BobAmplitude;
-                    bobRising = false;
-                    OnBobPeak?.Invoke();
-                }
-            }
-            else
-            {
-                BobOffset -= delta;
-                if (BobOffset <= -BobAmplitude)
-                {
-                    BobOffset = -BobAmplitude;
-                    bobRising = true;
-                }
-            }
+            bob.Amplitude = BobAmplitude;
+            bob.RampSpeed = BobRampSpeed;
+            bob.Advance(steps);
         }
     }
 }

@@ -3,7 +3,7 @@ codex: 1
 project: Unity.Incognito
 layer: research
 status: living
-updated: 2026-10-21
+updated: 2026-10-22
 ---
 
 # Incognito — reverse-engineering notes
@@ -138,6 +138,13 @@ NPCs reuse the player's walk-bob and eye-tracking verbatim, plus:
 
 - **Patrol**: walk toward `waypoint_x` at a fixed `walk_speed`, flipping `facing`/`image_xscale`
   toward the target (`a_near_b(x, waypoint_x, 20)` — `scripts/a_near_b.gml` — gates "arrived").
+  Details (re-read for U.INC-T8): `walk_speed = 5` is a global (`scripts/globals.gml`); the NPC
+  starts `"idle"` facing right and a 2-step `alarm[0]` flips it to `"walking"`. There is exactly
+  one waypoint, `waypoint_x = previous_waypoint_x = 12000` — past street00's 11520px end — and the
+  street00 instance stands at x = 2400, so the original NPC simply walks right off the street.
+  Arrival does nothing: `hspeed` is left as is, so an NPC that did reach its waypoint would
+  overshoot and jitter back and forth around it. The `"stopping"` branch (`hspeed *= 0.9` until
+  `< 1`) exists but nothing in `obj_npc` ever enters it.
 - **Suspicion** (a visible `%` label drawn over the NPC's head via `draw_text_outline`) is a
   per-step accumulator, `suspicion += suspicion_rate`, where `suspicion_rate` is recomputed every
   step from three independent cues (comment headers are the original author's own, kept verbatim):
@@ -163,6 +170,14 @@ NPCs reuse the player's walk-bob and eye-tracking verbatim, plus:
   else. `suspicion` itself is never clamped or consumed in what's wired up here (no detected/alert
   state fires) — the rebuild should decide thresholds and consequences; the original only draws
   the running percentage.
+
+  Three literal-source details the summary above flattens (re-read for U.INC-T8):
+  `distance` is `point_distance(player.x, 0, x, 0)` — horizontal only. The far branch is
+  `suspicion_rate -= 0.1` with no reset, so out of range the rate keeps falling every step (the
+  facing adjustment also accumulates there) and suspicion drains faster the longer you stay away;
+  the near/mid branches assign, so stepping back into range resets it. And `facing_each_other` is
+  only `npc.facing` opposite `player.facing` — position is never checked, so standing back to back
+  also counts. `suspicion` is unclamped and can go negative.
 - **Interaction** depends on the cursor's `mode` at click time (collision/left-click event,
   `eventtype="6" enumb="4"`): `"talk"` sets `mode = "talking"` and walks the NPC to stand next to
   the player; `"look"` calls `type_text(mouse_x, mouse_y, description)` (the NPC's floating
