@@ -155,7 +155,6 @@ namespace Incognito.EditorTools
 
             var scenes = new List<string> { BuildTitle() };
             foreach (var spec in Rooms) scenes.Add(BuildRoom(spec));
-            scenes.Add(SandboxPath);
 
             EditorBuildSettings.scenes = scenes.Select(p => new EditorBuildSettingsScene(p, true)).ToArray();
             AssetDatabase.SaveAssets();
