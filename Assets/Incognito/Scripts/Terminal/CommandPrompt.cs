@@ -11,33 +11,64 @@ namespace Incognito.Terminal
     /// <see cref="CommandInterpreter"/> against the <see cref="ConsoleTarget"/>s in
     /// <see cref="Vicinity"/> of <see cref="Origin"/>.
     ///
-    /// In the original the prompt was opened from the hacking overlay's program icons
-    /// (obj_mouse_gui) — that overlay is U.INC-T7. Until it exists, Q (the original's
-    /// console-toggle key in obj_walker) opens the prompt and Escape closes it; while open, the
-    /// keyboard belongs to the prompt (<see cref="CapturesKeyboard"/>).
-    /// Drawn with IMGUI on placeholder colours until the art pass (U.INC-T11); the per-keystroke
-    /// <c>sfx_type</c> also waits for the audio pass.
+    /// The hacking overlay (U.INC-T7, <see cref="Hacking.HackingOverlay"/>) opens it — a
+    /// pointer-mode click on an NPC, or its program icon — as obj_npc / obj_mouse_gui opened
+    /// console[0]; Escape closes it. While open, the keyboard belongs to the prompt
+    /// (<see cref="CapturesKeyboard"/>). Laid out as obj_console (the panel start_game.gml
+    /// actually created), over the original spr_console_selected art when assigned; the
+    /// per-keystroke <c>sfx_type</c> waits for the audio pass (U.INC-T11).
     /// </summary>
     public sealed class CommandPrompt : MonoBehaviour
     {
         [SerializeField] private Transform origin;
-        [SerializeField] private KeyCode openKey = KeyCode.Q;
         [SerializeField] private KeyCode closeKey = KeyCode.Escape;
 
         [Tooltip("Vicinity radius in original pixels (default: one view width).")]
         [SerializeField] private float vicinityRadius = Vicinity.DefaultRadius;
 
-        // Original layout, in original pixels on the 1920x1080 view.
+        [Tooltip("spr_console_selected (580x200). A flat placeholder panel when unset.")]
+        [SerializeField] private Texture2D panelArt;
+
+        // obj_console layout, in original pixels on the 1920x1080 view.
         private const float PanelWidth = 580f;
         private const float PanelHeight = 200f;
-        private const float BottomMargin = 100f; // obj_command_prompt: y = room_height - sprite_height - 100
-        private const float InputInset = 65f;    // inputX = x + 65
+        private const float PanelTop = 1080f - 300f; // console[0].y = room_height - 300
+        private const float InputInset = 65f;        // inputX = x + 65
+        private const float OutputTop = 35f;         // draw_text(inputX, y + 35, output)
+        private const float InputTop = 170f;         // console[0].inputY = y + 170
+        private const float CpuTop = 8f;             // draw_text(inputX + 450, y + 8, "CPU: ...")
+        private const float CpuRight = 450f;
         private const float IBeamPeriodSteps = 30f;
 
         private static CommandPrompt openPrompt;
 
         /// <summary>True while any prompt is open, so gameplay ignores typed keys.</summary>
         public static bool CapturesKeyboard => openPrompt != null && openPrompt.Slide.IsOpen;
+
+        /// <summary>Opening or open — not sliding away and not off.</summary>
+        public bool IsShowing =>
+            Slide.Current == CommandPromptSlide.Mode.Onscreen || Slide.Current == CommandPromptSlide.Mode.Idle;
+
+        /// <summary>The panel's screen rect in GUI coordinates (top-left origin).</summary>
+        public Rect PanelScreenRect
+        {
+            get
+            {
+                float scale = Screen.height / 1080f;
+                return new Rect(Slide.X * scale, PanelTop * scale, PanelWidth * scale, PanelHeight * scale);
+            }
+        }
+
+        /// <summary>Whether <paramref name="screenPoint"/> (Input.mousePosition, bottom-left
+        /// origin) is over the visible panel, so the click is the panel's, not the world's.</summary>
+        public bool ContainsScreenPoint(Vector2 screenPoint)
+        {
+            if (!Slide.IsOpen) return false;
+            return PanelScreenRect.Contains(new Vector2(screenPoint.x, Screen.height - screenPoint.y));
+        }
+
+        /// <summary>obj_console's CPU readout: one console open is one active CPU.</summary>
+        public string CpuText => Hacking.CpuReadout.Format(Hacking.CpuReadout.DefaultCpuPower, Slide.IsOpen ? 1 : 0);
 
         public CommandInterpreter Interpreter { get; private set; }
         public CommandPromptSlide Slide { get; private set; }
@@ -99,8 +130,7 @@ namespace Incognito.Terminal
 
         private void Update()
         {
-            if (!Slide.IsOpen && !CapturesKeyboard && Input.GetKeyDown(openKey)) Open();
-            else if (Slide.IsOpen && Input.GetKeyDown(closeKey)) Close();
+            if (Slide.IsOpen && Input.GetKeyDown(closeKey)) Close();
 
             Slide.Step(Time.deltaTime);
             if (!Slide.IsOpen && openPrompt == this) openPrompt = null;
@@ -133,21 +163,21 @@ namespace Incognito.Terminal
             float scale = Screen.height / 1080f;
             EnsureStyle(scale);
 
-            var panel = new Rect(
-                Slide.X * scale,
-                Screen.height - (PanelHeight + BottomMargin) * scale,
-                PanelWidth * scale,
-                PanelHeight * scale);
-            GUI.DrawTexture(panel, panelTexture);
+            var panel = PanelScreenRect;
+            GUI.DrawTexture(panel, panelArt != null ? panelArt : panelTexture);
 
             float inputX = panel.x + InputInset * scale;
             float lineHeight = textStyle.lineHeight;
-            var outputRect = new Rect(inputX, panel.y + 12f * scale, panel.width - InputInset * scale - 12f * scale,
-                panel.height - 24f * scale - lineHeight);
+
+            var cpuStyle = new GUIStyle(textStyle) { alignment = TextAnchor.UpperRight, wordWrap = false };
+            GUI.Label(new Rect(inputX, panel.y + CpuTop * scale, CpuRight * scale, lineHeight), CpuText, cpuStyle);
+
+            float inputY = panel.y + InputTop * scale;
+            var outputRect = new Rect(inputX, panel.y + OutputTop * scale, panel.width - InputInset * scale - 12f * scale,
+                inputY - (panel.y + OutputTop * scale));
             GUI.Label(outputRect, Output, textStyle);
 
             bool iBeamOn = Mathf.FloorToInt(Time.unscaledTime * CommandPromptSlide.ReferenceFps / IBeamPeriodSteps) % 2 == 0;
-            float inputY = panel.yMax - 12f * scale - lineHeight;
             GUI.Label(new Rect(inputX - 12f * scale, inputY, 20f * scale, lineHeight), ">", textStyle);
             GUI.Label(new Rect(inputX, inputY, outputRect.width, lineHeight), InputText + (iBeamOn ? "_" : ""), textStyle);
         }

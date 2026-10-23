@@ -1,6 +1,7 @@
 using System.IO;
 using Incognito.CameraRig;
 using Incognito.Eye;
+using Incognito.Hacking;
 using Incognito.Npc;
 using Incognito.Player;
 using Incognito.Terminal;
@@ -15,7 +16,8 @@ namespace Incognito.EditorTools
     /// Builds Assets/Incognito/Scenes/PlayerSandbox.unity: a flat-ground, placeholder-sprite
     /// street00-sized scene to exercise <see cref="PlayerLocomotion"/>,
     /// <see cref="CloseFramingCamera"/>, <see cref="PlayerEyeball"/>, <see cref="EyeCursor"/> and
-    /// the typed <see cref="CommandPrompt"/> and <see cref="PlayerWeapon"/>, plus a patrolling
+    /// the typed <see cref="CommandPrompt"/> behind the <see cref="HackingOverlay"/>, and
+    /// <see cref="PlayerWeapon"/>, plus a patrolling
     /// (and shootable) <see cref="NpcController"/>, in
     /// Play mode before real art (U.INC-T11) exists. Safe to re-run (overwrites the scene and its
     /// placeholder sprites, and re-applies the original sprites' import settings).
@@ -190,11 +192,28 @@ namespace Incognito.EditorTools
             weaponSo.FindProperty("room").rectValue = new Rect(0f, -2f, roomWidth, viewHeight);
             weaponSo.ApplyModifiedPropertiesWithoutUndo();
 
-            // Typed console (U.INC-T10): Q opens it, Escape closes it. Placeholder console
-            // targets around the player's start: two civilians and a camera in vicinity (one
-            // view width), and one civilian far down the street that `list sheep` must not see.
+            // Typed console (U.INC-T10), drawn on the original spr_console_selected. Placeholder
+            // console targets around the player's start: two civilians and a camera in vicinity
+            // (one view width), and one civilian far down the street that `list sheep` must not see.
             var console = new GameObject("Command Prompt");
-            console.AddComponent<CommandPrompt>().Origin = player.transform;
+            var prompt = console.AddComponent<CommandPrompt>();
+            prompt.Origin = player.transform;
+            var promptSo = new SerializedObject(prompt);
+            promptSo.FindProperty("panelArt").objectReferenceValue = ImportOriginal("spr_console_selected", 0, 0).texture;
+            promptSo.ApplyModifiedPropertiesWithoutUndo();
+
+            // Hacking overlay (U.INC-T7): Q toggles the console view (pointer cursor, circuit
+            // backdrop, camera on the cursor); a pointer click on the NPC raises the program icon,
+            // opens the console and centres the camera on the NPC.
+            var hacking = new GameObject("Hacking Overlay").AddComponent<HackingOverlay>();
+            hacking.Cursor = cursor;
+            hacking.Prompt = prompt;
+            hacking.ViewCamera = framing;
+            var hackingSo = new SerializedObject(hacking);
+            hackingSo.FindProperty("backdrop").objectReferenceValue = ImportOriginal("spr_circuitwall1", 0, 0).texture;
+            hackingSo.FindProperty("programIcon").objectReferenceValue = ImportOriginal("spr_program", 0, 0).texture;
+            hackingSo.FindProperty("programIconActive").objectReferenceValue = ImportOriginal("spr_program_active", 0, 0).texture;
+            hackingSo.ApplyModifiedPropertiesWithoutUndo();
 
             var targets = new GameObject("Console Targets");
             AddConsoleTarget(targets.transform, groundSprite, ConsoleObjectType.Sheep, "0097", roomWidth * 0.5f + 15f);

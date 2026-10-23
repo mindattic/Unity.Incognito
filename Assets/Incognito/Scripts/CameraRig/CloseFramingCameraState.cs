@@ -75,26 +75,42 @@ namespace Incognito.CameraRig
         /// <param name="mouseViewportY">Mouse height on screen, 0 = bottom, 1 = top.</param>
         public void Step(float deltaTime, float playerX, PlayerLocomotionState.FacingDirection facing, float mouseViewportY)
         {
+            StepToward(deltaTime, TargetX(playerX, facing), HorizontalDeadzone, HorizontalPanSpeed, mouseViewportY);
+        }
+
+        /// <summary>
+        /// GM8's view_object follow for an arbitrary followed x (U.INC-T7: obj_walker's console
+        /// toggle points view_object[0] at the cursor, and an NPC pointer click points it at the
+        /// NPC): the view moves only once <paramref name="targetX"/> is more than
+        /// <paramref name="deadzone"/> (view_wview/2 - view_hborder) from its centre, by at most
+        /// <paramref name="panSpeed"/> (view_hspeed) per step, clamped to the room.
+        /// </summary>
+        public void StepToward(float deltaTime, float targetX, float deadzone, float panSpeed, float mouseViewportY)
+        {
             float steps = Mathf.Max(deltaTime, 0f) * ReferenceFps;
-            float target = TargetX(playerX, facing);
+            deadzone = Mathf.Max(deadzone, 0f);
 
             float desired = CenterX;
-            if (target > CenterX + HorizontalDeadzone)
+            if (targetX > CenterX + deadzone)
             {
-                desired = target - HorizontalDeadzone;
+                desired = targetX - deadzone;
             }
-            else if (target < CenterX - HorizontalDeadzone)
+            else if (targetX < CenterX - deadzone)
             {
-                desired = target + HorizontalDeadzone;
+                desired = targetX + deadzone;
             }
 
-            CenterX = HorizontalPanSpeed > 0f
-                ? Mathf.MoveTowards(CenterX, desired, HorizontalPanSpeed * steps)
+            CenterX = panSpeed > 0f
+                ? Mathf.MoveTowards(CenterX, desired, panSpeed * steps)
                 : desired;
             CenterX = ClampToRoom(CenterX);
 
             VerticalOffset = VerticalPanFor(mouseViewportY);
         }
+
+        /// <summary>The cursor's room x (GM's mouse_x) for a mouse at
+        /// <paramref name="mouseViewportX"/> across the view (0 = left edge, 1 = right edge).</summary>
+        public float CursorX(float mouseViewportX) => CenterX + (mouseViewportX - 0.5f) * ViewWidth;
 
         private float ClampToRoom(float centerX)
         {

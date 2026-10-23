@@ -97,9 +97,9 @@ of the usual wide adventure-game establishing shot — the game's whole premise 
   <id>` resolve a target by handle (`shp#0097`) or bare id and raise an event on its
   `ConsoleTarget` — what a reboot or overwrite actually *does* is left to whichever later ticket
   needs it. "Vicinity" means within one view width (1920 original px) of the player, the same
-  outer range the suspicion cue uses; the original listed every NPC in the room. Until the hacking
-  overlay (U.INC-T7) opens the prompt from its program icons, Q opens it and Escape closes it, and
-  movement keys are ignored while it is open. See `Assets/Incognito/Scripts/Terminal/`.
+  outer range the suspicion cue uses; the original listed every NPC in the room. The hacking
+  overlay (U.INC-T7) opens it; Escape closes it, and movement keys are ignored while it is open.
+  See `Assets/Incognito/Scripts/Terminal/`.
 - **NPC patrol routes (U.INC-T8).** The original had one off-street waypoint and never stopped on
   arrival. The rebuild gives each NPC a data route of X waypoints walked in order and looped,
   turning on arrival (`a_near_b` ±20px); a one-waypoint route walks there and coasts to a stop
@@ -125,6 +125,22 @@ of the usual wide adventure-game establishing shot — the game's whole premise 
   NPC carries a `BulletTarget`, and `NpcController` routes the shove into its patrol position. The
   arm and bullet placeholders carry the original sprites' sizes and origins, so pivots and the
   muzzle line up as they did in GM. See `Assets/Incognito/Scripts/Weapon/`.
+
+- **Hacking overlay (U.INC-T7).** Ported from what the original actually wired (RECONSTRUCTION
+  §5, re-read): Q toggles the console view, which puts the cursor in pointer mode, fades
+  `spr_circuitwall1` in over the screen (0.025/step) and hands the camera to the cursor
+  (edge-scrolling within 32px of a side at 10px/step). A pointer click on an NPC hacks it: the
+  `spr_program_active` icon eases up at bottom-left, the typed console slides in on the original
+  `spr_console_selected` panel at obj_console's layout with its "CPU: 100/100%" readout, and the
+  camera centres on the NPC (following it as it walks). The dead `obj_stealth` "scanning"
+  dashboard is not ported. Cleanups: Escape closes the console and ends the hack (the icon stays
+  up, inactive, and the camera goes back to the cursor); clicking the icon reopens or closes the
+  console — what obj_mouse_gui's commented-out code intended; Q is ignored while the console
+  has the keyboard (it is a letter then); Q off also closes the console and sinks the icon (the
+  original left both up) and restores the cursor mode in use before Q (the original always
+  restored "look"); clicks on the icon or panel don't also click the NPC behind them. Q no longer
+  opens the prompt by itself. `sfx_flick` is an optional field until U.INC-T11. See
+  `Assets/Incognito/Scripts/Hacking/`.
 
 ## Laws
 

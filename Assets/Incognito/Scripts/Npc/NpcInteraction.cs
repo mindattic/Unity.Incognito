@@ -48,8 +48,12 @@ namespace Incognito.Npc
         [Tooltip("spr_desc_border, drawn half-transparent behind the description.")]
         [SerializeField] private Texture2D descriptionBorder;
 
-        /// <summary>Clicked in pointer mode; the hacking overlay (U.INC-T7) subscribes.</summary>
+        /// <summary>Clicked in pointer mode.</summary>
         public event Action<NpcInteraction> PointerClicked;
+
+        /// <summary>Any NPC clicked in pointer mode; the hacking overlay (U.INC-T7,
+        /// <see cref="Hacking.HackingOverlay"/>) subscribes.</summary>
+        public static event Action<NpcInteraction> AnyPointerClicked;
 
         public string Description
         {
@@ -75,6 +79,8 @@ namespace Incognito.Npc
         private void Update()
         {
             if (!Input.GetMouseButtonDown(0) || cursor == null) return;
+            // A click on the hacking overlay's icon or console panel is the GUI's, not the NPC's.
+            if (Hacking.HackingOverlay.IsOverGui(Input.mousePosition)) return;
 
             var cam = viewCamera != null ? viewCamera : Camera.main;
             if (cam == null) return;
@@ -106,6 +112,7 @@ namespace Incognito.Npc
 
                 case NpcClickAction.Pointer:
                     PointerClicked?.Invoke(this);
+                    AnyPointerClicked?.Invoke(this);
                     break;
             }
         }

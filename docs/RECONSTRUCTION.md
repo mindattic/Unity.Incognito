@@ -241,6 +241,41 @@ it switches `view_object[0]` to the cursor itself (camera now follows the UI, no
 forces cursor `mode = "pointer"`, and fades `gui_console` in/out — this is the state where you're
 no longer looking at the street, you're looking at the terminal.
 
+Re-read for U.INC-T7 — what the source actually wires, which differs from the summary above:
+
+- `obj_stealth` is never created (no room places it, nothing calls `instance_create` on it), and
+  nothing anywhere sets any overlay's `mode = "scanning"`, so the 50%-alpha `spr_linewall`
+  dashboard and the three-programs-plus-pistol rise never run. `obj_gui` and `obj_gui_menu` are
+  near-copies with the same dead "scanning" branch.
+- **The console toggle** is obj_walker's key event 81 (Q) flipping the global `inverted`. On:
+  `cursor.mode = "pointer"`, `over_gui = true`, `gui_console.mode = "fadein"`,
+  `view_object[0] = cursor`, `view_hborder[0] = 32`, `view_hspeed[0] = 10` — the view now
+  edge-scrolls with the cursor. Off: `cursor.mode = cursor.last_mode` (only ever set to "look", in
+  obj_mouse Create), `over_gui = false`, `gui_console.mode = "fadeout"`, `view_object[0] = camera`,
+  `view_hspeed[0] = 20`. This is the only way into pointer mode.
+- `gui_console` (`obj_gui_console`, created by `scripts/start_game.gml`) draws `spr_circuitwall1`
+  (1920x1080, ~10% alpha circuit traces) in the GUI layer, fading `image_alpha` by 0.025/step up
+  to 1 on "fadein" and down to 0, then "off", on "fadeout".
+- **The pointer click** on an NPC (obj_npc left-pressed, `cursor.mode == "pointer"`):
+  `program[0].state = "onscreen"`, `program[0].sprite_index = spr_program_active`,
+  `console[0].state = "onscreen"`, `console[0].sprite_index = spr_console_selected`,
+  `gui_console.selected_object = object_index` (never read), `view_object[0] = object_index`,
+  `view_hborder[0] = view_wview/2` — the view centres on the NPC.
+- `program[0..2]` (`obj_program`, spr_program 113x86) are created by start_game.gml at x = 40,
+  180, 320, resting just below the screen (`initialY = room_height`, +40, +80). "onscreen" eases
+  up `y -= 1 + abs(y) * 0.01` per step to `endY = room_height - sprite_height`; "offscreen"
+  drops 10px/step back to `initialY`. Only program[0] is ever sent onscreen.
+- `console[0..2]` (`obj_console`, spr_console 580x200) are the typed command prompt again, at
+  `y = room_height - 300`, input line at `y + 170`, output at `y + 35`, and a right-aligned
+  `"CPU: " + round(cpu_power/active_cpus) + "/" + cpu_power + "%"` (or `cpu_power/cpu_power`
+  with no active CPUs; `cpu_power = 100`) at `(inputX + 450, y + 8)`. Its slide-in/out and
+  keyboard handling match obj_command_prompt (§6). It only takes keys while
+  `selected_id == program_id` (`selected_id` starts at 0, so console[0] does).
+- `obj_mouse_gui` handles left clicks on the GUI layer: on a program icon it plays `sfx_flick`
+  (the open/close-its-console logic is commented out); on a console it selects it; on the pistol
+  icon it calls `toggle_gun()`. `active_cpus` is only changed in that commented-out code, so
+  obj_walker's `active_cpus == 0` movement gate never closes.
+
 ## 6. Typed command console — `scripts/exec_command.gml`, `scripts/command_list.gml`,
 `scripts/split_string.gml`/`string_split.gml`, `objects/obj_command_prompt.object.gmx`,
 `objects/obj_typewriter.object.gmx`
