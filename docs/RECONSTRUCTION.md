@@ -376,8 +376,8 @@ right-edge exit back out at x 9500. Every arrival matched obj_room's placement. 
 view (Q), gun draw and aim (Z, hold right) with the reticle, rain, lamp light, mailboxes, the
 intro poem and the suspicion % all showed up. The PlayMode test
 `RoomTraversalPlayTests` plays the same route on the built scenes. Gaps went to tickets:
-the character art is still placeholder (U.INC-T14), Escape/F1 only work on the title
-(U.INC-T15), and the dev sandbox scene and `Unity.Incognito` window title ship in the build
+the character art is still placeholder (U.INC-T14), Escape/F1 only worked on the title
+(U.INC-T15, since fixed by `DebugHotkeys`), and the dev sandbox scene and `Unity.Incognito` window title ship in the build
 (U.INC-T16).
 
 ## Open questions the source doesn't answer

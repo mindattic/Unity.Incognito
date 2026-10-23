@@ -9,7 +9,7 @@ namespace Incognito.World
     /// obj_titlescreen + the title's obj_music: any key or the left mouse button runs
     /// start_game() — straight to Bleecher Street (street00), entering from the right edge
     /// (globals: next_room = street00, enter_from = "right") with the street fading in from black.
-    /// Escape quits; F1 toggles fullscreen. The title plays the global default track,
+    /// Escape and F1 are <see cref="DebugHotkeys"/>' (every room). The title plays the global default track,
     /// music_oppressivegloom (its obj_music's whispers line was commented out).
     /// </summary>
     public sealed class TitleScreen : MonoBehaviour
@@ -34,18 +34,6 @@ namespace Incognito.World
         private void Update()
         {
             if (started) return;
-
-            if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                Application.Quit();
-                return;
-            }
-
-            if (Input.GetKeyDown(KeyCode.F1))
-            {
-                Screen.fullScreen = !Screen.fullScreen;
-                return;
-            }
 
             if (Input.anyKeyDown || Input.GetMouseButton(0)) StartGame();
         }
