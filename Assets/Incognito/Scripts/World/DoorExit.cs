@@ -69,14 +69,25 @@ namespace Incognito.World
             for (int i = 0; i < steps; i++) alpha = RoomExitRules.DoorAlphaStep(alpha, playerX, position.x);
             Apply();
 
-            if (!taken && fade != null && !CommandPrompt.CapturesKeyboard && Input.GetKeyDown(useKey) && RoomExitRules.CanUseDoor(playerX, position.x))
-            {
-                taken = true;
-                if (audioSource != null && doorOpen != null) audioSource.PlayOneShot(doorOpen);
-                RoomTransition.Request(nextRoom, entrance, enterX, player.State.Facing);
-                player.State.ForceIdle(); // player.mode = "idle"
-                fade.FadeIn();
-            }
+            if (!CommandPrompt.CapturesKeyboard && Input.GetKeyDown(useKey)) TryUse();
+        }
+
+        /// <summary>
+        /// obj_exit's W press: within <see cref="RoomExitRules.DoorReach"/> of the door, plays
+        /// sfx_door_open, idles the player and fades to the next room. Returns whether it did.
+        /// </summary>
+        public bool TryUse()
+        {
+            if (taken || fade == null || room == null || room.Player == null) return false;
+            PlayerLocomotion player = room.Player;
+            if (!RoomExitRules.CanUseDoor(player.State.PositionX, position.x)) return false;
+
+            taken = true;
+            if (audioSource != null && doorOpen != null) audioSource.PlayOneShot(doorOpen);
+            RoomTransition.Request(nextRoom, entrance, enterX, player.State.Facing);
+            player.State.ForceIdle(); // player.mode = "idle"
+            fade.FadeIn();
+            return true;
         }
 
         private void Apply()

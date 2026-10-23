@@ -355,6 +355,31 @@ and all of `play_random_music.gml` are commented out; only the per-room choice s
 title; `music_dubferal` for the shop). `sfx_type` plays on a command-prompt keystroke (not with
 Shift, and not if already playing), not per teletyped character; `obj_typewriter` is silent.
 
+## 9. Port verification — U.INC-T13
+
+The other copy of the project, `R:\Projects\_PRE_2022\_PRE_2021\_PRE_2020\GameMaker\gmlIncognito`
+(`Incognito.gmx`, saved 2018-10-28, with an `Install\Incognito.exe` build), matches the
+09-05-13 snapshot above file for file except `obj_music` (its `audio_is_playing` guard is now
+commented out too) and `play_random_music.gml` (the random pick is uncommented, but nothing
+plays it). Neither copy plays music, so §8 holds for both.
+
+Missed by the sections above: `obj_debug` (created by `start_game.gml`, persistent, so live in
+every room) quits on Escape, toggles fullscreen on F1, toggles a debug readout (current room,
+`player.x`, mouse and view coordinates) on F12. `obj_walker`'s Down arrow takes 0.1 off
+`walkAmount` (the bob height); its Up arrow is commented out. `obj_titlescreen` starts the
+window fullscreen.
+
+Play-through of the Windows build (batch-built from `EditorBuildSettings`): title → any key or
+click → Bleecher Street entered from the right; both side exits to 2nd Avenue and back; the
+door to Simon's Pawn and Loan (W within 300px); the shop barrier at x 800; the shop's
+right-edge exit back out at x 9500. Every arrival matched obj_room's placement. The console
+view (Q), gun draw and aim (Z, hold right) with the reticle, rain, lamp light, mailboxes, the
+intro poem and the suspicion % all showed up. The PlayMode test
+`RoomTraversalPlayTests` plays the same route on the built scenes. Gaps went to tickets:
+the character art is still placeholder (U.INC-T14), Escape/F1 only work on the title
+(U.INC-T15), and the dev sandbox scene and `Unity.Incognito` window title ship in the build
+(U.INC-T16).
+
 ## Open questions the source doesn't answer
 
 - No wired-up consequence for suspicion reaching 100% (no alert/detected state in the objects
