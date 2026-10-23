@@ -3,7 +3,7 @@ codex: 1
 project: Unity.Incognito
 layer: research
 status: living
-updated: 2026-10-22
+updated: 2026-10-23
 ---
 
 # Incognito — reverse-engineering notes
@@ -379,6 +379,51 @@ intro poem and the suspicion % all showed up. The PlayMode test
 the character art is still placeholder (U.INC-T14), Escape/F1 only worked on the title
 (U.INC-T15, since fixed by `DebugHotkeys`), and the dev sandbox scene and `Unity.Incognito` window title ship in the build
 (U.INC-T16).
+
+## 10. Parity and standards audit — U.INC-T17 (2026-10-23)
+
+Full inventory of `09-05-13_2.19am` (60 objects, 22 scripts, 7 rooms, 88 sprites, 21 backgrounds,
+70 sounds, 3 fonts) compared with the rebuild on main. Verdict: every behaviour sections 1-8 record
+is built (locomotion, camera, eyes, cursor modes, NPC suspicion, weapon, typed console, hacking
+overlay, four rooms with rain, lamps, exits, fades and music), so the remaining gaps are small
+assets, the HUD gun icon, fonts and display, plus the standards debt below. Build order is the
+ticket order U.INC-T19 to T35 (T19 first).
+
+### Behaviour and assets the rebuild lacks (stories US-A10 to A15)
+
+| Original | Gap | Ticket |
+|---|---|---|
+| `sfx_flick`, `whispers` sounds | not imported (flick is played on HUD/console clicks; whispers is referenced only in a commented line) | T28 |
+| `spr_icon_pistol`, `_selected`, `spr_exit_side`, `spr_barrier`, `spr_command_prompt`(+selected), `spr_console`, `spr_linewall` | sprites not in Art/Original | T29 |
+| `obj_icon_pistol` + `obj_mouse_gui` | HUD pistol icon and GUI-layer click handling (toggle_gun, sfx_flick, console select) absent | T30 |
+| `fnt_basic/large/system`, `draw_text_outline*`, `show_float_text`, `obj_float_text` | IMGUI default font and a single outline helper; no floating text | T31 |
+| `obj_startup` | screen-ratio setup, fullscreen start, letterboxing | T32 |
+
+### Original content verified dead (decided not ported, T33 records it in the BIBLE)
+
+`obj_jukebox` (placed by `obj_room_street00` but its events hold no behaviour), `obj_fade_stealth`,
+`obj_flash_text`, `obj_text`/`show_text`, `obj_ipaddressbox`, `obj_wall`, `object5`, `object8`,
+`obj_typewriter_characterselect`, `obj_cloud1..4`, `obj_lamplight01`, `obj_prop_back/_front`,
+`obj_stealth`, `spr_arm_left_support`, `sprite_desaturate`, rooms `startup`, `gamescreen`, `room2`,
+the `_new` art/audio variants, `snd_step1..6`, `sound23`, music that never plays, and the
+Android, iOS, WinPhone, Windows8, Tizen, Mac, Linux and html5 export configs.
+
+### Unity standards audit
+
+| Standard | State on main | Ticket |
+|---|---|---|
+| Assembly definitions, engine-free Core | one `Incognito.Runtime` asmdef; the `*State` classes import `UnityEngine`; `noEngineReferences` false | T19 |
+| Core tested outside Unity | EditMode tests only, no `dotnet test` project | T20 |
+| Commands to events, player-id seams | MonoBehaviours read each other directly | T21 |
+| Content and tuning as validated data | tuning is serialized fields on MonoBehaviours | T22 |
+| Input System | legacy `UnityEngine.Input` (32 sites), `activeInputHandler: 0` | T23 |
+| URP behind an agnostic layer | no render pipeline asset | T24 |
+| Unity.Shared profiles/settings | package not referenced | T25 |
+| Built in code, modern UI | 7 IMGUI `OnGUI` classes; scenes committed by hand-run builder | T26 |
+| Project and package hygiene | `DefaultCompany`, splash on, every built-in module, no build script | T27 |
+| README, BIBLE, story status | README says implementation not started; US-A1/A2/A3/A5/A6/A9 shown planned | T34 |
+
+T35 is the final scripted verification that closes the parity checklist.
 
 ## Open questions the source doesn't answer
 
