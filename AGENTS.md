@@ -41,3 +41,29 @@ Unity-native implementation, free to clean up incidental GM8 quirks).
 - `docs/BIBLE.md` — the rebuild's design brief, derived from the reconstruction.
 - `docs/USER_STORIES.md` — generated from the ticket database (`tickets db render`); don't hand-edit.
 - Original source for reference only: `R:\...\gmlIncognito\09-05-13_2.19am\{objects,scripts,rooms,sprites,sound,background}`.
+
+## Rebuild standard (owner 2026-10-23)
+
+This repo upgrades an old prototype to Unity. The gameplay is kept exactly; the code is not. Everything is
+rebuilt as cutting-edge, best-practice Unity code design and organisation. Unity.SpaceGod and Unity.GridGame
+are the reference architectures: read their AGENTS.md, README and docs/BIBLE.md before designing anything here.
+
+1. **REA the original in its totality first.** Every object, script, room, sprite, sound and data file is
+   reverse-engineered and recorded in docs/RECONSTRUCTION.md before it is rebuilt. Gameplay matches the original;
+   where the rebuild deviates, the BIBLE says so and why.
+2. **Core is pure C#.** The rules live in an engine-free Core assembly (`noEngineReferences`, no `UnityEngine`),
+   tested with `dotnet test` outside Unity. State changes only through commands that produce events;
+   presentation reads state and plays events, and never mutates the game.
+3. **Assemblies have hard boundaries.** Core, Runtime (MonoBehaviours, presentation), Editor and Tests are separate
+   asmdefs with one-way references.
+4. **Content and tuning are data.** Levels, items, enemies, text and every tuning number live in data files or a
+   settings registry, validated on load, not hard-coded in behaviour.
+5. **Built in code, not by hand in the Editor.** Scenes, UI and objects are composed in code (or generated), so
+   nothing depends on Inspector wiring the owner has to click together.
+6. **Modern Unity only.** Unity 6, URP behind a pipeline-agnostic layer, the Input System, UI Toolkit or the shared
+   MindAttic components, Unity.Shared profiles and settings, multiplayer-ready seams (commands carrying a player id,
+   one authority, no global current-player singleton).
+7. **Done means verified by play, not asserted.** Core tests green, a build that launches, and the feature seen
+   working (screenshots or a scripted run) before a ticket closes.
+8. **Finite.** Once every story from the reconstruction is built, the repo is a complete, polished proof of concept
+   of the original, and is done.
