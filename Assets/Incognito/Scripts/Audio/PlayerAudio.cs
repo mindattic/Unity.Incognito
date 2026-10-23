@@ -1,0 +1,60 @@
+using Incognito.Player;
+using UnityEngine;
+
+namespace Incognito.Audio
+{
+    /// <summary>
+    /// The player's own sounds from obj_walker (RECONSTRUCTION.md §8): play_footstep("concrete")
+    /// — one of the 16 sfx_step_concrete## at random — each time the walk bob peaks, and
+    /// sfx_whoosh when a walk key turns the player around. Weapon sounds stay with
+    /// Incognito.Weapon.PlayerWeapon.
+    /// </summary>
+    [RequireComponent(typeof(PlayerLocomotion))]
+    public sealed class PlayerAudio : MonoBehaviour
+    {
+        [SerializeField] private AudioSource audioSource;
+        [Tooltip("sfx_step_concrete01..16; one is chosen at random per step (choose()).")]
+        [SerializeField] private AudioClip[] footsteps = new AudioClip[0];
+        [SerializeField] private AudioClip whoosh;
+
+        private PlayerLocomotion locomotion;
+        private PlayerLocomotionState.FacingDirection lastFacing;
+
+        private void Start()
+        {
+            locomotion = GetComponent<PlayerLocomotion>();
+            if (audioSource == null) audioSource = GetComponent<AudioSource>();
+            lastFacing = locomotion.State.Facing;
+            locomotion.State.OnBobPeak += PlayFootstep;
+        }
+
+        private void OnDestroy()
+        {
+            if (locomotion != null && locomotion.State != null) locomotion.State.OnBobPeak -= PlayFootstep;
+        }
+
+        private void LateUpdate()
+        {
+            var state = locomotion.State;
+            // obj_walker's walk-key press: if (facing == left) audio_play_sound(sfx_whoosh) before
+            // facing = right (and the mirror). Turning in place to face a talking NPC (idle) and
+            // walking off under autowalk don't whoosh.
+            if (state.Facing != lastFacing && state.CurrentMode == PlayerLocomotionState.WalkMode.Walking && !locomotion.AutoWalk)
+            {
+                Play(whoosh);
+            }
+            lastFacing = state.Facing;
+        }
+
+        private void PlayFootstep()
+        {
+            if (footsteps == null || footsteps.Length == 0) return;
+            Play(footsteps[Random.Range(0, footsteps.Length)]);
+        }
+
+        private void Play(AudioClip clip)
+        {
+            if (clip != null && audioSource != null) audioSource.PlayOneShot(clip);
+        }
+    }
+}

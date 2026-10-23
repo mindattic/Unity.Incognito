@@ -125,6 +125,26 @@ of the usual wide adventure-game establishing shot — the game's whole premise 
   NPC carries a `BulletTarget`, and `NpcController` routes the shove into its patrol position. The
   arm and bullet placeholders carry the original sprites' sizes and origins, so pivots and the
   muzzle line up as they did in GM. See `Assets/Incognito/Scripts/Weapon/`.
+- **Rooms, props and audio (U.INC-T11).** `Incognito/Build Room Scenes` (`RoomSceneBuilder`)
+  writes `Scenes/Rooms/{Titlescreen,Street00,Street01,Shop}.unity` from a data table transcribed
+  from the `.room.gmx` files, each on a copy of the PlayerSandbox rig (sandbox ground, markers and
+  console targets stripped; the NPC kept only in street00), and puts them in the build with the
+  title first. Original slices, props and sounds are imported verbatim (`Art/Original`,
+  `Audio/Original`; legacy files, as the `_new` ones are missing). Ported as the original had it:
+  the 1:1 tiled street slices (no parallax — there was none), the title's scrolling skyline,
+  rain, lampposts with their flickering light and mailboxes in front of the player (each
+  clickable for its description), the floating shop door (W within 300px, `sfx_door_open`),
+  side exits with autowalk and the 0.03/step black fade, entry placement by `enter_from`, the
+  room name top-left, the intro poem on entering street00, footsteps on each bob peak (one of 16 at
+  random), the turn-around whoosh, weapon sounds and `sfx_type` on console keystrokes. Decisions
+  beyond the original: **music actually plays** (the original's calls were commented out) — each
+  room's `current_track`, looped, carried across rooms and switched only when the track changes;
+  the random jukebox stays unported. The shop barrier is a real wall (the original's push was
+  sign-flipped and stopped no one). Clicking a prop does nothing while aiming, as with NPCs. A
+  fresh player rig per scene carries only its facing across a room change (the original's one
+  persistent player also kept the gun state). Clouds and the unplaced `obj_lamplight01` /
+  `obj_prop_back|front` are not ported (no art, never placed). Text is IMGUI, outlined, at
+  fnt_large's size. See `Assets/Incognito/Scripts/World/` and `Scripts/Audio/`.
 
 - **Hacking overlay (U.INC-T7).** Ported from what the original actually wired (RECONSTRUCTION
   §5, re-read): Q toggles the console view, which puts the cursor in pointer mode, fades

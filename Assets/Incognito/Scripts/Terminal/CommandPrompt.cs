@@ -15,8 +15,8 @@ namespace Incognito.Terminal
     /// pointer-mode click on an NPC, or its program icon — as obj_npc / obj_mouse_gui opened
     /// console[0]; Escape closes it. While open, the keyboard belongs to the prompt
     /// (<see cref="CapturesKeyboard"/>). Laid out as obj_console (the panel start_game.gml
-    /// actually created), over the original spr_console_selected art when assigned; the
-    /// per-keystroke <c>sfx_type</c> waits for the audio pass (U.INC-T11).
+    /// actually created), over the original spr_console_selected art when assigned;
+    /// each keystroke plays <c>sfx_type</c> (U.INC-T11).
     /// </summary>
     public sealed class CommandPrompt : MonoBehaviour
     {
@@ -28,6 +28,10 @@ namespace Incognito.Terminal
 
         [Tooltip("spr_console_selected (580x200). A flat placeholder panel when unset.")]
         [SerializeField] private Texture2D panelArt;
+
+        [Tooltip("sfx_type: played on a keystroke (not with Shift held) unless already playing (U.INC-T11).")]
+        [SerializeField] private AudioSource typeSource;
+        [SerializeField] private AudioClip typeClip;
 
         // obj_console layout, in original pixels on the 1920x1080 view.
         private const float PanelWidth = 580f;
@@ -204,6 +208,13 @@ namespace Incognito.Terminal
             else
             {
                 return;
+            }
+
+            // obj_command_prompt keyboard event: if (!shift) if (!audio_is_playing(sfx_type)) play it.
+            if (!e.shift && typeSource != null && typeClip != null && !typeSource.isPlaying)
+            {
+                typeSource.clip = typeClip;
+                typeSource.Play();
             }
 
             e.Use();

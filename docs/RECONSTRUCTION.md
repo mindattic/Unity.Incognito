@@ -309,7 +309,33 @@ four `obj_cloud1..4` (a `obj_cloud_parent` drives shared drift behavior), `obj_r
 `obj_prop_lamppost`/`obj_prop_mailbox`/`obj_prop_back`/`obj_prop_front` for foreground/background
 dressing (front props render in front of the player, back props behind — a cheap depth trick worth
 keeping as sorting layers in Unity). Numbered backgrounds (`bg_street00_00`..`_05`,
-`bg_street01_00`..`_07`) are the per-layer parallax art slices.
+`bg_street01_00`..`_07`, `bg_shop_00`..`_02`) are 1920×1080 slices laid edge to edge as room
+tiles (depth 1000000).
+
+Corrections from re-reading the rooms for U.INC-T11:
+
+- **No parallax on the streets.** The slices are tiles at one depth that scroll 1:1 with the
+  view; nothing moves at a different rate. The only scrolling layer is the title screen's
+  `bg_city_black` (tiled, `hspeed = -2`) under the opaque `bg_titlescreen`.
+- **The clouds were never used.** `obj_cloud1..4` have no sprite and no instance in any room
+  (`obj_cloud_parent` only drifts at `hspeed -1`). `obj_lamplight01` is not placed either: each
+  `obj_prop_lamppost` draws `spr_lamplight01` itself, 100px above its top, blanking it on an
+  `irandom_range(0,80) == 0` roll each step. `obj_prop_back`/`_front` are unplaced duplicates of
+  the lamppost/mailbox; the rooms use `obj_prop_lamppost` (depth 10) and `obj_prop_mailbox`
+  (depth -10), each typing its description on a left click.
+- **Rain**: `obj_rain_emitter` makes 6 `obj_raindrop`s per step at a random x across the view
+  and a random y up to one room above; each falls 40–50px and drifts 3–6px left per step (spr_rain,
+  1×4, alpha 0.75, depth -1) and is destroyed below the room.
+- **Rooms in play**: `titlescreen` (any key / left mouse → `start_game()`, Esc quits, F1 toggles
+  fullscreen) → `street00` "Bleecher Street" (11520 wide; 4 lampposts, 2 mailboxes, 1 NPC, rain,
+  the intro poem typed at `room_width - 650, 100`, a floating `obj_exit` door to `shop` at
+  9504,480 entered with W within 300px, side exits to `street01` at both ends) ↔ `street01` "2nd
+  Avenue" (15360 wide, blockout art, rain, side exits back to `street00`) and `shop` "Simon's Pawn
+  and Loan" (5760 wide, blockout art, an `obj_barrier` at x 800, a right-edge exit back to
+  street00 at x 9500). `obj_exit_side` sets `next_room`/`enter_from`, puts the player on
+  `autowalk` and fades; `obj_room` places the player at `room_width - player_width` ("right"),
+  `player_width` ("left") or `enter_x` ("x") and draws the room's name at 20,20. `startup`,
+  `gamescreen` and `room2` are unused copies.
 
 ## 8. Audio inventory — `sound/*.sound.gmx`
 
@@ -320,7 +346,14 @@ walk-bob cycle, §1) for non-repetitive footfall. `sfx_whoosh` on facing-flip, `
 `music_darknessiscoming`, `music_dubferal`, `music_gagool`, `music_interloper`, `music_mta`,
 `music_oppressivegloom`, `music_tearoots`, `music_theme`) selected by `scripts/play_random_music.gml`.
 Most assets have a legacy and a `_new` variant (re-recorded/normalized pass); prefer the `_new`
-ones when porting.
+ones when porting — but almost none of the `_new` files survive in `sound/audio` (only
+`music_gagool_new`, `sfx_flick_new`, `whispers_new`), so the port uses the legacy files.
+
+Correction (U.INC-T11): **the original played no music.** `obj_music`'s `audio_play_music` call
+and all of `play_random_music.gml` are commented out; only the per-room choice survives as data
+(`current_track`: `music_oppressivegloom` for street00/street01 and, by the global default, the
+title; `music_dubferal` for the shop). `sfx_type` plays on a command-prompt keystroke (not with
+Shift, and not if already playing), not per teletyped character; `obj_typewriter` is silent.
 
 ## Open questions the source doesn't answer
 

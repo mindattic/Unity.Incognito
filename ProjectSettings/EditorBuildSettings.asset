@@ -4,5 +4,20 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Incognito/Scenes/Rooms/Titlescreen.unity
+    guid: 780f5a1c05fb46e4a8228e9032859517
+  - enabled: 1
+    path: Assets/Incognito/Scenes/Rooms/Street00.unity
+    guid: 245c1bd549a11254eab31ac5ba73c808
+  - enabled: 1
+    path: Assets/Incognito/Scenes/Rooms/Street01.unity
+    guid: da93c3657b6555f4dbff791fb002c94f
+  - enabled: 1
+    path: Assets/Incognito/Scenes/Rooms/Shop.unity
+    guid: 75ea7139347d9aa4abbb7c12e131f89d
+  - enabled: 1
+    path: Assets/Incognito/Scenes/PlayerSandbox.unity
+    guid: 5fb4d04a501bb86438fc2c18d2011ceb
   m_configObjects: {}

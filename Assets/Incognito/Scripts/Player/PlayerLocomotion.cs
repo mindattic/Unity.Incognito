@@ -40,6 +40,10 @@ namespace Incognito.Player
         /// ignored the walk keys, so facing can't flip either.</summary>
         public bool MovementLocked { get; set; }
 
+        /// <summary>Set by a side exit (U.INC-T11, obj_walker's autowalk): the player keeps
+        /// walking the way they face at walk speed, ignoring the walk keys, while the room fades.</summary>
+        public bool AutoWalk { get; set; }
+
         private void Update()
         {
             // While the typed console is open the keyboard is typing, not walking (U.INC-T10).
@@ -48,7 +52,13 @@ namespace Incognito.Player
             bool moveRight = keys && (Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D));
             bool sprint = keys && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift));
 
-            if (MovementLocked)
+            if (AutoWalk)
+            {
+                moveLeft = State.Facing == PlayerLocomotionState.FacingDirection.Left;
+                moveRight = !moveLeft;
+                sprint = false;
+            }
+            else if (MovementLocked)
             {
                 State.ForceIdle();
                 moveLeft = moveRight = sprint = false;
@@ -61,6 +71,15 @@ namespace Incognito.Player
                 baseY + State.BobOffset * WorldUnitsPerOriginalPixel,
                 transform.position.z);
             spriteRenderer.flipX = State.Facing == PlayerLocomotionState.FacingDirection.Right;
+        }
+
+        /// <summary>Moves the player to <paramref name="originalX"/> (original px) without walking
+        /// there: room entry and barriers (U.INC-T11).</summary>
+        public void Teleport(float originalX)
+        {
+            State.SetInitialPositionX(originalX);
+            var p = transform.position;
+            transform.position = new Vector3(originalX * WorldUnitsPerOriginalPixel, p.y, p.z);
         }
 
         // The original ran in GameMaker pixel units; a real art pass (U.INC-T11) will set the
