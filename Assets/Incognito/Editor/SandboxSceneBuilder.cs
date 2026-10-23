@@ -13,14 +13,13 @@ using UnityEngine;
 namespace Incognito.EditorTools
 {
     /// <summary>
-    /// Builds Assets/Incognito/Scenes/PlayerSandbox.unity: a flat-ground, placeholder-sprite
-    /// street00-sized scene to exercise <see cref="PlayerLocomotion"/>,
+    /// Builds Assets/Incognito/Scenes/PlayerSandbox.unity: a flat-ground street00-sized scene to exercise <see cref="PlayerLocomotion"/>,
     /// <see cref="CloseFramingCamera"/>, <see cref="PlayerEyeball"/>, <see cref="EyeCursor"/> and
     /// the typed <see cref="CommandPrompt"/> behind the <see cref="HackingOverlay"/>, and
     /// <see cref="PlayerWeapon"/>, plus a patrolling
     /// (and shootable) <see cref="NpcController"/>, in
-    /// Play mode before real art (U.INC-T11) exists. Safe to re-run (overwrites the scene and its
-    /// placeholder sprites, and re-applies the original sprites' import settings).
+    /// Play mode. The player, NPC, arm and bullet art is the original 2013 sprites. Safe to re-run
+    /// (overwrites the scene and re-applies the original sprites' import settings).
     /// </summary>
     public static class SandboxSceneBuilder
     {
@@ -38,8 +37,9 @@ namespace Incognito.EditorTools
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
             var groundSprite = CreateSolidSpriteAsset(ArtDir + "/placeholder_ground.png", new Color(0.35f, 0.35f, 0.35f));
-            var playerSprite = CreatePlayerPlaceholder(ArtDir + "/placeholder_player.png");
-            var npcSprite = CreateNpcPlaceholder(ArtDir + "/placeholder_npc.png");
+            // The original character art at its GameMaker origins (xorig/yorigin from each .sprite.gmx).
+            var playerSprite = ImportOriginal("spr_player", 256, 168);
+            var npcSprite = ImportOriginal("spr_npc_ia", 256, 440);
 
             // Room sized like the original street00 (11520x1080 px) at the placeholder
             // 1px = 1/32 unit scale: 360 units wide, ground top at y = 0.
@@ -74,15 +74,15 @@ namespace Incognito.EditorTools
             var locomotion = player.AddComponent<PlayerLocomotion>();
 
             // obj_arm x2 (U.INC-T9): arm1 (support) in front of the body (depth -1), arm2 (gun)
-            // behind it (depth 1, also behind the eye stack). Placeholders carry the original
-            // sprites' sizes and GM origins so the pivots and muzzle line up.
-            var armRest = CreateSolidSprite(ArtDir + "/placeholder_arm_rest.png", new Color(0.8f, 0.7f, 0.6f), 219, 379, 100, 60);                     // spr_arm
-            var supportRaise = CreateSolidSprite(ArtDir + "/placeholder_arm_support_raise.png", new Color(0.75f, 0.65f, 0.55f), 380, 258, 320, 142);  // spr_arm_left_aim1
-            var supportHold = CreateSolidSprite(ArtDir + "/placeholder_arm_support_hold.png", new Color(0.75f, 0.65f, 0.55f), 550, 137, 500, 86);     // spr_arm_left_aim2
-            var gunDrawing = CreateSolidSprite(ArtDir + "/placeholder_arm_gun_drawing.png", new Color(0.3f, 0.3f, 0.35f), 380, 258, 320, 142);        // spr_arm_right_drawing
-            var gunAim = CreateSolidSprite(ArtDir + "/placeholder_arm_gun_aim.png", new Color(0.2f, 0.2f, 0.25f), 550, 137, 500, 100);                // spr_arm_right_aim
-            var gunFire = CreateSolidSprite(ArtDir + "/placeholder_arm_gun_fire.png", new Color(0.9f, 0.6f, 0.1f), 550, 137, 500, 100);               // spr_arm_right_fire
-            var bulletSprite = CreateSolidSprite(ArtDir + "/placeholder_bullet.png", new Color(1f, 0.9f, 0.3f), 12, 12, 6, 6);                        // spr_bullet
+            // behind it (depth 1, also behind the eye stack), on the original sprites at their GM
+            // origins so the pivots and muzzle line up.
+            var armRest = ImportOriginal("spr_arm", 100, 60);
+            var supportRaise = ImportOriginal("spr_arm_left_aim1", 320, 142);
+            var supportHold = ImportOriginal("spr_arm_left_aim2", 500, 86);
+            var gunDrawing = ImportOriginal("spr_arm_right_drawing", 320, 142);
+            var gunAim = ImportOriginal("spr_arm_right_aim", 500, 100);
+            var gunFire = ImportOriginal("spr_arm_right_fire", 500, 100);
+            var bulletSprite = ImportOriginal("spr_bullet", 6, 6);
 
             var supportArm = CreateArm("Support Arm (arm1)", player.transform, armRest, 1);
             var gunArm = CreateArm("Gun Arm (arm2)", player.transform, armRest, -4);
@@ -232,7 +232,7 @@ namespace Incognito.EditorTools
 
         /// <summary>
         /// Sets the import of one of the original sprites copied verbatim into Art/Original (eye
-        /// stack and cursors) so its pivot is GameMaker's origin (xorig/yorigin from its
+        /// stack, cursors, characters, arms and bullet) so its pivot is GameMaker's origin (xorig/yorigin from its
         /// .sprite.gmx, measured from the top-left), at 1 original px = 1/32 unit, point-filtered.
         /// </summary>
         private static Sprite ImportOriginal(string name, int originX, int originY)
@@ -262,42 +262,6 @@ namespace Incognito.EditorTools
             return AssetDatabase.LoadAssetAtPath<Sprite>(path);
         }
 
-        /// <summary>
-        /// A flat grey 512x1024 stand-in for spr_player, pivoted at its origin (256,168), with a
-        /// transparent socket cut where obj_eye draws spr_eyewhite for the (unflipped,
-        /// left-facing) art: the eye stack renders behind the player, as in the original, and
-        /// shows through this hole. Mirroring for right-facing lands within 3px of obj_eye's
-        /// right-facing socket (offsetX 93 vs. a mirrored 96) — the original's own numbers.
-        /// </summary>
-        private static Sprite CreatePlayerPlaceholder(string path)
-        {
-            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-
-            const int width = 512, height = 1024, originX = 256, originY = 168;
-            var tex = new Texture2D(width, height, TextureFormat.RGBA32, false);
-            var pixels = new Color[width * height];
-            var skin = new Color(0.8f, 0.8f, 0.8f);
-            for (int i = 0; i < pixels.Length; i++) pixels[i] = skin;
-
-            // Socket rect in GM pixels from the top-left: eye x = origin - 108, white drawn at
-            // (x - 10, y - 10), 32x20.
-            int socketLeft = originX - 108 - 10, socketTop = originY - 10;
-            for (int gy = socketTop; gy < socketTop + 20; gy++)
-            {
-                for (int gx = socketLeft; gx < socketLeft + 32; gx++)
-                {
-                    pixels[(height - 1 - gy) * width + gx] = Color.clear; // texture rows run bottom-up
-                }
-            }
-            tex.SetPixels(pixels);
-            tex.Apply();
-
-            File.WriteAllBytes(path, tex.EncodeToPNG());
-            Object.DestroyImmediate(tex);
-
-            return ImportPixelSprite(path, originX, originY);
-        }
-
         private static void AddConsoleTarget(Transform parent, Sprite sprite, ConsoleObjectType type, string id, float x)
         {
             var go = new GameObject($"{type} {id}", typeof(SpriteRenderer));
@@ -310,26 +274,6 @@ namespace Incognito.EditorTools
             go.AddComponent<ConsoleTarget>().Configure(type, id);
         }
 
-        /// <summary>A flat red stand-in for spr_npc_ia at its true 512x1024 size and origin
-        /// (256,440).</summary>
-        private static Sprite CreateNpcPlaceholder(string path)
-        {
-            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-
-            const int width = 512, height = 1024;
-            var tex = new Texture2D(width, height, TextureFormat.RGBA32, false);
-            var pixels = new Color[width * height];
-            var body = new Color(0.8f, 0.25f, 0.3f);
-            for (int i = 0; i < pixels.Length; i++) pixels[i] = body;
-            tex.SetPixels(pixels);
-            tex.Apply();
-
-            File.WriteAllBytes(path, tex.EncodeToPNG());
-            Object.DestroyImmediate(tex);
-
-            return ImportPixelSprite(path, 256, 440);
-        }
-
         private static SpriteRenderer CreateArm(string name, Transform player, Sprite sprite, int sortingOrder)
         {
             var arm = new GameObject(name, typeof(SpriteRenderer));
@@ -338,24 +282,6 @@ namespace Incognito.EditorTools
             sr.sprite = sprite;
             sr.sortingOrder = sortingOrder;
             return sr;
-        }
-
-        /// <summary>A solid <paramref name="width"/>x<paramref name="height"/> stand-in for an
-        /// original sprite, pivoted at its GM origin (from the top-left).</summary>
-        private static Sprite CreateSolidSprite(string path, Color color, int width, int height, int originX, int originY)
-        {
-            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-
-            var tex = new Texture2D(width, height, TextureFormat.RGBA32, false);
-            var pixels = new Color[width * height];
-            for (int i = 0; i < pixels.Length; i++) pixels[i] = color;
-            tex.SetPixels(pixels);
-            tex.Apply();
-
-            File.WriteAllBytes(path, tex.EncodeToPNG());
-            Object.DestroyImmediate(tex);
-
-            return ImportPixelSprite(path, originX, originY);
         }
 
         private static Sprite CreateSolidSpriteAsset(string path, Color color)
