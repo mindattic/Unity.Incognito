@@ -43,7 +43,7 @@ if (-not $SkipEditMode) {
     Write-Host '  EditMode tests (Unity batch mode)...' -ForegroundColor Cyan
     $editResults = Join-Path $root 'TestResults-EditMode.xml'
     Remove-Item -LiteralPath $editResults -ErrorAction SilentlyContinue
-    & "$PSScriptRoot/unity.ps1" -Log test-editmode -Extra "-runTests -testPlatform EditMode -testResults $editResults"
+    & "$PSScriptRoot/unity.ps1" -Log test-editmode -TestPlatform EditMode -TestResults $editResults
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     Confirm-TestResults -Path $editResults
 }
@@ -52,7 +52,7 @@ if (-not $SkipPlayMode) {
     Write-Host '  PlayMode tests (Unity batch mode)...' -ForegroundColor Cyan
     $playResults = Join-Path $root 'TestResults-PlayMode.xml'
     Remove-Item -LiteralPath $playResults -ErrorAction SilentlyContinue
-    & "$PSScriptRoot/unity.ps1" -Log test-playmode -Extra "-runTests -testPlatform PlayMode -testResults $playResults"
+    & "$PSScriptRoot/unity.ps1" -Log test-playmode -TestPlatform PlayMode -TestResults $playResults
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     Confirm-TestResults -Path $playResults
 }

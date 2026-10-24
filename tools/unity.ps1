@@ -5,15 +5,20 @@
   Unity.GridGame's own tools/unity.ps1).
 .EXAMPLE
   powershell -File tools/unity.ps1 -Method Incognito.EditorTools.PlayerBuilder.BuildWindows -Log build-player
-  powershell -File tools/unity.ps1 -Log test-editmode -Extra "-runTests -testPlatform EditMode -testResults TestResults-EditMode.xml"
+  powershell -File tools/unity.ps1 -Log test-editmode -TestPlatform EditMode -TestResults TestResults-EditMode.xml
 .NOTES
   Unity batch mode needs the Editor closed on this project. This script refuses to run if it is open.
   Every run's full Unity log is captured to Logs/<Log>.log.
+  -TestResults is its own parameter (not folded into -Extra) and always quoted before being added
+  to the argument list: -Extra is naively space-split below, which would silently truncate a
+  results path containing a space instead of failing loudly.
 #>
 param(
     [string]$Method,
     [string]$Log = "unity",
     [switch]$Graphics,
+    [string]$TestPlatform = "",
+    [string]$TestResults = "",
     [string]$Extra = ""
 )
 $ErrorActionPreference = "Stop"
@@ -25,7 +30,12 @@ if (-not (Test-Path $unity)) { throw "Unity $version not found at $unity" }
 if (Test-Path "$root/Temp/UnityLockfile") {
     $locked = $false
     try { [IO.File]::Open("$root/Temp/UnityLockfile", 'Open', 'ReadWrite', 'None').Close() } catch { $locked = $true }
-    if ($locked) { Write-Error "Unity.Incognito is open in the Unity Editor. Close it (File > Quit) and re-run."; exit 3 }
+    if ($locked) {
+        # $ErrorActionPreference = "Stop" turns Write-Error into a terminating exception (a nonzero
+        # but not the documented exit code below), so report and exit explicitly instead.
+        Write-Host "Unity.Incognito is open in the Unity Editor. Close it (File > Quit) and re-run." -ForegroundColor Red
+        exit 3
+    }
 }
 
 New-Item -ItemType Directory -Force "$root/Logs" | Out-Null
@@ -34,9 +44,10 @@ $logFile = "$root/Logs/$Log.log"
 $argList = @("-batchmode", "-projectPath", "`"$root`"", "-logFile", "`"$logFile`"")
 if (-not $Graphics) { $argList += "-nographics" }
 if ($Method) { $argList += @("-executeMethod", $Method) }
+if ($TestPlatform) { $argList += @("-runTests", "-testPlatform", $TestPlatform, "-testResults", "`"$TestResults`"") }
 if ($Extra) { $argList += $Extra.Split(' ') }
 # A -runTests run quits on its own once the suite finishes; an -executeMethod run needs -quit.
-if ($Extra -notmatch 'runTests') { $argList += "-quit" }
+if (-not $TestPlatform -and $Extra -notmatch 'runTests') { $argList += "-quit" }
 
 $p = Start-Process -FilePath $unity -ArgumentList $argList -Wait -PassThru -NoNewWindow
 Select-String -Path $logFile -Pattern 'error CS|\[Incognito\]|\[Build\]|Shader error|Compilation failed' -ErrorAction SilentlyContinue |
