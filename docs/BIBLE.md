@@ -179,6 +179,33 @@ of the usual wide adventure-game establishing shot — the game's whole premise 
   opens the prompt by itself. `sfx_flick` is an optional field until U.INC-T11. See
   `Assets/Incognito/Scripts/Hacking/`.
 
+- **Rooms built from data at runtime, and IMGUI replaced with UI Toolkit (U.INC-T26).** The four
+  committed room scenes (`Assets/Incognito/Scenes/Rooms/*.unity`) no longer bake a room's
+  background slices, lampposts, mailboxes, rain or exits into the scene file: `RoomBootstrap`
+  (Runtime, `Assets/Incognito/Scripts/World/RoomBootstrap.cs`) rebuilds all of it at Awake, every
+  time the scene loads, from `GameSettings.Content.FindRoom(roomId)` — the same validated data the
+  room/NPC/console catalog already used (U.INC-T22) — via `RoomComposer`, an engine-but-not-editor
+  static class the editor's Incognito/Build Room Scenes also calls indirectly (it only resolves and
+  hands over the few static art/audio references `RoomBootstrap` needs, as `RoomRuntimeAssets`; it
+  never builds the room's actual layout itself any more). A scene's committed content is now just a
+  copy of the sandbox player rig plus one "Room Bootstrap" object, so it can never silently drift
+  from the data it describes — proven by `Tests/EditMode/RoomSceneBuilderTests.cs`, which reruns
+  the builder and asserts the regenerated scenes match (content, not Unity's own per-session
+  `fileID`s or its fileID-ordered serialization, both normalized away before comparing).
+
+  The 7 OnGUI (IMGUI) classes — `Room`, `DoorExit`, `DescriptionTypewriter`, `CommandPrompt`,
+  `HackingOverlay`, `RoomFade`, `DebugHotkeys` — now draw through `HudRoot`
+  (`Assets/Incognito/Scripts/UI/HudRoot.cs`), one code-built `UIDocument`/`PanelSettings` whose
+  reference resolution (1920x1080, matched by height) replaces every class's own
+  `Screen.height / 1080f` scale math: elements are laid out in plain original pixels and the panel
+  scales them. `OutlinedText` now styles a `Label`'s native `-unity-text-outline-*` instead of
+  drawing eight offset copies by hand, and `CommandPrompt`'s input is a real `TextField` (native
+  focus, caret and backspace) instead of `CommandPrompt` parsing `Event.current` itself — a
+  deliberate cleanup, since the original's hand-rolled i-beam was exactly this kind of incidental
+  GM-era implementation detail. World-anchored labels (`DoorExit`, `DescriptionTypewriter`) convert
+  a world position to panel space with `RuntimePanelUtils.ScreenToPanel`, the same top-left-origin
+  screen point every other HUD element's hit-testing already used.
+
 ## Laws
 
 See AGENTS.md for the non-negotiables (reconstruction is ground truth, data over hard-coding where

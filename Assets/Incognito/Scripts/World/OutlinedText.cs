@@ -1,10 +1,13 @@
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Incognito.World
 {
     /// <summary>
-    /// IMGUI stand-in for the original's draw_text_outline / draw_text_outline_alpha: white text
-    /// over a 1px black outline, laid out on the 1920x1080 reference view and scaled to the screen.
+    /// Shared layout and style for the room name, door labels and other UI Toolkit text laid out on
+    /// the original's 1920x1080 reference view (U.INC-T26 — was an IMGUI eight-direction outline
+    /// hack). <see cref="HudRoot"/>'s panel is matched to that reference resolution, so these values
+    /// are plain original pixels; the panel scales them to the real screen.
     /// </summary>
     public static class OutlinedText
     {
@@ -13,46 +16,16 @@ namespace Incognito.World
         /// <summary>fnt_large (High Tower Text 16pt), as DescriptionTypewriter sizes it.</summary>
         public const int LargeFontSize = 24;
 
-        private static GUIStyle style;
-
-        public static float Scale => Screen.height > 0 ? Screen.height / ReferenceHeight : 1f;
-
-        public static GUIStyle Style(TextAnchor alignment)
+        /// <summary>Styles <paramref name="label"/> as the original's draw_text_outline /
+        /// draw_text_outline_alpha: white text over a black outline, using the engine's own
+        /// text-outline style instead of drawing eight offset copies by hand.</summary>
+        public static void Style(Label label, int fontSize = LargeFontSize)
         {
-            if (style == null)
-            {
-                style = new GUIStyle(GUI.skin.label) { wordWrap = false, richText = false };
-                style.normal.textColor = Color.white;
-            }
-            style.fontSize = Mathf.Max(1, Mathf.RoundToInt(LargeFontSize * Scale));
-            style.alignment = alignment;
-            return style;
-        }
-
-        /// <summary>Draws <paramref name="text"/> in <paramref name="rect"/> (screen pixels, GUI
-        /// space) with an outline, at <paramref name="alpha"/>.</summary>
-        public static void Draw(Rect rect, string text, TextAnchor alignment, float alpha)
-        {
-            if (string.IsNullOrEmpty(text) || alpha <= 0f) return;
-
-            GUIStyle s = Style(alignment);
-            var content = new GUIContent(text);
-            float outline = Mathf.Max(1f, Scale);
-            Color previous = GUI.color;
-
-            GUI.color = new Color(0f, 0f, 0f, alpha);
-            for (int dx = -1; dx <= 1; dx++)
-            {
-                for (int dy = -1; dy <= 1; dy++)
-                {
-                    if (dx == 0 && dy == 0) continue;
-                    GUI.Label(new Rect(rect.x + dx * outline, rect.y + dy * outline, rect.width, rect.height), content, s);
-                }
-            }
-
-            GUI.color = new Color(1f, 1f, 1f, alpha);
-            GUI.Label(rect, content, s);
-            GUI.color = previous;
+            label.style.color = Color.white;
+            label.style.unityTextOutlineColor = Color.black;
+            label.style.unityTextOutlineWidth = 1f;
+            label.style.fontSize = fontSize;
+            label.style.whiteSpace = WhiteSpace.NoWrap;
         }
     }
 }

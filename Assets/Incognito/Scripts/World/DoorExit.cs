@@ -1,13 +1,16 @@
 using Incognito.Controls;
 using Incognito.Player;
 using Incognito.Terminal;
+using Incognito.UI;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Incognito.World
 {
     /// <summary>
-    /// obj_exit: a floating door icon (spr_icon_exit) with its destination's name above it. It
-    /// fades up as the player approaches (<see cref="RoomExitRules.DoorAlphaStep"/>), bobs gently
+    /// obj_exit: a floating door icon (spr_icon_exit) with its destination's name above it, as a UI
+    /// Toolkit label (U.INC-T26 — was IMGUI) positioned from the icon's world position every frame.
+    /// It fades up as the player approaches (<see cref="RoomExitRules.DoorAlphaStep"/>), bobs gently
     /// (<see cref="DoorHoverState"/>), and W within 300px plays sfx_door_open and fades to the
     /// next room. Positioned in original px; the icon's SpriteRenderer is on this object.
     /// </summary>
@@ -35,6 +38,9 @@ namespace Incognito.World
         private GameSession session;
         private float alpha;
         private bool taken;
+        private Label labelElement;
+
+        private const float LabelWidth = 1200f; // fa_center over a 1200px-wide box, as the original's rect was
 
         public float Alpha => alpha;
 
@@ -56,6 +62,15 @@ namespace Incognito.World
         private void Awake()
         {
             icon = GetComponent<SpriteRenderer>();
+
+            HudRoot.EnsureInstalled();
+            labelElement = new Label { pickingMode = PickingMode.Ignore };
+            labelElement.style.position = Position.Absolute;
+            labelElement.style.width = LabelWidth;
+            labelElement.style.unityTextAlign = TextAnchor.UpperCenter;
+            OutlinedText.Style(labelElement);
+            HudRoot.WorldLabels.Add(labelElement);
+
             Apply();
         }
 
@@ -70,6 +85,7 @@ namespace Incognito.World
         private void OnDestroy()
         {
             if (session != null) session.Played -= OnPlayed;
+            labelElement?.RemoveFromHierarchy();
         }
 
         private void Update()
@@ -82,6 +98,7 @@ namespace Incognito.World
             hover.Step(steps);
             for (int i = 0; i < steps; i++) alpha = RoomExitRules.DoorAlphaStep(alpha, playerX, position.x);
             Apply();
+            UpdateLabel();
 
             if (!CommandPrompt.CapturesKeyboard && GameInput.Current.DoorUsePressed) TryUse();
         }
@@ -116,17 +133,25 @@ namespace Incognito.World
             if (icon != null) icon.color = new Color(1f, 1f, 1f, alpha);
         }
 
-        private void OnGUI()
+        private void UpdateLabel()
         {
             var cam = viewCamera != null ? viewCamera : Camera.main;
-            if (cam == null || alpha <= 0f) return;
+            if (cam == null || labelElement.panel == null || alpha <= 0f)
+            {
+                labelElement.style.display = DisplayStyle.None;
+                return;
+            }
 
             const float px = PlayerLocomotion.WorldUnitsPerOriginalPixel;
             Vector3 screen = cam.WorldToScreenPoint(transform.position + new Vector3(0f, LabelRise * px, 0f));
-            float s = OutlinedText.Scale;
-            // fa_center, text top at y - 100.
-            var rect = new Rect(screen.x - 600f * s, Screen.height - screen.y, 1200f * s, 60f * s);
-            OutlinedText.Draw(rect, label, TextAnchor.UpperCenter, alpha);
+            // Original GUI space (top-left origin), like the OS screen point every other HUD element uses.
+            Vector2 panelPos = RuntimePanelUtils.ScreenToPanel(labelElement.panel, new Vector2(screen.x, Screen.height - screen.y));
+
+            labelElement.text = label;
+            labelElement.style.opacity = alpha;
+            labelElement.style.display = DisplayStyle.Flex;
+            labelElement.style.left = panelPos.x - LabelWidth * 0.5f; // fa_center
+            labelElement.style.top = panelPos.y;
         }
     }
 }

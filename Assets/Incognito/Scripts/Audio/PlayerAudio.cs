@@ -22,6 +22,15 @@ namespace Incognito.Audio
         private GameSession session;
         private PlayerLocomotionState.FacingDirection lastFacing;
 
+        /// <summary>Sets the room's audio source and clips (U.INC-T26's RoomComposer): the original
+        /// sfx_step_concrete01..16 and sfx_whoosh, imported per room by the editor builder.</summary>
+        public void Configure(AudioSource audioSource, AudioClip[] footsteps, AudioClip whoosh)
+        {
+            this.audioSource = audioSource;
+            this.footsteps = footsteps ?? new AudioClip[0];
+            this.whoosh = whoosh;
+        }
+
         private void Start()
         {
             locomotion = GetComponent<PlayerLocomotion>();

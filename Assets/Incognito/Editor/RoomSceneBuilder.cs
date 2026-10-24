@@ -1,14 +1,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Incognito.Audio;
-using Incognito.CameraRig;
 using Incognito.Content;
-using Incognito.Eye;
 using Incognito.Player;
 using Incognito.Settings;
-using Incognito.Terminal;
-using Incognito.Weapon;
 using Incognito.World;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -27,9 +22,17 @@ namespace Incognito.EditorTools
     /// Assets/Incognito/Resources/Data/game-content.json, instead of a hard-coded table here — on
     /// top of a copy of the player rig in PlayerSandbox.unity — player, arms, eyeball, eye cursor,
     /// close camera, typed console (and the street00 NPC) — minus the sandbox's placeholder
-    /// ground, markers and console targets. Rebuild the sandbox first if the rig changes, then
-    /// rerun this. Safe to re-run (overwrites the scenes and re-applies the original assets'
-    /// import settings).
+    /// ground, markers and console targets.
+    ///
+    /// U.INC-T26: this builder no longer bakes a room's background/props/exits into the scene file
+    /// itself. It only imports that room's art and audio (<see cref="RoomRuntimeAssets"/>) and drops
+    /// them on a <see cref="RoomBootstrap"/> component, which rebuilds the room's actual content
+    /// (<see cref="RoomComposer"/>) from game-content.json at Awake — in the Editor, in Play mode and
+    /// in a build alike — so the committed scene can never drift from the data it was generated
+    /// from. Rebuild the sandbox first if the rig changes, then rerun this. Safe to re-run
+    /// (overwrites the scenes and re-applies the original assets' import settings) — and
+    /// deterministic: re-running it with unchanged data and art reproduces byte-identical scene
+    /// files (see Tests/EditMode/RoomSceneBuilderTests.cs).
     /// </summary>
     public static class RoomSceneBuilder
     {
@@ -42,41 +45,17 @@ namespace Incognito.EditorTools
         private const float Px = PlayerLocomotion.WorldUnitsPerOriginalPixel;
         private const float ViewWidth = 1920f;
         private const float ViewHeight = 1080f;
-        private const float PlayerOriginAboveFloor = 512f; // obj_walker initialY = room_height - sprite_height/2
 
-        // Sorting orders, from the original depths (lower depth draws in front). Each band also
-        // gets its own sorting layer (ProjectSettings/TagManager.asset) so the original's
-        // front-prop/back-prop depth trick (RECONSTRUCTION.md §7) survives URP's sprite sort
-        // (U.INC-T24) instead of relying on sortingOrder alone.
-        private const int BackgroundOrder = -100; // tiles, depth 1000000
-        private const int ExitOrder = -19;        // obj_exit, depth 19
-        private const int LamppostOrder = -10;    // obj_prop_lamppost, depth 10 (behind obj_bullet's 5)
-        private const int LamplightOrder = -9;    // drawn in the lamppost's own draw event, after the post
-        private const int RainOrder = 2;          // obj_raindrop, depth -1: in front of the player and arms
-        private const int FrontPropOrder = 10;    // obj_prop_mailbox, depth -10
-
-        private const string BackgroundLayer = "Background"; // tiles, title/scrolling backdrops
-        private const string BackPropLayer = "BackProps";    // lamppost, its light, side/door exits
-        private const string EffectsLayer = "Effects";       // rain, in front of player and arms
-        private const string FrontPropLayer = "FrontProps";  // mailbox, in front of the player
+        // The title screen's own backdrop is still baked here (it isn't a RoomDefinition room); its
+        // sorting layer and order match RoomComposer's BackgroundLayer/BackgroundOrder
+        // (ProjectSettings/TagManager.asset, RECONSTRUCTION.md §7, U.INC-T24).
+        private const int BackgroundOrder = -100;
+        private const string BackgroundLayer = "Background";
 
         public const string TitleScene = "Titlescreen";
         public const string Street00 = "Street00";
         public const string Street01 = "Street01";
         public const string Shop = "Shop";
-
-        /// <summary>RoomEntranceKind (Core, data) -> RoomEntrance (Runtime): the same three cases,
-        /// kept as separate types so room data stays engine-free (U.INC-T22).</summary>
-        private static RoomEntrance Convert(RoomEntranceKind kind)
-        {
-            switch (kind)
-            {
-                case RoomEntranceKind.Left: return RoomEntrance.Left;
-                case RoomEntranceKind.Right: return RoomEntrance.Right;
-                case RoomEntranceKind.At: return RoomEntrance.At;
-                default: throw new System.ArgumentOutOfRangeException(nameof(kind), kind, "Unrecognized RoomEntranceKind.");
-            }
-        }
 
         [MenuItem("Incognito/Build Room Scenes")]
         public static void BuildAll()
@@ -146,6 +125,9 @@ namespace Incognito.EditorTools
 
         // ---------------------------------------------------------------- rooms
 
+        /// <summary>Opens the sandbox, strips its placeholder stand-ins, imports this room's art and
+        /// audio, and drops them on a <see cref="RoomBootstrap"/> that rebuilds the room's actual
+        /// content from <paramref name="spec"/> every time the scene loads (U.INC-T26).</summary>
         private static string BuildRoom(RoomDefinition spec)
         {
             var scene = EditorSceneManager.OpenScene(SandboxPath, OpenSceneMode.Single);
@@ -162,167 +144,31 @@ namespace Incognito.EditorTools
                 if (remove.Contains(root.name)) Object.DestroyImmediate(root);
             }
 
-            var player = Object.FindAnyObjectByType<PlayerLocomotion>();
-            var framing = Object.FindAnyObjectByType<CloseFramingCamera>();
-            var cam = framing.GetComponent<Camera>();
-            var cursor = Object.FindAnyObjectByType<EyeCursor>();
-            var weapon = Object.FindAnyObjectByType<PlayerWeapon>();
-            var prompt = Object.FindAnyObjectByType<CommandPrompt>();
-            var border = AssetDatabase.LoadAssetAtPath<Texture2D>($"{ArtDir}/spr_desc_border.png");
-
-            // Player at its room start; the camera rests on the room's full 1080px height.
-            player.transform.position = new Vector3(spec.PlayerStartX * Px, PlayerOriginAboveFloor * Px, player.transform.position.z);
-            cam.transform.position = new Vector3(spec.PlayerStartX * Px, ViewHeight * 0.5f * Px, cam.transform.position.z);
-            cam.backgroundColor = Color.black; // street00's bg_black
-            if (cam.GetComponent<AudioListener>() == null) cam.gameObject.AddComponent<AudioListener>();
-            var framingSo = new SerializedObject(framing);
-            framingSo.FindProperty("roomMinX").floatValue = 0f;
-            framingSo.FindProperty("roomMaxX").floatValue = spec.Width * Px;
-            framingSo.ApplyModifiedPropertiesWithoutUndo();
-
-            // Audio: footsteps + whoosh (obj_walker), weapon sounds (toggle_gun / shoot_bullet).
-            var playerAudioSource = GetOrAdd<AudioSource>(player.gameObject);
-            playerAudioSource.playOnAwake = false;
-            var playerAudio = GetOrAdd<PlayerAudio>(player.gameObject);
-            var audioSo = new SerializedObject(playerAudio);
-            audioSo.FindProperty("audioSource").objectReferenceValue = playerAudioSource;
-            var steps = audioSo.FindProperty("footsteps");
-            steps.arraySize = 16;
-            for (int i = 0; i < 16; i++) steps.GetArrayElementAtIndex(i).objectReferenceValue = LoadClip($"sfx_step_concrete{i + 1:00}.wav");
-            audioSo.FindProperty("whoosh").objectReferenceValue = LoadClip("sfx_whoosh.wav");
-            audioSo.ApplyModifiedPropertiesWithoutUndo();
-
-            var weaponSo = new SerializedObject(weapon);
-            weaponSo.FindProperty("reloadClip").objectReferenceValue = LoadClip("sfx_reload.wav");
-            weaponSo.FindProperty("holsterClip").objectReferenceValue = LoadClip("sfx_holster.wav");
-            weaponSo.FindProperty("whooshClip").objectReferenceValue = LoadClip("sfx_whoosh.wav");
-            weaponSo.FindProperty("fireClip").objectReferenceValue = LoadClip("sfx_fire_cannon.wav");
-            weaponSo.FindProperty("room").rectValue = new Rect(0f, 0f, spec.Width * Px, ViewHeight * Px);
-            weaponSo.ApplyModifiedPropertiesWithoutUndo();
-
-            if (prompt != null)
+            var assets = new RoomRuntimeAssets
             {
-                var typeSource = GetOrAdd<AudioSource>(prompt.gameObject);
-                typeSource.playOnAwake = false;
-                var promptSo = new SerializedObject(prompt);
-                promptSo.FindProperty("typeSource").objectReferenceValue = typeSource;
-                promptSo.FindProperty("typeClip").objectReferenceValue = LoadClip("sfx_type.wav");
-                promptSo.ApplyModifiedPropertiesWithoutUndo();
-            }
+                BackgroundSlices = spec.BackgroundSlices.Select(name => ImportSprite($"{BackgroundDir}/{name}.png", 0, 0)).ToArray(),
+                LamppostSprite = ImportSprite($"{ArtDir}/spr_lamppost.png", 64, 0),
+                LamplightSprite = ImportSprite($"{ArtDir}/spr_lamplight01.png", 800, 800),
+                MailboxSprite = ImportSprite($"{ArtDir}/spr_mailbox.png", 0, 0),
+                RainSprite = ImportSprite($"{ArtDir}/spr_rain.png", 0, 0),
+                ExitIconSprite = ImportSprite($"{ArtDir}/spr_icon_exit.png", 32, 32),
+                DescriptionBorder = AssetDatabase.LoadAssetAtPath<Texture2D>($"{ArtDir}/spr_desc_border.png"),
+                Music = LoadClip($"{spec.Music}.ogg"),
+                Footsteps = Enumerable.Range(1, 16).Select(i => LoadClip($"sfx_step_concrete{i:00}.wav")).ToArray(),
+                Whoosh = LoadClip("sfx_whoosh.wav"),
+                ReloadClip = LoadClip("sfx_reload.wav"),
+                HolsterClip = LoadClip("sfx_holster.wav"),
+                FireClip = LoadClip("sfx_fire_cannon.wav"),
+                TypeClip = LoadClip("sfx_type.wav"),
+                DoorOpenClip = LoadClip("sfx_door_open.wav"),
+            };
 
-            // The room: background slices (tiles at depth 1000000), left to right.
-            var backdrop = new GameObject("Background");
-            for (int i = 0; i < spec.BackgroundSlices.Length; i++)
-            {
-                var slice = new GameObject(spec.BackgroundSlices[i], typeof(SpriteRenderer));
-                slice.transform.SetParent(backdrop.transform, false);
-                var sr = slice.GetComponent<SpriteRenderer>();
-                sr.sprite = ImportSprite($"{BackgroundDir}/{spec.BackgroundSlices[i]}.png", 0, 0);
-                sr.sortingLayerName = BackgroundLayer;
-                sr.sortingOrder = BackgroundOrder;
-                slice.transform.position = GmToWorld(i * ViewWidth, 0f);
-            }
-
-            // obj_room + obj_music.
-            var fade = new GameObject("Fade").AddComponent<RoomFade>();
-            var room = new GameObject("Room").AddComponent<Room>();
-            var roomSo = new SerializedObject(room);
-            roomSo.FindProperty("displayName").stringValue = spec.DisplayName;
-            roomSo.FindProperty("roomWidth").floatValue = spec.Width;
-            roomSo.FindProperty("playerWidth").floatValue = GameSettings.Tuning.Camera.PlayerWidth;
-            roomSo.FindProperty("player").objectReferenceValue = player;
-            roomSo.FindProperty("music").objectReferenceValue = LoadClip($"{spec.Music}.ogg");
-            roomSo.FindProperty("openingText").stringValue = spec.OpeningText ?? string.Empty;
-            roomSo.FindProperty("openingTextPosition").vector2Value = new Vector2(spec.OpeningTextX, spec.OpeningTextY);
-            roomSo.FindProperty("descriptionBorder").objectReferenceValue = border;
-            roomSo.FindProperty("viewCamera").objectReferenceValue = cam;
-            roomSo.ApplyModifiedPropertiesWithoutUndo();
-
-            // Props: lampposts (behind, with their flickering pooled light) and mailboxes (in front).
-            var props = new GameObject("Props");
-            var lamppost = ImportSprite($"{ArtDir}/spr_lamppost.png", 64, 0);
-            var lamplight = ImportSprite($"{ArtDir}/spr_lamplight01.png", 800, 800);
-            var mailbox = ImportSprite($"{ArtDir}/spr_mailbox.png", 0, 0);
-            foreach (PropSpot l in spec.Lampposts)
-            {
-                var post = CreateProp(props.transform, "Lamppost", lamppost, BackPropLayer, LamppostOrder, l.X, 0f,
-                    l.Description, cursor, cam, border);
-                var glow = new GameObject("Lamplight", typeof(SpriteRenderer));
-                glow.transform.SetParent(post.transform, false);
-                glow.transform.position = GmToWorld(l.X, -100f);
-                var glowSr = glow.GetComponent<SpriteRenderer>();
-                glowSr.sprite = lamplight;
-                glowSr.sortingLayerName = BackPropLayer;
-                glowSr.sortingOrder = LamplightOrder;
-                post.AddComponent<LampFlicker>().Configure(glowSr);
-            }
-            foreach (PropSpot m in spec.Mailboxes)
-            {
-                CreateProp(props.transform, "Mailbox", mailbox, FrontPropLayer, FrontPropOrder, m.X, 800f,
-                    m.Description, cursor, cam, border);
-            }
-
-            if (spec.Rain)
-            {
-                new GameObject("Rain").AddComponent<RainEmitter>()
-                    .Configure(ImportSprite($"{ArtDir}/spr_rain.png", 0, 0), cam, EffectsLayer, RainOrder);
-            }
-
-            // Exits.
-            var exits = new GameObject("Exits");
-            foreach (SideExitSpec e in spec.SideExits)
-            {
-                var go = new GameObject($"Exit Side x={e.X:0} -> {e.To}");
-                go.transform.SetParent(exits.transform, false);
-                go.AddComponent<SideExit>().Configure(e.X, e.To, Convert(e.Enter), e.EnterX, room, fade);
-            }
-            var icon = ImportSprite($"{ArtDir}/spr_icon_exit.png", 32, 32);
-            var doorClip = LoadClip("sfx_door_open.wav");
-            foreach (DoorSpec d in spec.Doors)
-            {
-                var go = new GameObject($"Exit {d.Label} -> {d.To}", typeof(SpriteRenderer));
-                go.transform.SetParent(exits.transform, false);
-                var sr = go.GetComponent<SpriteRenderer>();
-                sr.sprite = icon;
-                sr.sortingLayerName = BackPropLayer;
-                sr.sortingOrder = ExitOrder;
-                sr.color = new Color(1f, 1f, 1f, 0f);
-                var doorPosition = new Vector2(d.X, d.Y);
-                go.transform.position = GmToWorld(d.X, d.Y);
-                go.AddComponent<DoorExit>().Configure(doorPosition, d.Label, d.To, Convert(d.Enter), 0f, room, fade, playerAudioSource, doorClip, cam);
-            }
-            foreach (float x in spec.Barriers)
-            {
-                var go = new GameObject($"Barrier x={x:0}");
-                go.transform.SetParent(exits.transform, false);
-                go.AddComponent<RoomBarrier>().Configure(x, room);
-            }
+            var bootstrap = new GameObject("Room Bootstrap").AddComponent<RoomBootstrap>();
+            bootstrap.Configure(spec.Id, assets);
 
             string path = $"{RoomsDir}/{spec.Id}.unity";
             EditorSceneManager.SaveScene(scene, path);
             return path;
-        }
-
-        private static GameObject CreateProp(Transform parent, string name, Sprite sprite, string sortingLayer, int order, float x, float y,
-            string description, EyeCursor cursor, Camera cam, Texture2D border)
-        {
-            var go = new GameObject($"{name} x={x:0}", typeof(SpriteRenderer));
-            go.transform.SetParent(parent, false);
-            var sr = go.GetComponent<SpriteRenderer>();
-            sr.sprite = sprite;
-            sr.sortingLayerName = sortingLayer;
-            sr.sortingOrder = order;
-            go.transform.position = GmToWorld(x, y);
-            go.AddComponent<BoxCollider2D>(); // after the sprite, so it fits the sprite's bounds
-            go.AddComponent<PropDescription>().Configure(description, cursor, cam, border);
-            return go;
-        }
-
-        private static T GetOrAdd<T>(GameObject go) where T : Component
-        {
-            // Not ?? : in the editor a missing component comes back as a fake-null object.
-            var existing = go.GetComponent<T>();
-            return existing != null ? existing : go.AddComponent<T>();
         }
 
         private static Camera CreateCamera(Vector3 position)
@@ -337,10 +183,6 @@ namespace Incognito.EditorTools
             go.tag = "MainCamera";
             return cam;
         }
-
-        /// <summary>A GameMaker room point (px from the top-left, y down) in world units: the
-        /// room's floor (y = 1080) sits at world y = 0, as in the sandbox.</summary>
-        private static Vector3 GmToWorld(float x, float y) => new Vector3(x * Px, (ViewHeight - y) * Px, 0f);
 
         // ---------------------------------------------------------------- assets
 

@@ -1,14 +1,18 @@
 using Incognito.Controls;
 using Incognito.Player;
+using Incognito.UI;
 using Incognito.World;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Incognito.Terminal
 {
     /// <summary>
     /// The on-screen typed console (RECONSTRUCTION.md §6, obj_command_prompt): a 580x200 panel
-    /// that slides in from the left, a "> " prompt with a blinking "_" i-beam (toggled every 30
-    /// steps), and the last command's output above it. Enter sends the line to the world as a
+    /// that slides in from the left, a "> " prompt with the last command's output above it, drawn
+    /// with a UI Toolkit panel and a native <see cref="TextField"/> for typing (U.INC-T26 — was
+    /// IMGUI manually parsing key events and blinking its own "_" i-beam; the engine's own text
+    /// field now provides the caret). Enter sends the line to the world as a
     /// <see cref="RunConsoleCommand"/> from this prompt's player, which runs it through the
     /// <see cref="CommandInterpreter"/> against the console objects in <see cref="Vicinity"/> of
     /// <see cref="Origin"/>; the prompt shows the <see cref="ConsoleOutput"/> that comes back.
@@ -45,7 +49,7 @@ namespace Incognito.Terminal
         private const float InputTop = 170f;         // console[0].inputY = y + 170
         private const float CpuTop = 8f;             // draw_text(inputX + 450, y + 8, "CPU: ...")
         private const float CpuRight = 450f;
-        private const float IBeamPeriodSteps = 30f;
+        private const float FontSize = 18f;
 
         private static CommandPrompt openPrompt;
 
@@ -81,7 +85,7 @@ namespace Incognito.Terminal
         public CommandPromptSlide Slide { get; private set; }
 
         /// <summary>The line being typed.</summary>
-        public string InputText { get; private set; } = string.Empty;
+        public string InputText => inputField != null ? inputField.value : string.Empty;
 
         /// <summary>The last command's output (empty after <c>clear</c>).</summary>
         public string Output { get; private set; } = string.Empty;
@@ -98,14 +102,25 @@ namespace Incognito.Terminal
             set => player = value;
         }
 
+        /// <summary>Sets the keystroke audio (sfx_type) for the room this prompt belongs to
+        /// (U.INC-T26's RoomComposer).</summary>
+        public void ConfigureAudio(AudioSource typeSource, AudioClip typeClip)
+        {
+            this.typeSource = typeSource;
+            this.typeClip = typeClip;
+        }
+
         private GameSession session;
-        private int openedFrame = -1;
-        private GUIStyle textStyle;
-        private Texture2D panelTexture;
+        private VisualElement panel;
+        private Label cpuLabel;
+        private Label outputLabel;
+        private TextField inputField;
 
         private void Awake()
         {
             Slide = new CommandPromptSlide(PanelWidth);
+            HudRoot.EnsureInstalled();
+            BuildUi();
         }
 
         // Start: the player's seat (and so the session) is set in its Awake.
@@ -123,13 +138,17 @@ namespace Incognito.Terminal
         private void OnDestroy()
         {
             if (session != null) session.Played -= OnPlayed;
-            if (panelTexture != null) Destroy(panelTexture);
+            panel?.RemoveFromHierarchy();
         }
 
         // The console's new output for this prompt's player.
         private void OnPlayed(GameEvent e)
         {
-            if (e is ConsoleOutput output && output.Player == player.Id) Output = output.Text;
+            if (e is ConsoleOutput output && output.Player == player.Id)
+            {
+                Output = output.Text;
+                if (outputLabel != null) outputLabel.text = Output;
+            }
         }
 
         public void Open()
@@ -137,23 +156,25 @@ namespace Incognito.Terminal
             if (Slide.IsOpen) return;
             Slide.Open();
             openPrompt = this;
-            openedFrame = Time.frameCount;
+            inputField.SetValueWithoutNotify(string.Empty);
+            inputField.Focus();
         }
 
         public void Close()
         {
             Slide.Close();
+            inputField.Blur();
         }
 
         /// <summary>Runs <paramref name="line"/> as if typed and Enter pressed.</summary>
         public void Submit(string line)
         {
+            inputField.SetValueWithoutNotify(string.Empty);
             if (player == null) return;
 
             const float px = PlayerLocomotion.WorldUnitsPerOriginalPixel;
             Vector2 center = origin != null ? (Vector2)origin.position : (Vector2)transform.position;
             player.Send(new RunConsoleCommand(player.Id, line, new Vec2(center.x / px, center.y / px), vicinityRadius));
-            InputText = string.Empty;
         }
 
         private void Update()
@@ -162,90 +183,118 @@ namespace Incognito.Terminal
 
             Slide.Step(Time.deltaTime);
             if (!Slide.IsOpen && openPrompt == this) openPrompt = null;
+
+            ApplyPanel();
         }
 
-        private void OnGUI()
+        private void BuildUi()
         {
-            if (!Slide.IsOpen) return;
+            panel = new VisualElement { pickingMode = PickingMode.Position };
+            panel.style.position = Position.Absolute;
+            panel.style.top = PanelTop;
+            panel.style.width = PanelWidth;
+            panel.style.height = PanelHeight;
+            panel.style.backgroundSize = new BackgroundSize(Length.Percent(100f), Length.Percent(100f));
+            if (panelArt != null) panel.style.backgroundImage = new StyleBackground(panelArt);
+            else panel.style.backgroundColor = new Color(0f, 0.05f, 0.03f, 0.85f);
+            panel.style.display = DisplayStyle.None;
+            HudRoot.ConsolePanel.Add(panel);
 
-            HandleTyping(Event.current);
+            cpuLabel = new Label { pickingMode = PickingMode.Ignore };
+            StyleText(cpuLabel);
+            cpuLabel.style.position = Position.Absolute;
+            cpuLabel.style.left = InputInset;
+            cpuLabel.style.top = CpuTop;
+            cpuLabel.style.width = CpuRight;
+            cpuLabel.style.unityTextAlign = TextAnchor.UpperRight;
+            panel.Add(cpuLabel);
 
-            float scale = Screen.height / 1080f;
-            EnsureStyle(scale);
+            outputLabel = new Label { pickingMode = PickingMode.Ignore };
+            StyleText(outputLabel);
+            outputLabel.style.whiteSpace = WhiteSpace.Normal;
+            outputLabel.style.position = Position.Absolute;
+            outputLabel.style.left = InputInset;
+            outputLabel.style.top = OutputTop;
+            outputLabel.style.width = PanelWidth - InputInset - 12f;
+            outputLabel.style.height = InputTop - OutputTop;
+            panel.Add(outputLabel);
 
-            var panel = PanelScreenRect;
-            GUI.DrawTexture(panel, panelArt != null ? panelArt : panelTexture);
+            var promptLabel = new Label(">") { pickingMode = PickingMode.Ignore };
+            StyleText(promptLabel);
+            promptLabel.style.position = Position.Absolute;
+            promptLabel.style.left = InputInset - 12f;
+            promptLabel.style.top = InputTop;
+            panel.Add(promptLabel);
 
-            float inputX = panel.x + InputInset * scale;
-            float lineHeight = textStyle.lineHeight;
-
-            var cpuStyle = new GUIStyle(textStyle) { alignment = TextAnchor.UpperRight, wordWrap = false };
-            GUI.Label(new Rect(inputX, panel.y + CpuTop * scale, CpuRight * scale, lineHeight), CpuText, cpuStyle);
-
-            float inputY = panel.y + InputTop * scale;
-            var outputRect = new Rect(inputX, panel.y + OutputTop * scale, panel.width - InputInset * scale - 12f * scale,
-                inputY - (panel.y + OutputTop * scale));
-            GUI.Label(outputRect, Output, textStyle);
-
-            bool iBeamOn = Mathf.FloorToInt(Time.unscaledTime * CommandPromptSlide.ReferenceFps / IBeamPeriodSteps) % 2 == 0;
-            GUI.Label(new Rect(inputX - 12f * scale, inputY, 20f * scale, lineHeight), ">", textStyle);
-            GUI.Label(new Rect(inputX, inputY, outputRect.width, lineHeight), InputText + (iBeamOn ? "_" : ""), textStyle);
+            inputField = new TextField { multiline = false, isDelayed = false };
+            inputField.style.position = Position.Absolute;
+            inputField.style.left = InputInset;
+            inputField.style.top = InputTop - 2f;
+            inputField.style.width = PanelWidth - InputInset - 12f;
+            StripChrome(inputField);
+            inputField.RegisterCallback<KeyDownEvent>(OnKeyDown);
+            panel.Add(inputField);
         }
 
-        private void HandleTyping(Event e)
+        private void OnKeyDown(KeyDownEvent evt)
         {
-            if (e.type != EventType.KeyDown) return;
-            // The keystroke that opened the prompt must not also be typed into it.
-            if (Time.frameCount == openedFrame || Slide.Current == CommandPromptSlide.Mode.Offscreen) return;
-
-            if (e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter || e.character == '\n')
+            if (evt.keyCode == KeyCode.Return || evt.keyCode == KeyCode.KeypadEnter)
             {
-                // Unity sends Enter as a keyCode event and a '\n' character event; act once.
-                if (e.keyCode != KeyCode.None) Submit(InputText);
-            }
-            else if (e.keyCode == KeyCode.Backspace)
-            {
-                if (InputText.Length > 0) InputText = InputText.Substring(0, InputText.Length - 1);
-            }
-            else if (e.character != '\0' && !char.IsControl(e.character))
-            {
-                InputText += e.character;
-            }
-            else
-            {
-                return;
+                Submit(inputField.value);
+                evt.StopPropagation();
             }
 
             // obj_command_prompt keyboard event: if (!shift) if (!audio_is_playing(sfx_type)) play it.
-            if (!e.shift && typeSource != null && typeClip != null && !typeSource.isPlaying)
+            if (!evt.shiftKey && typeSource != null && typeClip != null && !typeSource.isPlaying)
             {
                 typeSource.clip = typeClip;
                 typeSource.Play();
             }
-
-            e.Use();
         }
 
-        private void EnsureStyle(float scale)
+        private void ApplyPanel()
         {
-            if (panelTexture == null)
-            {
-                panelTexture = new Texture2D(1, 1);
-                panelTexture.SetPixel(0, 0, new Color(0f, 0.05f, 0.03f, 0.85f));
-                panelTexture.Apply();
-            }
+            panel.style.left = Slide.X;
+            panel.style.display = Slide.IsOpen ? DisplayStyle.Flex : DisplayStyle.None;
+            cpuLabel.text = CpuText;
+        }
 
-            int fontSize = Mathf.Max(8, Mathf.RoundToInt(18f * scale));
-            if (textStyle == null || textStyle.fontSize != fontSize)
-            {
-                textStyle = new GUIStyle(GUI.skin.label)
-                {
-                    fontSize = fontSize,
-                    wordWrap = true,
-                    alignment = TextAnchor.UpperLeft,
-                    normal = { textColor = Color.white },
-                };
-            }
+        private static void StyleText(Label label)
+        {
+            label.style.color = Color.white;
+            label.style.fontSize = FontSize;
+        }
+
+        /// <summary>Strips the TextField's default box chrome so only its text shows, like the
+        /// original's plain draw_text input line.</summary>
+        private static void StripChrome(TextField field)
+        {
+            field.style.backgroundColor = Color.clear;
+            field.style.marginLeft = 0;
+            field.style.marginRight = 0;
+            field.style.marginTop = 0;
+            field.style.marginBottom = 0;
+            field.style.borderLeftWidth = 0;
+            field.style.borderRightWidth = 0;
+            field.style.borderTopWidth = 0;
+            field.style.borderBottomWidth = 0;
+            field.style.paddingLeft = 0;
+            field.style.paddingRight = 0;
+            field.style.paddingTop = 0;
+            field.style.paddingBottom = 0;
+
+            VisualElement input = field.Q(className: TextField.inputUssClassName);
+            if (input == null) return;
+            input.style.backgroundColor = Color.clear;
+            input.style.borderLeftWidth = 0;
+            input.style.borderRightWidth = 0;
+            input.style.borderTopWidth = 0;
+            input.style.borderBottomWidth = 0;
+            input.style.marginLeft = 0;
+            input.style.paddingLeft = 0;
+            input.style.paddingTop = 0;
+            input.style.color = Color.white;
+            input.style.fontSize = FontSize;
         }
     }
 }

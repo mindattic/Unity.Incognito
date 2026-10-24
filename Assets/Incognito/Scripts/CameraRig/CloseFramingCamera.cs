@@ -31,6 +31,19 @@ namespace Incognito.CameraRig
             set => player = value;
         }
 
+        /// <summary>Sets the room's horizontal extent (world units; per-room scene data, U.INC-T26's
+        /// RoomComposer). Safe to call before or after this component's own Awake.</summary>
+        public void Configure(float roomMinX, float roomMaxX)
+        {
+            this.roomMinX = roomMinX;
+            this.roomMaxX = roomMaxX;
+            if (State != null)
+            {
+                State.RoomMinX = roomMinX / PlayerLocomotion.WorldUnitsPerOriginalPixel;
+                State.RoomMaxX = roomMaxX / PlayerLocomotion.WorldUnitsPerOriginalPixel;
+            }
+        }
+
         private void Awake()
         {
             cam = GetComponent<Camera>();

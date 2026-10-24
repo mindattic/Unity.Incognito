@@ -55,6 +55,17 @@ namespace Incognito.Weapon
         /// <summary>This player's weapon in the world; read it, never write it.</summary>
         public PlayerWeaponState State => locomotion.Entity?.Weapon;
 
+        /// <summary>Sets the room-specific sound clips and bullet-despawn rect (U.INC-T26's
+        /// RoomComposer); the arm/bullet sprites and support audio source stay the sandbox rig's own.</summary>
+        public void Configure(AudioClip reloadClip, AudioClip holsterClip, AudioClip whooshClip, AudioClip fireClip, Rect room)
+        {
+            this.reloadClip = reloadClip;
+            this.holsterClip = holsterClip;
+            this.whooshClip = whooshClip;
+            this.fireClip = fireClip;
+            this.room = room;
+        }
+
         private PlayerLocomotion locomotion;
         private GameSession session;
 

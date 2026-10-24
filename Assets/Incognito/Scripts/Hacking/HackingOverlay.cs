@@ -3,7 +3,9 @@ using Incognito.Controls;
 using Incognito.Eye;
 using Incognito.Npc;
 using Incognito.Terminal;
+using Incognito.UI;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Incognito.Hacking
 {
@@ -21,9 +23,9 @@ namespace Incognito.Hacking
     /// - Q again restores the previous cursor mode, fades the backdrop out, sinks the icon, closes
     ///   the console and hands the camera back to the player.
     ///
-    /// Drawn with IMGUI behind the console panel, as the original drew these in its GUI layer;
-    /// obj_mouse_gui's <c>sfx_flick</c> on an icon click is optional until the audio pass
-    /// (U.INC-T11).
+    /// Drawn with a UI Toolkit backdrop and icon image (U.INC-T26 — was IMGUI) behind the console
+    /// panel's own HUD layer (<see cref="HudRoot.HackingBackdrop"/>); obj_mouse_gui's
+    /// <c>sfx_flick</c> on an icon click is optional until the audio pass (U.INC-T11).
     /// </summary>
     public sealed class HackingOverlay : MonoBehaviour
     {
@@ -63,17 +65,40 @@ namespace Incognito.Hacking
         public static bool IsOverGui(Vector2 screenPoint) => active != null && active.HitsGui(screenPoint);
 
         private bool consoleWasShowing;
+        private VisualElement backdropElement;
+        private VisualElement iconElement;
 
         private void OnEnable()
         {
             active = this;
             NpcInteraction.AnyPointerClicked += OnNpcPointerClicked;
+
+            HudRoot.EnsureInstalled();
+            backdropElement = new VisualElement { pickingMode = PickingMode.Ignore };
+            backdropElement.style.position = Position.Absolute;
+            backdropElement.style.left = 0f;
+            backdropElement.style.top = 0f;
+            backdropElement.style.right = 0f;
+            backdropElement.style.bottom = 0f;
+            backdropElement.style.backgroundSize = new BackgroundSize(Length.Percent(100f), Length.Percent(100f));
+            backdropElement.style.display = DisplayStyle.None;
+            HudRoot.HackingBackdrop.Add(backdropElement);
+
+            iconElement = new VisualElement { pickingMode = PickingMode.Ignore };
+            iconElement.style.position = Position.Absolute;
+            iconElement.style.width = ProgramWidth;
+            iconElement.style.height = HackingSession<NpcInteraction>.ProgramIconHeight;
+            iconElement.style.backgroundSize = new BackgroundSize(Length.Percent(100f), Length.Percent(100f));
+            iconElement.style.display = DisplayStyle.None;
+            HudRoot.HackingBackdrop.Add(iconElement);
         }
 
         private void OnDisable()
         {
             NpcInteraction.AnyPointerClicked -= OnNpcPointerClicked;
             if (active == this) active = null;
+            backdropElement?.RemoveFromHierarchy();
+            iconElement?.RemoveFromHierarchy();
         }
 
         private void Update()
@@ -96,6 +121,7 @@ namespace Incognito.Hacking
             consoleWasShowing = showing;
 
             Session.Step(Time.deltaTime);
+            ApplyOverlay();
         }
 
         public void ToggleInverted()
@@ -162,25 +188,31 @@ namespace Incognito.Hacking
             return ProgramIconRect().Contains(new Vector2(screenPoint.x, Screen.height - screenPoint.y));
         }
 
-        private void OnGUI()
+        private void ApplyOverlay()
         {
-            GUI.depth = 10; // behind the console panel (depth 0)
-            if (Event.current.type != EventType.Repaint) return;
-
             float alpha = Session.Backdrop.Alpha;
             if (alpha > 0f && backdrop != null)
             {
-                // spr_circuitwall1 is 1920x1080, drawn at the GUI origin; stretched to the screen.
-                var previous = GUI.color;
-                GUI.color = new Color(1f, 1f, 1f, alpha);
-                GUI.DrawTexture(new Rect(0f, 0f, Screen.width, Screen.height), backdrop, ScaleMode.StretchToFill);
-                GUI.color = previous;
+                backdropElement.style.backgroundImage = new StyleBackground(backdrop);
+                backdropElement.style.opacity = alpha;
+                backdropElement.style.display = DisplayStyle.Flex;
+            }
+            else
+            {
+                backdropElement.style.display = DisplayStyle.None;
             }
 
-            if (Session.Program.Visible)
+            Texture2D icon = Session.ProgramActive ? programIconActive : programIcon;
+            if (Session.Program.Visible && icon != null)
             {
-                var icon = Session.ProgramActive ? programIconActive : programIcon;
-                if (icon != null) GUI.DrawTexture(ProgramIconRect(), icon);
+                iconElement.style.backgroundImage = new StyleBackground(icon);
+                iconElement.style.left = ProgramX;
+                iconElement.style.top = Session.Program.Y;
+                iconElement.style.display = DisplayStyle.Flex;
+            }
+            else
+            {
+                iconElement.style.display = DisplayStyle.None;
             }
         }
     }

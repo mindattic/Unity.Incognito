@@ -4,6 +4,7 @@
     "references": [
         "Incognito.Core",
         "Incognito.Runtime",
+        "Incognito.Editor",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],
