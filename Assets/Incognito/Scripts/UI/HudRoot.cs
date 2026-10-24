@@ -25,7 +25,12 @@ namespace Incognito.UI
     /// </summary>
     public static class HudRoot
     {
-        private static bool installed;
+        // A UnityEngine.Object reference, not a bool: with domain reload disabled on Enter Play
+        // Mode, static fields survive from the previous session but the "Hud Root" GameObject they
+        // pointed at was destroyed when that session stopped, so a bool guard would wrongly skip
+        // rebuilding and every layer property would point at a dead panel. Unity's overridden
+        // null-check on a destroyed object still reports true here, so this stays correct.
+        private static UIDocument document;
 
         public static VisualElement HackingBackdrop { get; private set; }
         public static VisualElement WorldLabels { get; private set; }
@@ -36,8 +41,7 @@ namespace Incognito.UI
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void EnsureInstalled()
         {
-            if (installed) return;
-            installed = true;
+            if (document != null) return;
 
             var host = new GameObject("Hud Root");
             Object.DontDestroyOnLoad(host);
@@ -49,11 +53,16 @@ namespace Incognito.UI
             panelSettings.match = 1f; // height-only match, as every OnGUI class's Screen.height/1080f scale did
             panelSettings.sortingOrder = 100f;
 
-            var document = host.AddComponent<UIDocument>();
+            document = host.AddComponent<UIDocument>();
             document.panelSettings = panelSettings;
 
             VisualElement root = document.rootVisualElement;
             root.pickingMode = PickingMode.Ignore;
+            // No themeStyleSheet is assigned (there is no committed theme asset to point at), so
+            // every element needs its own explicit font: UI Toolkit's runtime panel otherwise has
+            // none to fall back on and text silently fails to render. Font is an inherited style,
+            // so setting it once here covers every label this file's consumers create.
+            root.style.unityFontDefinition = FontDefinition.FromFont(Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"));
 
             HackingBackdrop = AddLayer(root, "hacking-backdrop");
             WorldLabels = AddLayer(root, "world-labels");

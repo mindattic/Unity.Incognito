@@ -191,7 +191,10 @@ of the usual wide adventure-game establishing shot — the game's whole premise 
   copy of the sandbox player rig plus one "Room Bootstrap" object, so it can never silently drift
   from the data it describes — proven by `Tests/EditMode/RoomSceneBuilderTests.cs`, which reruns
   the builder and asserts the regenerated scenes match (content, not Unity's own per-session
-  `fileID`s or its fileID-ordered serialization, both normalized away before comparing).
+  `fileID`s or its fileID-ordered serialization, both normalized away before comparing). Trade-off:
+  `RoomBootstrap` runs at Awake, not `[ExecuteAlways]`, so opening a room scene in the Editor
+  without pressing Play shows only the bare player rig; use Play mode, or the fully-authored
+  sandbox scene, to look at a room's content without playing.
 
   The 7 OnGUI (IMGUI) classes — `Room`, `DoorExit`, `DescriptionTypewriter`, `CommandPrompt`,
   `HackingOverlay`, `RoomFade`, `DebugHotkeys` — now draw through `HudRoot`

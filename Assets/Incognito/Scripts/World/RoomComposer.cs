@@ -18,8 +18,9 @@ namespace Incognito.World
     /// side/door exits and barriers, plus the per-room wiring the sandbox rig doesn't carry (camera
     /// bounds, footstep/weapon/console audio). <see cref="RoomBootstrap"/> is the only caller, at
     /// Awake, so a generated scene and a running game build the room the exact same way (U.INC-T26)
-    /// — this class has no <c>UnityEditor</c> dependency and runs equally in the Editor, in Play
-    /// mode and in a build.
+    /// — this class has no <c>UnityEditor</c> dependency, so it is equally usable from Play mode, a
+    /// build, or an Editor script, even though <see cref="RoomBootstrap"/> itself only calls it at
+    /// Awake (Play mode and builds; see that type's own doc comment).
     /// </summary>
     public static class RoomComposer
     {
@@ -51,6 +52,32 @@ namespace Incognito.World
             if (spec == null) throw new ArgumentNullException(nameof(spec));
             if (assets == null) throw new ArgumentNullException(nameof(assets));
             if (player == null) throw new InvalidOperationException("RoomComposer needs a PlayerLocomotion already in the scene.");
+
+            // RoomRuntimeAssets is baked per room, indexed against spec.BackgroundSlices, by the
+            // editor builder; if game-content.json has since added, removed or reordered slices
+            // without rerunning it, a silent mismatch here would render a blank tile or play the
+            // wrong music instead of the room this spec describes.
+            if (assets.BackgroundSlices.Length != spec.BackgroundSlices.Length)
+            {
+                throw new InvalidOperationException(
+                    $"Room '{spec.Id}' has {spec.BackgroundSlices.Length} background slices in game-content.json " +
+                    $"but {assets.BackgroundSlices.Length} baked art references — rerun Incognito/Build Room Scenes.");
+            }
+            for (int i = 0; i < assets.BackgroundSlices.Length; i++)
+            {
+                if (assets.BackgroundSlices[i] == null)
+                {
+                    throw new InvalidOperationException(
+                        $"Room '{spec.Id}'s background slice {i} ('{spec.BackgroundSlices[i]}') has no baked sprite " +
+                        "— rerun Incognito/Build Room Scenes.");
+                }
+            }
+            if (!string.IsNullOrEmpty(spec.Music) && assets.Music == null)
+            {
+                throw new InvalidOperationException(
+                    $"Room '{spec.Id}' names music track '{spec.Music}' in game-content.json but has no baked clip " +
+                    "— rerun Incognito/Build Room Scenes.");
+            }
 
             // Player at its room start; the camera rests on the room's full 1080px height.
             player.transform.position = new Vector3(spec.PlayerStartX * Px, PlayerOriginAboveFloor * Px, player.transform.position.z);
@@ -88,7 +115,7 @@ namespace Incognito.World
                 var slice = new GameObject(spec.BackgroundSlices[i], typeof(SpriteRenderer));
                 slice.transform.SetParent(backdrop.transform, false);
                 var sr = slice.GetComponent<SpriteRenderer>();
-                sr.sprite = i < assets.BackgroundSlices.Length ? assets.BackgroundSlices[i] : null;
+                sr.sprite = assets.BackgroundSlices[i]; // lengths checked equal, and every slot non-null, above
                 sr.sortingLayerName = BackgroundLayer;
                 sr.sortingOrder = BackgroundOrder;
                 slice.transform.position = GmToWorld(i * ViewWidth, 0f);

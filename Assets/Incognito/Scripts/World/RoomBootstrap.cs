@@ -19,9 +19,12 @@ namespace Incognito.World
     /// <see cref="RoomRuntimeAssets"/> — the few static art/audio references the editor's
     /// Incognito/Build Room Scenes (<see cref="EditorTools.RoomSceneBuilder"/>) resolves — so the
     /// room's actual layout (background tiles, lampposts, mailboxes, exits) is read back out of
-    /// game-content.json every time the scene loads: in the Editor, in Play mode and in a build.
-    /// Regenerating a scene can never let it drift from the data, because nothing but this
-    /// component's asset references is baked into the file.
+    /// game-content.json every time the scene is entered: in Play mode and in a build — this runs
+    /// at Awake, not <c>[ExecuteAlways]</c>, so opening a room scene in the Editor without pressing
+    /// Play shows only the bare player rig, not the built room; use Play mode (or the sandbox
+    /// scene, which is fully authored) to look at a room's content. Regenerating a scene can never
+    /// let it drift from the data, because nothing but this component's asset references is baked
+    /// into the file.
     ///
     /// Runs before <see cref="Room"/>'s own Start (which places the player from a pending
     /// <see cref="RoomTransition"/>) via its earlier execution order, since <see cref="RoomComposer"/>

@@ -115,6 +115,7 @@ namespace Incognito.Terminal
         private Label cpuLabel;
         private Label outputLabel;
         private TextField inputField;
+        private int openedFrame = -1;
 
         private void Awake()
         {
@@ -156,7 +157,11 @@ namespace Incognito.Terminal
             if (Slide.IsOpen) return;
             Slide.Open();
             openPrompt = this;
+            openedFrame = Time.frameCount;
             inputField.SetValueWithoutNotify(string.Empty);
+            // The field must already be displayed to take focus — ApplyPanel() won't flip that on
+            // until next Update, and a non-displayed element can't become the focused one.
+            panel.style.display = DisplayStyle.Flex;
             inputField.Focus();
         }
 
@@ -238,6 +243,10 @@ namespace Incognito.Terminal
 
         private void OnKeyDown(KeyDownEvent evt)
         {
+            // The keystroke (if any) that opened the prompt this same frame must not also be typed
+            // into it — Open() may run from the same input poll that is still delivering this event.
+            if (Time.frameCount == openedFrame) return;
+
             if (evt.keyCode == KeyCode.Return || evt.keyCode == KeyCode.KeypadEnter)
             {
                 Submit(inputField.value);
