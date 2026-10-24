@@ -3,6 +3,7 @@ using Incognito.Audio;
 using Incognito.CameraRig;
 using Incognito.Content;
 using Incognito.Eye;
+using Incognito.Hacking;
 using Incognito.Player;
 using Incognito.Settings;
 using Incognito.Terminal;
@@ -44,10 +45,11 @@ namespace Incognito.World
 
         /// <summary>Builds <paramref name="spec"/>'s content into the active scene, wiring the
         /// sandbox rig's <paramref name="player"/>/<paramref name="framing"/>/<paramref name="cam"/>/
-        /// <paramref name="cursor"/>/<paramref name="weapon"/>/<paramref name="prompt"/> (any may be
-        /// null if the rig doesn't have one).</summary>
+        /// <paramref name="cursor"/>/<paramref name="weapon"/>/<paramref name="prompt"/>/<paramref name="hacking"/>
+        /// (any may be null if the rig doesn't have one).</summary>
         public static void Compose(RoomDefinition spec, RoomRuntimeAssets assets, PlayerLocomotion player,
-            CloseFramingCamera framing, Camera cam, EyeCursor cursor, PlayerWeapon weapon, CommandPrompt prompt)
+            CloseFramingCamera framing, Camera cam, EyeCursor cursor, PlayerWeapon weapon, CommandPrompt prompt,
+            HackingOverlay hacking = null)
         {
             if (spec == null) throw new ArgumentNullException(nameof(spec));
             if (assets == null) throw new ArgumentNullException(nameof(assets));
@@ -89,7 +91,8 @@ namespace Incognito.World
             }
             if (framing != null) framing.Configure(0f, spec.Width * Px);
 
-            // Audio: footsteps + whoosh (obj_walker), weapon sounds (toggle_gun / shoot_bullet).
+            // Audio: footsteps + whoosh (obj_walker), weapon sounds (toggle_gun / shoot_bullet),
+            // keystrokes (obj_command_prompt) and the program-icon click (obj_mouse_gui).
             var playerAudioSource = GetOrAdd<AudioSource>(player.gameObject);
             playerAudioSource.playOnAwake = false;
             var playerAudio = GetOrAdd<PlayerAudio>(player.gameObject);
@@ -106,6 +109,19 @@ namespace Incognito.World
                 var typeSource = GetOrAdd<AudioSource>(prompt.gameObject);
                 typeSource.playOnAwake = false;
                 prompt.ConfigureAudio(typeSource, assets.TypeClip);
+            }
+
+            // obj_mouse_gui: sfx_flick on a program-icon click (U.INC-T28).
+            if (hacking != null)
+            {
+                if (assets.FlickClip == null)
+                {
+                    throw new InvalidOperationException(
+                        $"Room '{spec.Id}' has a hacking overlay but no baked sfx_flick clip — rerun Incognito/Build Room Scenes.");
+                }
+                var flickSource = GetOrAdd<AudioSource>(hacking.gameObject);
+                flickSource.playOnAwake = false;
+                hacking.ConfigureAudio(flickSource, assets.FlickClip);
             }
 
             // The room: background slices (tiles at depth 1000000), left to right.

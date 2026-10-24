@@ -393,7 +393,7 @@ ticket order U.INC-T19 to T35 (T19 first).
 
 | Original | Gap | Ticket |
 |---|---|---|
-| `sfx_flick`, `whispers` sounds | not imported (flick is played on HUD/console clicks; whispers is referenced only in a commented line) | T28 |
+| `sfx_flick`, `whispers` sounds | not imported (flick is played on HUD/console clicks; whispers is referenced only in a commented line). Done in T28: both imported and catalogued; flick plays on a program-icon click (obj_command_prompt's flick call is inside a `/* */` block, so obj_mouse_gui is its only live player), whispers stays unwired | T28 |
 | `spr_icon_pistol`, `_selected`, `spr_exit_side`, `spr_barrier`, `spr_command_prompt`(+selected), `spr_console`, `spr_linewall` | sprites not in Art/Original | T29 |
 | `obj_icon_pistol` + `obj_mouse_gui` | HUD pistol icon and GUI-layer click handling (toggle_gun, sfx_flick, console select) absent | T30 |
 | `fnt_basic/large/system`, `draw_text_outline*`, `show_float_text`, `obj_float_text` | IMGUI default font and a single outline helper; no floating text | T31 |

@@ -247,5 +247,63 @@ namespace Incognito.Tests
             Assert.IsNotNull(content.FindRoom("street00"));
             Assert.IsNotNull(content.FindNpc("NPC"));
         }
+
+        // U.INC-T28: the sound catalog.
+        private static SoundDefinition Sound(string id, bool wired = true) => new SoundDefinition
+        {
+            Id = id,
+            File = id + ".wav",
+            PlayedBy = "somewhere",
+            Wired = wired,
+        };
+
+        [Test]
+        public void Room_music_and_title_tracks_must_name_catalogued_sounds()
+        {
+            var room = Room("Street00", 1000f);
+            room.Music = "music_x";
+            var content = new GameContent
+            {
+                Rooms = new[] { room },
+                Sounds = new[] { Sound("music_x"), Sound("whispers", wired: false) },
+                TitleScreen = new TitleScreenSpec { Music = "music_x", UnwiredTrack = "whispers" },
+            };
+            Assert.DoesNotThrow(() => content.Validate());
+            Assert.IsNotNull(content.FindSound("WHISPERS"));
+
+            room.Music = "music_missing";
+            Assert.Throws<SettingsValidationException>(() => content.Validate());
+
+            room.Music = "music_x";
+            content.TitleScreen.UnwiredTrack = "missing";
+            Assert.Throws<SettingsValidationException>(() => content.Validate());
+        }
+
+        [Test]
+        public void Two_sounds_sharing_an_id_are_rejected()
+        {
+            var content = new GameContent
+            {
+                Rooms = new[] { Room("Street00", 1000f) },
+                Sounds = new[] { Sound("sfx_flick"), Sound("SFX_FLICK") },
+            };
+            Assert.Throws<SettingsValidationException>(() => content.Validate());
+        }
+
+        [Test]
+        public void A_sound_needs_a_bare_file_name_and_its_source()
+        {
+            var sound = Sound("sfx_flick");
+            sound.File = "";
+            Assert.Throws<SettingsValidationException>(() => sound.Validate());
+
+            sound = Sound("sfx_flick");
+            sound.File = "sub/sfx_flick.wav";
+            Assert.Throws<SettingsValidationException>(() => sound.Validate());
+
+            sound = Sound("sfx_flick");
+            sound.PlayedBy = "";
+            Assert.Throws<SettingsValidationException>(() => sound.Validate());
+        }
     }
 }

@@ -210,6 +210,87 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!1 &350040636
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 350040638}
+  - component: {fileID: 350040637}
+  m_Layer: 0
+  m_Name: Room Bootstrap
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &350040637
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 350040636}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e451d8b4b7c08e4a834c35576092120, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Incognito.Runtime::Incognito.World.RoomBootstrap
+  roomId: Shop
+  assets:
+    BackgroundSlices:
+    - {fileID: 21300000, guid: 230a703a45898b84a9c3564eba074feb, type: 3}
+    - {fileID: 21300000, guid: 397e5a70f29dae4439eb5df8a4cc3b59, type: 3}
+    - {fileID: 21300000, guid: 975b78c93dffdc84d85a97838e6f349e, type: 3}
+    LamppostSprite: {fileID: 21300000, guid: 66879c38280563c4a99f56e7f4576085, type: 3}
+    LamplightSprite: {fileID: 21300000, guid: f622542a7725f1d4297959ae1496928a, type: 3}
+    MailboxSprite: {fileID: 21300000, guid: 7a91f60ad9c38dd41988dac430ad7162, type: 3}
+    RainSprite: {fileID: 21300000, guid: 887eb86def0229c48b7941fb6dad07ee, type: 3}
+    ExitIconSprite: {fileID: 21300000, guid: 9a7e33e35a3d829488ee18a443418fed, type: 3}
+    DescriptionBorder: {fileID: 2800000, guid: 7583964b71b0d384c81889b7fdafbee2, type: 3}
+    Music: {fileID: 8300000, guid: 688956ede416dee448309d6cd131b7d3, type: 3}
+    Footsteps:
+    - {fileID: 8300000, guid: 7d130b36a3c45b54d9e1e2630576fd61, type: 3}
+    - {fileID: 8300000, guid: c275ae9ec7232e64c9155b21006e633d, type: 3}
+    - {fileID: 8300000, guid: ddf6e29f4a99dd84c949d6e748e5c62d, type: 3}
+    - {fileID: 8300000, guid: 301e2a2632da36f488fe912e9b861ed0, type: 3}
+    - {fileID: 8300000, guid: 1473040bfe6e232498ec7ffb993151f2, type: 3}
+    - {fileID: 8300000, guid: 2e2efa12379c68242ae36ab76f52b3e1, type: 3}
+    - {fileID: 8300000, guid: 4c7799cbb61e38d42a81af46d8096c6c, type: 3}
+    - {fileID: 8300000, guid: 721ee52c60fad2346911fee3262b8548, type: 3}
+    - {fileID: 8300000, guid: 399475770838513429111b46d60bf4c0, type: 3}
+    - {fileID: 8300000, guid: 1590b0f7828d7f1418e494c35617b746, type: 3}
+    - {fileID: 8300000, guid: 19e6908bead8abf4fb1da43701196176, type: 3}
+    - {fileID: 8300000, guid: fe1553414259a1b4cab0c78f94b4b28d, type: 3}
+    - {fileID: 8300000, guid: e256a4f3e59d8064384f335ace255c60, type: 3}
+    - {fileID: 8300000, guid: 0cad4d0435583a9478b6ec5c4c4b8c73, type: 3}
+    - {fileID: 8300000, guid: 5ea1dc071fd364e49bc8f4b923af68f7, type: 3}
+    - {fileID: 8300000, guid: 5d1210da24767f943ab78041dd5fa5b8, type: 3}
+    Whoosh: {fileID: 8300000, guid: 5f8c5056a2d26cf4e9b98fa4c3e5020b, type: 3}
+    ReloadClip: {fileID: 8300000, guid: cc8a58fd549abdc47b5ac06313f2ba4d, type: 3}
+    HolsterClip: {fileID: 8300000, guid: e5b6c04669f45d24a82fa72241773e22, type: 3}
+    FireClip: {fileID: 8300000, guid: 8c2ab09452e076046854a339c6305e79, type: 3}
+    TypeClip: {fileID: 8300000, guid: 8d5c384845020814d91c45e095324126, type: 3}
+    DoorOpenClip: {fileID: 8300000, guid: 0fcf8e567f999e3489eb49aec315d6fd, type: 3}
+    FlickClip: {fileID: 8300000, guid: 50a3c94a31923a746bf5bca8d97b356b, type: 3}
+--- !u!4 &350040638
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 350040636}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &534140284
 GameObject:
   m_ObjectHideFlags: 0
@@ -953,86 +1034,6 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!1 &1761625111
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1761625113}
-  - component: {fileID: 1761625112}
-  m_Layer: 0
-  m_Name: Room Bootstrap
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1761625112
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1761625111}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7e451d8b4b7c08e4a834c35576092120, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Incognito.Runtime::Incognito.World.RoomBootstrap
-  roomId: Shop
-  assets:
-    BackgroundSlices:
-    - {fileID: 21300000, guid: 230a703a45898b84a9c3564eba074feb, type: 3}
-    - {fileID: 21300000, guid: 397e5a70f29dae4439eb5df8a4cc3b59, type: 3}
-    - {fileID: 21300000, guid: 975b78c93dffdc84d85a97838e6f349e, type: 3}
-    LamppostSprite: {fileID: 21300000, guid: 66879c38280563c4a99f56e7f4576085, type: 3}
-    LamplightSprite: {fileID: 21300000, guid: f622542a7725f1d4297959ae1496928a, type: 3}
-    MailboxSprite: {fileID: 21300000, guid: 7a91f60ad9c38dd41988dac430ad7162, type: 3}
-    RainSprite: {fileID: 21300000, guid: 887eb86def0229c48b7941fb6dad07ee, type: 3}
-    ExitIconSprite: {fileID: 21300000, guid: 9a7e33e35a3d829488ee18a443418fed, type: 3}
-    DescriptionBorder: {fileID: 2800000, guid: 7583964b71b0d384c81889b7fdafbee2, type: 3}
-    Music: {fileID: 8300000, guid: 688956ede416dee448309d6cd131b7d3, type: 3}
-    Footsteps:
-    - {fileID: 8300000, guid: 7d130b36a3c45b54d9e1e2630576fd61, type: 3}
-    - {fileID: 8300000, guid: c275ae9ec7232e64c9155b21006e633d, type: 3}
-    - {fileID: 8300000, guid: ddf6e29f4a99dd84c949d6e748e5c62d, type: 3}
-    - {fileID: 8300000, guid: 301e2a2632da36f488fe912e9b861ed0, type: 3}
-    - {fileID: 8300000, guid: 1473040bfe6e232498ec7ffb993151f2, type: 3}
-    - {fileID: 8300000, guid: 2e2efa12379c68242ae36ab76f52b3e1, type: 3}
-    - {fileID: 8300000, guid: 4c7799cbb61e38d42a81af46d8096c6c, type: 3}
-    - {fileID: 8300000, guid: 721ee52c60fad2346911fee3262b8548, type: 3}
-    - {fileID: 8300000, guid: 399475770838513429111b46d60bf4c0, type: 3}
-    - {fileID: 8300000, guid: 1590b0f7828d7f1418e494c35617b746, type: 3}
-    - {fileID: 8300000, guid: 19e6908bead8abf4fb1da43701196176, type: 3}
-    - {fileID: 8300000, guid: fe1553414259a1b4cab0c78f94b4b28d, type: 3}
-    - {fileID: 8300000, guid: e256a4f3e59d8064384f335ace255c60, type: 3}
-    - {fileID: 8300000, guid: 0cad4d0435583a9478b6ec5c4c4b8c73, type: 3}
-    - {fileID: 8300000, guid: 5ea1dc071fd364e49bc8f4b923af68f7, type: 3}
-    - {fileID: 8300000, guid: 5d1210da24767f943ab78041dd5fa5b8, type: 3}
-    Whoosh: {fileID: 8300000, guid: 5f8c5056a2d26cf4e9b98fa4c3e5020b, type: 3}
-    ReloadClip: {fileID: 8300000, guid: cc8a58fd549abdc47b5ac06313f2ba4d, type: 3}
-    HolsterClip: {fileID: 8300000, guid: e5b6c04669f45d24a82fa72241773e22, type: 3}
-    FireClip: {fileID: 8300000, guid: 8c2ab09452e076046854a339c6305e79, type: 3}
-    TypeClip: {fileID: 8300000, guid: 8d5c384845020814d91c45e095324126, type: 3}
-    DoorOpenClip: {fileID: 8300000, guid: 0fcf8e567f999e3489eb49aec315d6fd, type: 3}
---- !u!4 &1761625113
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1761625111}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -1044,4 +1045,4 @@ SceneRoots:
   - {fileID: 1649796074}
   - {fileID: 1492289724}
   - {fileID: 988810688}
-  - {fileID: 1761625113}
+  - {fileID: 350040638}

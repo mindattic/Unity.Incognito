@@ -30,6 +30,8 @@ namespace Incognito.Tests
             Assert.IsNotNull(prompt, "street00 has its CommandPrompt");
             var overlay = Object.FindAnyObjectByType<HackingOverlay>();
             Assert.IsNotNull(overlay, "street00 has its HackingOverlay");
+            Assert.IsNotNull(overlay.FlickSound, "the room wired obj_mouse_gui's sfx_flick to the program icon (U.INC-T28)");
+            Assert.AreEqual("sfx_flick", overlay.FlickSound.name);
 
             // Open, type and submit a line, then close.
             prompt.Open();

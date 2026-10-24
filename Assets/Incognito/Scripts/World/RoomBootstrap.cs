@@ -2,6 +2,7 @@ using System;
 using Incognito.CameraRig;
 using Incognito.Content;
 using Incognito.Eye;
+using Incognito.Hacking;
 using Incognito.Player;
 using Incognito.Settings;
 using Incognito.Terminal;
@@ -59,8 +60,9 @@ namespace Incognito.World
             var cursor = FindAnyObjectByType<EyeCursor>();
             var weapon = FindAnyObjectByType<PlayerWeapon>();
             var prompt = FindAnyObjectByType<CommandPrompt>();
+            var hacking = FindAnyObjectByType<HackingOverlay>();
 
-            RoomComposer.Compose(spec, assets, player, framing, cam, cursor, weapon, prompt);
+            RoomComposer.Compose(spec, assets, player, framing, cam, cursor, weapon, prompt, hacking);
         }
     }
 }

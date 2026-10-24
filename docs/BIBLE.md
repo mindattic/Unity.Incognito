@@ -176,7 +176,7 @@ of the usual wide adventure-game establishing shot — the game's whole premise 
   has the keyboard (it is a letter then); Q off also closes the console and sinks the icon (the
   original left both up) and restores the cursor mode in use before Q (the original always
   restored "look"); clicks on the icon or panel don't also click the NPC behind them. Q no longer
-  opens the prompt by itself. `sfx_flick` is an optional field until U.INC-T11. See
+  opens the prompt by itself. A program-icon click plays obj_mouse_gui's `sfx_flick` (U.INC-T28). See
   `Assets/Incognito/Scripts/Hacking/`.
 
 - **Rooms built from data at runtime, and IMGUI replaced with UI Toolkit (U.INC-T26).** The four
@@ -208,6 +208,20 @@ of the usual wide adventure-game establishing shot — the game's whole premise 
   GM-era implementation detail. World-anchored labels (`DoorExit`, `DescriptionTypewriter`) convert
   a world position to panel space with `RuntimePanelUtils.ScreenToPanel`, the same top-left-origin
   screen point every other HUD element's hit-testing already used.
+
+- **Every original sound, as a data catalog (U.INC-T28).** game-content.json's `Sounds` lists
+  every sound the rebuild imports — id (the `.sound.gmx` name), file in `Audio/Original`, the
+  original's `<streamed>` flag (music and whispers stream, effects decompress on load) and where
+  the original plays it — and `RoomSceneBuilder` loads every clip through it by id
+  (`LoadSound`), so no sound file is named by a literal in code. Room `Music` and the new
+  `TitleScreen` entry are validated against the catalog. Added: `sfx_flick`, played on a
+  program-icon click as obj_mouse_gui does (obj_command_prompt's own flick call sits in a
+  commented-out block, so it has no other player), and the `whispers` ambient, catalogued with
+  `Wired: false` and as `TitleScreen.UnwiredTrack`, never played — titlescreen's obj_music names it
+  only in `//current_track = whispers;`, so the title keeps obj_music's default
+  music_oppressivegloom. That line is a choice the author commented out, not a bug, so it is not
+  "fixed". `Tests/Core.Tests/OriginalAudioParityTests.cs` proves every sound a live original
+  object or script plays is catalogued, wired and on disk, and every file on disk is catalogued.
 
 ## Laws
 

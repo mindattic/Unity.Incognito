@@ -24,8 +24,8 @@ namespace Incognito.Hacking
     ///   the console and hands the camera back to the player.
     ///
     /// Drawn with a UI Toolkit backdrop and icon image (U.INC-T26 — was IMGUI) behind the console
-    /// panel's own HUD layer (<see cref="HudRoot.HackingBackdrop"/>); obj_mouse_gui's
-    /// <c>sfx_flick</c> on an icon click is optional until the audio pass (U.INC-T11).
+    /// panel's own HUD layer (<see cref="HudRoot.HackingBackdrop"/>); an icon click plays
+    /// obj_mouse_gui's <c>sfx_flick</c> (U.INC-T28, set per room by <see cref="ConfigureAudio"/>).
     /// </summary>
     public sealed class HackingOverlay : MonoBehaviour
     {
@@ -41,7 +41,7 @@ namespace Incognito.Hacking
         [Tooltip("spr_program_active (113x86), the program icon during a hack.")]
         [SerializeField] private Texture2D programIconActive;
 
-        [Header("Audio (optional until U.INC-T11)")]
+        [Header("Audio (sfx_flick, U.INC-T28)")]
         [SerializeField] private AudioSource audioSource;
         [SerializeField] private AudioClip flickSound;
 
@@ -56,6 +56,16 @@ namespace Incognito.Hacking
         public EyeCursor Cursor { get => cursor; set => cursor = value; }
         public CommandPrompt Prompt { get => prompt; set => prompt = value; }
         public CloseFramingCamera ViewCamera { get => viewCamera; set => viewCamera = value; }
+
+        /// <summary>The click sound (obj_mouse_gui: <c>audio_play_sound(sfx_flick,1,0)</c> on a program
+        /// icon click) for the room this overlay belongs to (U.INC-T28).</summary>
+        public void ConfigureAudio(AudioSource source, AudioClip flick)
+        {
+            audioSource = source;
+            flickSound = flick;
+        }
+
+        public AudioClip FlickSound => flickSound;
 
         /// <summary>
         /// Whether a click at <paramref name="screenPoint"/> (the pointer's screen position)

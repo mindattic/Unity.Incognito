@@ -1,4 +1,6 @@
 using System.Linq;
+using Incognito.Content;
+using Incognito.EditorTools;
 using Incognito.Settings;
 using Incognito.Terminal;
 using NUnit.Framework;
@@ -46,6 +48,22 @@ namespace Incognito.Tests
             Assert.AreEqual("0097", npc.SheepId);
 
             Assert.AreEqual(CommandInterpreter.NotRecognized, content.Console.NotRecognizedText);
+        }
+
+        /// <summary>U.INC-T28: every catalogued sound (including the new sfx_flick and the unwired
+        /// whispers) is a real AudioClip Unity imported, streamed exactly where the original streamed.</summary>
+        [Test]
+        public void Every_catalogued_sound_imports_as_an_AudioClip()
+        {
+            foreach (SoundDefinition sound in GameSettings.Content.Sounds)
+            {
+                var clip = RoomSceneBuilder.LoadSound(sound.Id);
+                Assert.IsNotNull(clip, sound.Id);
+                Assert.Greater(clip.length, 0f, $"{sound.Id} is empty");
+                var importer = (UnityEditor.AudioImporter)UnityEditor.AssetImporter.GetAtPath(RoomSceneBuilder.SoundPath(sound));
+                var expected = sound.Streamed ? UnityEngine.AudioClipLoadType.Streaming : UnityEngine.AudioClipLoadType.DecompressOnLoad;
+                Assert.AreEqual(expected, importer.defaultSampleSettings.loadType, $"{sound.Id}'s load type");
+            }
         }
 
         [Test]

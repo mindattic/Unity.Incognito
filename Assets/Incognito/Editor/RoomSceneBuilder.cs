@@ -129,7 +129,9 @@ namespace Incognito.EditorTools
             titleSr.sortingOrder = BackgroundOrder + 1;
             title.transform.position = new Vector3(0f, ViewHeight * Px, 0f);
 
-            new GameObject("Title Screen").AddComponent<TitleScreen>().Configure(Street00, LoadClip("music_oppressivegloom.ogg"));
+            // titlescreen's obj_music: the global default track; its own "//current_track = whispers;"
+            // stays commented out, so TitleScreen.UnwiredTrack is catalogued but never loaded (U.INC-T28).
+            new GameObject("Title Screen").AddComponent<TitleScreen>().Configure(Street00, LoadSound(GameSettings.Content.TitleScreen.Music));
 
             string path = $"{roomsDir}/{TitleScene}.unity";
             EditorSceneManager.SaveScene(scene, path);
@@ -166,14 +168,15 @@ namespace Incognito.EditorTools
                 RainSprite = ImportSprite($"{ArtDir}/spr_rain.png", 0, 0),
                 ExitIconSprite = ImportSprite($"{ArtDir}/spr_icon_exit.png", 32, 32),
                 DescriptionBorder = AssetDatabase.LoadAssetAtPath<Texture2D>($"{ArtDir}/spr_desc_border.png"),
-                Music = LoadClip($"{spec.Music}.ogg"),
-                Footsteps = Enumerable.Range(1, 16).Select(i => LoadClip($"sfx_step_concrete{i:00}.wav")).ToArray(),
-                Whoosh = LoadClip("sfx_whoosh.wav"),
-                ReloadClip = LoadClip("sfx_reload.wav"),
-                HolsterClip = LoadClip("sfx_holster.wav"),
-                FireClip = LoadClip("sfx_fire_cannon.wav"),
-                TypeClip = LoadClip("sfx_type.wav"),
-                DoorOpenClip = LoadClip("sfx_door_open.wav"),
+                Music = string.IsNullOrEmpty(spec.Music) ? null : LoadSound(spec.Music),
+                Footsteps = Enumerable.Range(1, 16).Select(i => LoadSound($"sfx_step_concrete{i:00}")).ToArray(),
+                Whoosh = LoadSound("sfx_whoosh"),
+                ReloadClip = LoadSound("sfx_reload"),
+                HolsterClip = LoadSound("sfx_holster"),
+                FireClip = LoadSound("sfx_fire_cannon"),
+                TypeClip = LoadSound("sfx_type"),
+                DoorOpenClip = LoadSound("sfx_door_open"),
+                FlickClip = LoadSound("sfx_flick"),
             };
 
             var bootstrap = new GameObject("Room Bootstrap").AddComponent<RoomBootstrap>();
@@ -229,27 +232,38 @@ namespace Incognito.EditorTools
             return AssetDatabase.LoadAssetAtPath<Sprite>(path);
         }
 
-        /// <summary>Music streams (Vorbis); short effects decompress on load.</summary>
+        /// <summary>Applies every catalogued sound's import (game-content.json's Sounds, U.INC-T28):
+        /// what the original streamed (music, the whispers ambient) streams (Vorbis); short effects
+        /// decompress on load.</summary>
         private static void ImportAudio()
         {
-            foreach (string guid in AssetDatabase.FindAssets("t:AudioClip", new[] { AudioDir }))
+            foreach (SoundDefinition sound in GameSettings.Content.Sounds)
             {
-                string path = AssetDatabase.GUIDToAssetPath(guid);
-                var importer = (AudioImporter)AssetImporter.GetAtPath(path);
-                bool music = Path.GetFileName(path).StartsWith("music_");
+                string path = $"{AudioDir}/{sound.File}";
+                AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
+                var importer = AssetImporter.GetAtPath(path) as AudioImporter
+                    ?? throw new FileNotFoundException($"Missing original audio {path} (sound '{sound.Id}')");
                 var settings = importer.defaultSampleSettings;
-                settings.loadType = music ? AudioClipLoadType.Streaming : AudioClipLoadType.DecompressOnLoad;
+                settings.loadType = sound.Streamed ? AudioClipLoadType.Streaming : AudioClipLoadType.DecompressOnLoad;
                 settings.compressionFormat = AudioCompressionFormat.Vorbis;
                 importer.defaultSampleSettings = settings;
                 importer.SaveAndReimport();
             }
         }
 
-        private static AudioClip LoadClip(string file)
+        /// <summary>Loads a sound by its game-content.json catalog id (U.INC-T28), never by a file
+        /// literal, so every clip a room uses is one the catalog names.</summary>
+        public static AudioClip LoadSound(string id)
         {
-            var clip = AssetDatabase.LoadAssetAtPath<AudioClip>($"{AudioDir}/{file}");
-            if (clip == null) throw new FileNotFoundException($"Missing original audio {AudioDir}/{file}");
+            SoundDefinition sound = GameSettings.Content.FindSound(id)
+                ?? throw new KeyNotFoundException($"game-content.json's Sounds has no '{id}'.");
+            string path = $"{AudioDir}/{sound.File}";
+            var clip = AssetDatabase.LoadAssetAtPath<AudioClip>(path);
+            if (clip == null) throw new FileNotFoundException($"Missing original audio {path} (sound '{id}')");
             return clip;
         }
+
+        /// <summary>The project path of a catalogued sound's file (Audio/Original).</summary>
+        public static string SoundPath(SoundDefinition sound) => $"{AudioDir}/{sound.File}";
     }
 }

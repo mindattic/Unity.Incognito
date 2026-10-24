@@ -33,5 +33,7 @@ namespace Incognito.World
         public AudioClip FireClip;
         public AudioClip TypeClip;
         public AudioClip DoorOpenClip;
+        [Tooltip("sfx_flick: obj_mouse_gui's program-icon click (U.INC-T28).")]
+        public AudioClip FlickClip;
     }
 }

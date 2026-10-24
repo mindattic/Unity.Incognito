@@ -114,6 +114,8 @@ namespace Incognito.Tests
             Assert.AreEqual(a.FireClip, b.FireClip, $"{label}: FireClip");
             Assert.AreEqual(a.TypeClip, b.TypeClip, $"{label}: TypeClip");
             Assert.AreEqual(a.DoorOpenClip, b.DoorOpenClip, $"{label}: DoorOpenClip");
+            Assert.AreEqual(a.FlickClip, b.FlickClip, $"{label}: FlickClip");
+            Assert.IsNotNull(a.FlickClip, $"{label}: no baked sfx_flick (U.INC-T28)");
         }
     }
 }

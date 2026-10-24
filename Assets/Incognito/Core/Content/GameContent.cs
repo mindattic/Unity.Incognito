@@ -21,11 +21,26 @@ namespace Incognito.Content
         public NpcDefinition[] Npcs = Array.Empty<NpcDefinition>();
         public ConsoleText Console = new ConsoleText();
 
+        /// <summary>Every original sound the rebuild imports (U.INC-T28): room music, the title's
+        /// tracks and every effect a live original object plays, looked up by id.</summary>
+        public SoundDefinition[] Sounds = Array.Empty<SoundDefinition>();
+
+        /// <summary>The title screen's audio (U.INC-T28); its names refer to <see cref="Sounds"/>.</summary>
+        public TitleScreenSpec TitleScreen = new TitleScreenSpec();
+
         public RoomDefinition FindRoom(string id)
         {
             foreach (RoomDefinition room in Rooms)
                 if (string.Equals(room.Id, id, StringComparison.OrdinalIgnoreCase))
                     return room;
+            return null;
+        }
+
+        public SoundDefinition FindSound(string id)
+        {
+            foreach (SoundDefinition sound in Sounds)
+                if (string.Equals(sound.Id, id, StringComparison.OrdinalIgnoreCase))
+                    return sound;
             return null;
         }
 
@@ -38,9 +53,9 @@ namespace Incognito.Content
         }
 
         /// <summary>
-        /// Validates every room and NPC, then the cross-references between them (a side exit or
-        /// door naming a room that exists, an NPC's RoomId existing and its SpawnX inside that
-        /// room). Throws <see cref="SettingsValidationException"/> on the first problem found.
+        /// Validates every room, NPC and sound, then the cross-references between them (a side exit
+        /// or door naming a room that exists, an NPC's RoomId existing and its SpawnX inside that
+        /// room, a room's or the title's track naming a catalogued sound). Throws <see cref="SettingsValidationException"/> on the first problem found.
         /// </summary>
         public void Validate()
         {
@@ -92,6 +107,29 @@ namespace Incognito.Content
             if (Console == null)
                 throw new SettingsValidationException("GameContent.Console is required.");
             Console.Validate();
+
+            // Sounds (U.INC-T28): unique ids, and every track a room or the title names must be one.
+            if (Sounds == null)
+                throw new SettingsValidationException("GameContent.Sounds must not be null.");
+            var soundIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (SoundDefinition sound in Sounds)
+            {
+                sound.Validate();
+                if (!soundIds.Add(sound.Id))
+                    throw new SettingsValidationException("Two sounds share the id '" + sound.Id + "'.");
+            }
+            foreach (RoomDefinition room in Rooms)
+                CheckSound(soundIds, "Room '" + room.Id + "'s Music", room.Music);
+            if (TitleScreen == null)
+                throw new SettingsValidationException("GameContent.TitleScreen must not be null.");
+            CheckSound(soundIds, "TitleScreen.Music", TitleScreen.Music);
+            CheckSound(soundIds, "TitleScreen.UnwiredTrack", TitleScreen.UnwiredTrack);
+        }
+
+        private static void CheckSound(HashSet<string> soundIds, string what, string id)
+        {
+            if (!string.IsNullOrEmpty(id) && !soundIds.Contains(id))
+                throw new SettingsValidationException(what + " names unknown sound '" + id + "'.");
         }
 
         // An "At" entrance lands the player at a specific x in the destination room; a bad EnterX
@@ -119,6 +157,8 @@ namespace Incognito.Content
                 Rooms = root.GetObjectArray(nameof(Rooms), RoomDefinition.FromJson),
                 Npcs = root.GetObjectArray(nameof(Npcs), NpcDefinition.FromJson),
                 Console = ConsoleText.FromJson(root.GetObject(nameof(Console))),
+                Sounds = root.GetObjectArray(nameof(Sounds), SoundDefinition.FromJson),
+                TitleScreen = TitleScreenSpec.FromJson(root.GetObject(nameof(TitleScreen))),
             };
         }
     }

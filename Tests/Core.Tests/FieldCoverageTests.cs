@@ -210,6 +210,20 @@ namespace Incognito.Tests
         }
 
         [Test]
+        public void SoundDefinition_every_field_round_trips()
+        {
+            JsonObject json = FieldCoverage.Build(typeof(SoundDefinition), out Action<object> verify);
+            verify(SoundDefinition.FromJson(json));
+        }
+
+        [Test]
+        public void TitleScreenSpec_every_field_round_trips()
+        {
+            JsonObject json = FieldCoverage.Build(typeof(TitleScreenSpec), out Action<object> verify);
+            verify(TitleScreenSpec.FromJson(json));
+        }
+
+        [Test]
         public void GameContent_every_field_round_trips()
         {
             JsonObject json = FieldCoverage.Build(typeof(GameContent), out Action<object> verify);
