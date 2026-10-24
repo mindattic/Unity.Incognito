@@ -1,5 +1,6 @@
 using System;
 using Incognito.Player;
+using Incognito.World;
 using UnityEngine;
 
 namespace Incognito.Weapon
@@ -9,7 +10,7 @@ namespace Incognito.Weapon
     /// Reproduces obj_npc's obj_bullet collision event: the NPC is shoved 100px away from the
     /// side the bullet came from and the bullet is destroyed. The original wired nothing else to
     /// a hit (no health, no suspicion change). Anything that owns the target's position (an
-    /// NpcController's patrol) must apply <see cref="Hit"/>'s shove itself.
+    /// NpcController's patrol) must send the world a command from <see cref="Struck"/>.
     /// </summary>
     public sealed class BulletTarget : MonoBehaviour
     {
@@ -19,11 +20,15 @@ namespace Incognito.Weapon
         /// <summary>Raised after the shove, with the signed shove in original pixels.</summary>
         public event Action<float> Hit;
 
-        public void TakeHit(float bulletWorldX)
+        /// <summary>Like <see cref="Hit"/>, with the player whose bullet it was (for the command that tells the world).</summary>
+        public event Action<float, PlayerId> Struck;
+
+        public void TakeHit(float bulletWorldX, PlayerId shooter = default)
         {
             float dx = BulletState.KnockbackX(bulletWorldX, transform.position.x, knockback);
             transform.position += new Vector3(dx * PlayerLocomotion.WorldUnitsPerOriginalPixel, 0f, 0f);
             Hit?.Invoke(dx);
+            Struck?.Invoke(dx, shooter);
         }
     }
 }

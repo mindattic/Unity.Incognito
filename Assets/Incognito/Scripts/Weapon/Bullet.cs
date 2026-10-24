@@ -1,3 +1,4 @@
+using Incognito.World;
 using UnityEngine;
 
 namespace Incognito.Weapon
@@ -12,10 +13,15 @@ namespace Incognito.Weapon
         public BulletState State { get; private set; }
         public bool IsSpent { get; private set; }
 
+        /// <summary>The player who fired it; a hit is credited to them.</summary>
+        public PlayerId Owner { get; private set; }
+
         private Rect2 room;
 
-        public void Launch(Vector2 worldPosition, float directionDegrees, float worldSpeedPerStep, Rect worldRoom)
+        public void Launch(Vector2 worldPosition, float directionDegrees, float worldSpeedPerStep, Rect worldRoom,
+            PlayerId owner = default)
         {
+            Owner = owner;
             State = new BulletState(new Vec2(worldPosition.x, worldPosition.y), directionDegrees, worldSpeedPerStep);
             room = new Rect2(worldRoom.x, worldRoom.y, worldRoom.width, worldRoom.height);
             transform.SetPositionAndRotation(
@@ -39,7 +45,7 @@ namespace Incognito.Weapon
             {
                 var target = hit.collider.GetComponentInParent<BulletTarget>();
                 if (target == null) continue;
-                target.TakeHit(hit.point.x);
+                target.TakeHit(hit.point.x, Owner);
                 Spend();
                 return;
             }

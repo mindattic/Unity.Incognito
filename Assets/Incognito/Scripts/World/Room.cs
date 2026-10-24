@@ -47,9 +47,8 @@ namespace Incognito.World
             if (player != null && RoomTransition.TryConsume(out var entrance, out float enterX, out var facing))
             {
                 // obj_room create: place by enter_from; the player is idle and no longer autowalking.
-                player.Teleport(RoomTransition.EntryX(entrance, roomWidth, playerWidth, enterX));
-                player.State.TurnToFace(facing);
-                player.AutoWalk = false;
+                player.Send(new PlacePlayer(player.Id, RoomTransition.EntryX(entrance, roomWidth, playerWidth, enterX), facing));
+                player.ApplyView(); // so the camera sees the entrance this frame
             }
 
             MusicPlayer.Play(music, musicVolume);

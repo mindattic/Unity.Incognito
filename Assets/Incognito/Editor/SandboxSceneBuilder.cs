@@ -6,6 +6,7 @@ using Incognito.Npc;
 using Incognito.Player;
 using Incognito.Terminal;
 using Incognito.Weapon;
+using Incognito.World;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -72,6 +73,12 @@ namespace Incognito.EditorTools
             player.GetComponent<SpriteRenderer>().sprite = playerSprite;
             player.transform.position = new Vector3(roomWidth * 0.5f, 512f * px, 0f);
             var locomotion = player.AddComponent<PlayerLocomotion>();
+
+            // The one authority (GameSession): owns the Core world every seat, NPC and console object joins.
+            var session = new GameObject("Game Session").AddComponent<GameSession>();
+            var locomotionSo = new SerializedObject(locomotion);
+            locomotionSo.FindProperty("session").objectReferenceValue = session;
+            locomotionSo.ApplyModifiedPropertiesWithoutUndo();
 
             // obj_arm x2 (U.INC-T9): arm1 (support) in front of the body (depth -1), arm2 (gun)
             // behind it (depth 1, also behind the eye stack), on the original sprites at their GM
@@ -156,6 +163,7 @@ namespace Incognito.EditorTools
 
             var cursor = new GameObject("EyeCursor", typeof(SpriteRenderer)).AddComponent<EyeCursor>();
             cursor.ViewCamera = cam;
+            cursor.Player = locomotion; // the reticle follows this player's aim, read from the world
             var cursorSo = new SerializedObject(cursor);
             cursorSo.FindProperty("eyeSprite").objectReferenceValue = ImportOriginal("spr_cursor_eye", 16, 16);
             cursorSo.FindProperty("talkSprite").objectReferenceValue = ImportOriginal("spr_cursor_talk", 16, 16);
@@ -186,8 +194,6 @@ namespace Incognito.EditorTools
             weaponSo.FindProperty("bulletSprite").objectReferenceValue = bulletSprite;
             weaponSo.FindProperty("bulletSortingOrder").intValue = -5; // obj_bullet depth 5: behind the player
             weaponSo.FindProperty("audioSource").objectReferenceValue = audio;
-            weaponSo.FindProperty("eyeCursor").objectReferenceValue = cursor;
-            weaponSo.FindProperty("playerEyeball").objectReferenceValue = eye;
             // Bullets die when they leave the room: the street's width, and the resting view's height.
             weaponSo.FindProperty("room").rectValue = new Rect(0f, -2f, roomWidth, viewHeight);
             weaponSo.ApplyModifiedPropertiesWithoutUndo();
@@ -198,6 +204,7 @@ namespace Incognito.EditorTools
             var console = new GameObject("Command Prompt");
             var prompt = console.AddComponent<CommandPrompt>();
             prompt.Origin = player.transform;
+            prompt.Player = locomotion;
             var promptSo = new SerializedObject(prompt);
             promptSo.FindProperty("panelArt").objectReferenceValue = ImportOriginal("spr_console_selected", 0, 0).texture;
             promptSo.ApplyModifiedPropertiesWithoutUndo();

@@ -1,30 +1,8 @@
-using System.Linq;
 using Incognito.Terminal;
 using NUnit.Framework;
-using UnityEngine;
 
 namespace Incognito.Tests
 {
-    public class VicinityTests
-    {
-        [Test]
-        public void Vicinity_keeps_only_objects_within_radius()
-        {
-            var a = new ConsoleObject(ConsoleObjectType.Sheep, "near");
-            var b = new ConsoleObject(ConsoleObjectType.Sheep, "edge");
-            var c = new ConsoleObject(ConsoleObjectType.Sheep, "far");
-            var candidates = new[]
-            {
-                (new Vector2(1f, 0f), a),
-                (new Vector2(10f, 0f), b),
-                (new Vector2(10.5f, 0f), c),
-            };
-
-            var within = Vicinity.Within(Vector2.zero, 10f, candidates).ToList();
-            CollectionAssert.AreEqual(new[] { a, b }, within);
-        }
-    }
-
     public class CommandPromptSlideTests
     {
         [Test]

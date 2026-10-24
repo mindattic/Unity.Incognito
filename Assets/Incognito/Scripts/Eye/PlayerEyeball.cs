@@ -32,8 +32,8 @@ namespace Incognito.Eye
 
         public EyeballState State { get; private set; }
 
-        /// <summary>Set by the weapon system (U.INC-T9) while aimmode == "aiming".</summary>
-        public bool Aiming { get; set; }
+        /// <summary>The player's aimmode == "aiming" (U.INC-T9), read from the world.</summary>
+        public bool Aiming => player != null && player.Entity != null && player.Entity.Weapon.IsAiming;
 
         public PlayerLocomotion Player { get => player; set => player = value; }
         public Camera ViewCamera { get => viewCamera; set => viewCamera = value; }

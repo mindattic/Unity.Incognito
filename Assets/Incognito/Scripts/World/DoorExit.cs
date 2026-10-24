@@ -32,6 +32,7 @@ namespace Incognito.World
         private readonly DoorHoverState hover = new DoorHoverState();
         private readonly StepClock clock = new StepClock();
         private SpriteRenderer icon;
+        private GameSession session;
         private float alpha;
         private bool taken;
 
@@ -58,6 +59,19 @@ namespace Incognito.World
             Apply();
         }
 
+        // Start: the player's seat (and so the session) is set in its Awake.
+        private void Start()
+        {
+            if (room == null || room.Player == null) return;
+            session = room.Player.Session;
+            if (session != null) session.Played += OnPlayed;
+        }
+
+        private void OnDestroy()
+        {
+            if (session != null) session.Played -= OnPlayed;
+        }
+
         private void Update()
         {
             if (room == null || room.Player == null) return;
@@ -73,21 +87,25 @@ namespace Incognito.World
         }
 
         /// <summary>
-        /// obj_exit's W press: within <see cref="RoomExitRules.DoorReach"/> of the door, plays
-        /// sfx_door_open, idles the player and fades to the next room. Returns whether it did.
+        /// obj_exit's W press: asks the world to use the door. Within <see cref="RoomExitRules.DoorReach"/>
+        /// it idles the player and answers with <see cref="DoorUsed"/>, which plays sfx_door_open and
+        /// fades to the next room. Returns whether it did.
         /// </summary>
         public bool TryUse()
         {
             if (taken || fade == null || room == null || room.Player == null) return false;
-            PlayerLocomotion player = room.Player;
-            if (!RoomExitRules.CanUseDoor(player.State.PositionX, position.x)) return false;
+            return room.Player.Send(new UseDoor(room.Player.Id, position.x));
+        }
+
+        private void OnPlayed(GameEvent e)
+        {
+            if (!(e is DoorUsed used) || taken || fade == null) return;
+            if (used.Player != room.Player.Id || !Mathf.Approximately(used.DoorX, position.x)) return;
 
             taken = true;
             if (audioSource != null && doorOpen != null) audioSource.PlayOneShot(doorOpen);
-            RoomTransition.Request(nextRoom, entrance, enterX, player.State.Facing);
-            player.State.ForceIdle(); // player.mode = "idle"
+            RoomTransition.Request(nextRoom, entrance, enterX, room.Player.State.Facing);
             fade.FadeIn();
-            return true;
         }
 
         private void Apply()

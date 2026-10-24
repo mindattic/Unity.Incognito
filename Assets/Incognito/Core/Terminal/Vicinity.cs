@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace Incognito.Terminal
 {
@@ -17,12 +16,14 @@ namespace Incognito.Terminal
 
         /// <summary>Objects whose position is within <paramref name="radius"/> of <paramref name="origin"/>, in input order.</summary>
         public static IEnumerable<ConsoleObject> Within(
-            Vector2 origin, float radius, IEnumerable<(Vector2 position, ConsoleObject obj)> candidates)
+            Vec2 origin, float radius, IEnumerable<KeyValuePair<ConsoleObject, Vec2>> candidates)
         {
             float radiusSq = radius * radius;
-            foreach (var (position, obj) in candidates)
+            foreach (var candidate in candidates)
             {
-                if ((position - origin).sqrMagnitude <= radiusSq) yield return obj;
+                float dx = candidate.Value.x - origin.x;
+                float dy = candidate.Value.y - origin.y;
+                if (dx * dx + dy * dy <= radiusSq) yield return candidate.Key;
             }
         }
     }

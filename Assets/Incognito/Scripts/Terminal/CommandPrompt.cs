@@ -1,5 +1,5 @@
-using System.Collections.Generic;
-using System.Linq;
+using Incognito.Player;
+using Incognito.World;
 using UnityEngine;
 
 namespace Incognito.Terminal
@@ -7,9 +7,10 @@ namespace Incognito.Terminal
     /// <summary>
     /// The on-screen typed console (RECONSTRUCTION.md §6, obj_command_prompt): a 580x200 panel
     /// that slides in from the left, a "> " prompt with a blinking "_" i-beam (toggled every 30
-    /// steps), and the last command's output above it. Enter runs the line through
-    /// <see cref="CommandInterpreter"/> against the <see cref="ConsoleTarget"/>s in
-    /// <see cref="Vicinity"/> of <see cref="Origin"/>.
+    /// steps), and the last command's output above it. Enter sends the line to the world as a
+    /// <see cref="RunConsoleCommand"/> from this prompt's player, which runs it through the
+    /// <see cref="CommandInterpreter"/> against the console objects in <see cref="Vicinity"/> of
+    /// <see cref="Origin"/>; the prompt shows the <see cref="ConsoleOutput"/> that comes back.
     ///
     /// The hacking overlay (U.INC-T7, <see cref="Hacking.HackingOverlay"/>) opens it — a
     /// pointer-mode click on an NPC, or its program icon — as obj_npc / obj_mouse_gui opened
@@ -20,6 +21,8 @@ namespace Incognito.Terminal
     /// </summary>
     public sealed class CommandPrompt : MonoBehaviour
     {
+        [Tooltip("The player this console belongs to: its commands carry this player's id.")]
+        [SerializeField] private PlayerLocomotion player;
         [SerializeField] private Transform origin;
         [SerializeField] private KeyCode closeKey = KeyCode.Escape;
 
@@ -74,7 +77,6 @@ namespace Incognito.Terminal
         /// <summary>obj_console's CPU readout: one console open is one active CPU.</summary>
         public string CpuText => Hacking.CpuReadout.Format(Hacking.CpuReadout.DefaultCpuPower, Slide.IsOpen ? 1 : 0);
 
-        public CommandInterpreter Interpreter { get; private set; }
         public CommandPromptSlide Slide { get; private set; }
 
         /// <summary>The line being typed.</summary>
@@ -89,7 +91,13 @@ namespace Incognito.Terminal
             set => origin = value;
         }
 
-        private readonly Dictionary<ConsoleObject, ConsoleTarget> lastQuery = new Dictionary<ConsoleObject, ConsoleTarget>();
+        public PlayerLocomotion Player
+        {
+            get => player;
+            set => player = value;
+        }
+
+        private GameSession session;
         private int openedFrame = -1;
         private GUIStyle textStyle;
         private Texture2D panelTexture;
@@ -97,9 +105,13 @@ namespace Incognito.Terminal
         private void Awake()
         {
             Slide = new CommandPromptSlide(PanelWidth);
-            Interpreter = new CommandInterpreter(QueryVicinity);
-            Interpreter.Rebooted += obj => Resolve(obj)?.NotifyRebooted();
-            Interpreter.Overwritten += obj => Resolve(obj)?.NotifyOverwritten();
+        }
+
+        // Start: the player's seat (and so the session) is set in its Awake.
+        private void Start()
+        {
+            session = player != null ? player.Session : null;
+            if (session != null) session.Played += OnPlayed;
         }
 
         private void OnDisable()
@@ -109,7 +121,14 @@ namespace Incognito.Terminal
 
         private void OnDestroy()
         {
+            if (session != null) session.Played -= OnPlayed;
             if (panelTexture != null) Destroy(panelTexture);
+        }
+
+        // The console's new output for this prompt's player.
+        private void OnPlayed(GameEvent e)
+        {
+            if (e is ConsoleOutput output && output.Player == player.Id) Output = output.Text;
         }
 
         public void Open()
@@ -128,7 +147,11 @@ namespace Incognito.Terminal
         /// <summary>Runs <paramref name="line"/> as if typed and Enter pressed.</summary>
         public void Submit(string line)
         {
-            Output = Interpreter.Execute(line);
+            if (player == null) return;
+
+            const float px = PlayerLocomotion.WorldUnitsPerOriginalPixel;
+            Vector2 center = origin != null ? (Vector2)origin.position : (Vector2)transform.position;
+            player.Send(new RunConsoleCommand(player.Id, line, new Vec2(center.x / px, center.y / px), vicinityRadius));
             InputText = string.Empty;
         }
 
@@ -139,24 +162,6 @@ namespace Incognito.Terminal
             Slide.Step(Time.deltaTime);
             if (!Slide.IsOpen && openPrompt == this) openPrompt = null;
         }
-
-        private IEnumerable<ConsoleObject> QueryVicinity()
-        {
-            lastQuery.Clear();
-            Vector2 center = origin != null ? (Vector2)origin.position : (Vector2)transform.position;
-            float radius = vicinityRadius * Player.PlayerLocomotion.WorldUnitsPerOriginalPixel;
-
-            var candidates = ConsoleTarget.Active.Select(t => ((Vector2)t.transform.position, t.Object)).ToList();
-            var nearby = Vicinity.Within(center, radius, candidates).ToList();
-            foreach (ConsoleTarget target in ConsoleTarget.Active)
-            {
-                if (nearby.Contains(target.Object)) lastQuery[target.Object] = target;
-            }
-
-            return nearby;
-        }
-
-        private ConsoleTarget Resolve(ConsoleObject obj) => lastQuery.TryGetValue(obj, out var t) ? t : null;
 
         private void OnGUI()
         {

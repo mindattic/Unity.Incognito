@@ -65,32 +65,32 @@ namespace Incognito.Tests
             // The floating door to the shop at x 9504: out of reach, then within 300px.
             var door = Object.FindAnyObjectByType<DoorExit>();
             Assert.IsNotNull(door, "street00 has its obj_exit to the shop");
-            room.Player.Teleport(9504f - 400f);
+            Teleport(room, 9504f - 400f);
             yield return null;
             Assert.IsFalse(door.TryUse(), "W does nothing beyond 300px of the door");
-            room.Player.Teleport(9504f - 250f);
+            Teleport(room, 9504f - 250f);
             yield return null;
             Assert.IsTrue(door.TryUse(), "W within 300px enters the shop");
             yield return Arrive("Shop", r => room = r);
             AssertArrival(room, "Simon's Pawn and Loan", 5760f - PlayerWidth, Facing.Left);
 
             // The shop's obj_barrier at x 800 stops the player walking west.
-            room.Player.Teleport(1400f);
-            room.Player.AutoWalk = true;
+            Teleport(room, 1400f);
+            Send(room, new SetAutoWalk(room.Player.Id, true));
             yield return WaitSeconds(3f);
-            room.Player.AutoWalk = false;
+            Send(room, new SetAutoWalk(room.Player.Id, false));
             Assert.AreEqual(800f + RoomExitRules.StripWidth + PlayerWidth / 2f, room.Player.State.PositionX, 1f,
                 "the barrier holds the player's box on its east side");
             Assert.AreEqual("Shop", SceneManager.GetActiveScene().name);
 
             // The shop's right-edge exit -> street00 at enter_x 9500.
-            room.Player.Teleport(5200f);
+            Teleport(room, 5200f);
             yield return WalkOff(room, Facing.Right);
             yield return Arrive("Street00", r => room = r);
             AssertArrival(room, "Bleecher Street", 9500f, Facing.Right);
 
             // Left edge of street00 -> street01 entering "right".
-            room.Player.Teleport(600f);
+            Teleport(room, 600f);
             yield return WalkOff(room, Facing.Left);
             yield return Arrive("Street01", r => room = r);
             AssertArrival(room, "2nd Avenue", 15360f - PlayerWidth, Facing.Left);
@@ -100,6 +100,11 @@ namespace Incognito.Tests
             yield return Arrive("Street00", r => room = r);
             AssertArrival(room, "Bleecher Street", PlayerWidth, Facing.Right);
         }
+
+        // The test plays the player: what it does goes to the world as commands, like any input.
+        private static bool Send(Room room, GameCommand command) => room.Player.Send(command);
+
+        private static void Teleport(Room room, float x) => Send(room, new TeleportPlayer(room.Player.Id, x));
 
         private static void AssertArrival(Room room, string name, float x, Facing facing)
         {
@@ -114,8 +119,8 @@ namespace Incognito.Tests
         {
             // TurnToFace only applies while idle: let any coast from a previous walk finish.
             while (room.Player.State.CurrentMode != PlayerLocomotionState.WalkMode.Idle) yield return null;
-            Assert.IsTrue(room.Player.State.TurnToFace(facing));
-            room.Player.AutoWalk = true;
+            Assert.IsTrue(Send(room, new TurnPlayer(room.Player.Id, facing)));
+            Send(room, new SetAutoWalk(room.Player.Id, true));
             yield return null;
         }
 

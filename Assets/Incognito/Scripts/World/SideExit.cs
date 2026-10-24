@@ -1,12 +1,12 @@
-using Incognito.Player;
 using UnityEngine;
 
 namespace Incognito.World
 {
     /// <summary>
-    /// obj_exit_side: an invisible 10px strip just past a room's edge. Walking into it sets the
-    /// next room and entrance, puts the player on autowalk (they keep walking off-screen) and
-    /// fades to black; <see cref="RoomFade"/> then loads the room.
+    /// obj_exit_side: an invisible 10px strip just past a room's edge. The world catches the player
+    /// walking into it (<see cref="GameWorld.AddSideExit"/>: it puts them on autowalk, so they keep
+    /// walking off-screen, and produces <see cref="SideExitReached"/>); this view then sets the next
+    /// room and entrance and fades to black, and <see cref="RoomFade"/> loads the room.
     /// </summary>
     public sealed class SideExit : MonoBehaviour
     {
@@ -19,7 +19,8 @@ namespace Incognito.World
         [SerializeField] private Room room;
         [SerializeField] private RoomFade fade;
 
-        private bool taken;
+        private GameSession session;
+        private int exitId;
 
         public void Configure(float stripX, string nextRoom, RoomEntrance entrance, float enterX, Room room, RoomFade fade)
         {
@@ -31,15 +32,26 @@ namespace Incognito.World
             this.fade = fade;
         }
 
-        private void Update()
+        // Start: the player's seat (and so the session) is set in its Awake.
+        private void Start()
         {
-            if (taken || room == null || room.Player == null || fade == null) return;
-            PlayerLocomotion player = room.Player;
-            if (!RoomExitRules.Overlaps(player.State.PositionX, room.PlayerWidth, stripX)) return;
+            if (room == null || room.Player == null || room.Player.Session == null) return;
+            session = room.Player.Session;
+            exitId = session.World.AddSideExit(stripX, room.PlayerWidth);
+            session.Played += OnPlayed;
+        }
 
-            taken = true;
-            RoomTransition.Request(nextRoom, entrance, enterX, player.State.Facing);
-            player.AutoWalk = true;
+        private void OnDestroy()
+        {
+            if (session != null) session.Played -= OnPlayed;
+        }
+
+        private void OnPlayed(GameEvent e)
+        {
+            if (!(e is SideExitReached reached) || reached.Exit != exitId || fade == null) return;
+            if (reached.Player != room.Player.Id) return;
+
+            RoomTransition.Request(nextRoom, entrance, enterX, room.Player.State.Facing);
             fade.FadeIn();
         }
     }

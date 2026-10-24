@@ -1,20 +1,22 @@
 using Incognito.Player;
+using Incognito.World;
 using UnityEngine;
 
 namespace Incognito.Npc
 {
     /// <summary>
-    /// Drives an NPC's <see cref="NpcPatrolState"/> and <see cref="SuspicionMeter"/> and applies
-    /// them to the transform, sprite and the "NN%" suspicion label the original drew over the
-    /// NPC's head (draw_text_outline at y - 200). See docs/RECONSTRUCTION.md §4. Talk mode
-    /// (U.INC-T6) is driven from <see cref="NpcInteraction"/>; pointer mode is U.INC-T7.
+    /// An NPC's view: it seats the NPC in the world (<see cref="NpcPatrolState"/> and
+    /// <see cref="SuspicionMeter"/> live there, stepped by the session) and applies that state to the
+    /// transform, sprite and the "NN%" suspicion label the original drew over the NPC's head
+    /// (draw_text_outline at y - 200). It changes the NPC only by sending commands. See
+    /// docs/RECONSTRUCTION.md §4. Talk mode (U.INC-T6) is driven from <see cref="NpcInteraction"/>;
+    /// pointer mode is U.INC-T7.
     /// </summary>
     [RequireComponent(typeof(SpriteRenderer))]
     public sealed class NpcController : MonoBehaviour
     {
+        [Tooltip("The player this NPC watches (its seat supplies the session and the player id).")]
         [SerializeField] private PlayerLocomotion player;
-        [Tooltip("Camera whose view width sets the suspicion ranges (falls back to Camera.main).")]
-        [SerializeField] private Camera viewCamera;
 
         [Header("Patrol (original pixels)")]
         [Tooltip("X positions walked in order, then looped. One waypoint = walk there and stop.")]
@@ -28,8 +30,11 @@ namespace Incognito.Npc
         [Tooltip("Label height above the NPC's origin, in original pixels.")]
         [SerializeField] private float labelHeight = 200f;
 
-        public NpcPatrolState Patrol { get; private set; }
-        public SuspicionMeter Suspicion { get; private set; }
+        /// <summary>This NPC in the world; read it, never write it.</summary>
+        public NpcEntity Entity { get; private set; }
+
+        public NpcPatrolState Patrol => Entity?.Patrol;
+        public SuspicionMeter Suspicion => Entity?.Suspicion;
 
         public PlayerLocomotion Player
         {
@@ -38,92 +43,83 @@ namespace Incognito.Npc
         }
 
         private const float Px = PlayerLocomotion.WorldUnitsPerOriginalPixel;
-        private const float FallbackViewWidth = 1920f;
 
         private SpriteRenderer spriteRenderer;
+        private GameSession session;
         private float baseY;
 
         private void Awake()
         {
             spriteRenderer = GetComponent<SpriteRenderer>();
             baseY = transform.position.y;
-
-            Patrol = new NpcPatrolState { WalkSpeed = walkSpeed, ArriveRange = arriveRange };
-            Patrol.SetInitialPositionX(transform.position.x / Px);
-            Patrol.SetRoute(waypoints);
-
-            Suspicion = new SuspicionMeter(suspicion);
-
-            // U.INC-T9: a shot NPC is shoved 100px. The patrol owns the position, so the shove
-            // goes there too or the next Update would put the NPC back.
-            var target = GetComponent<Incognito.Weapon.BulletTarget>();
-            if (target != null) target.Hit += Patrol.Knockback;
-
-            // U.INC-T6: an arriving talker turns the player to face it (unless aiming).
-            Patrol.ConversationStarted += facing =>
-            {
-                if (player != null && player.State != null && !player.MovementLocked)
-                {
-                    player.State.TurnToFace(facing);
-                }
-            };
         }
 
-        /// <summary>Talk-mode click (U.INC-T6): walk over to the player and start talking.</summary>
+        // Start, not Awake: the player's seat (and so the session) is set in its Awake.
+        private void Start()
+        {
+            session = GameSession.Find(player != null ? player.Session : null);
+            if (session == null)
+            {
+                Debug.LogError("NpcController needs a GameSession in the scene.", this);
+                enabled = false;
+                return;
+            }
+
+            Entity = session.World.AddNpc(new NpcSetup
+            {
+                Watching = player != null ? player.Id : default,
+                StartX = transform.position.x / Px,
+                Waypoints = waypoints,
+                WalkSpeed = walkSpeed,
+                ArriveRange = arriveRange,
+                Suspicion = suspicion,
+            });
+
+            // U.INC-T9: a shot NPC is shoved 100px; the world owns the position, so the shove is a command.
+            var target = GetComponent<Incognito.Weapon.BulletTarget>();
+            if (target != null) target.Struck += OnStruck;
+        }
+
+        private void OnDestroy()
+        {
+            var target = GetComponent<Incognito.Weapon.BulletTarget>();
+            if (target != null) target.Struck -= OnStruck;
+            if (session != null && Entity != null) session.World.RemoveNpc(Entity.Id);
+        }
+
+        private void OnStruck(float shove, PlayerId shooter)
+        {
+            session.Submit(new ShoveNpc(shooter, Entity.Id, shove));
+        }
+
+        /// <summary>Talk-mode click (U.INC-T6): the NPC walks over to the player and starts talking.</summary>
         public void StartTalking()
         {
-            if (player == null || player.State == null) return;
+            if (player == null || Entity == null) return;
             // GM's sprite_width: the NPC's on-screen width in original pixels.
-            Patrol.StartTalking(player.State.PositionX, spriteRenderer.bounds.size.x / Px);
+            session.Submit(new TalkToNpc(player.Id, Entity.Id, spriteRenderer.bounds.size.x / Px));
         }
 
-        private void Update()
+        // After the session has stepped the world this frame.
+        private void LateUpdate()
         {
-            if (player != null && player.State != null
-                && player.State.CurrentMode == PlayerLocomotionState.WalkMode.Walking)
-            {
-                Patrol.PlayerWalked();
-            }
-
-            Patrol.Step(Time.deltaTime);
-
-            if (player != null && player.State != null)
-            {
-                Suspicion.Step(
-                    Time.deltaTime,
-                    Patrol.PositionX, Patrol.Facing,
-                    player.State.PositionX, player.State.Facing,
-                    ViewWidth(), PlayerLookingDown());
-            }
+            if (Entity == null) return;
+            var patrol = Entity.Patrol;
 
             transform.position = new Vector3(
-                Patrol.PositionX * Px,
-                baseY + Patrol.BobOffset * Px,
+                patrol.PositionX * Px,
+                baseY + patrol.BobOffset * Px,
                 transform.position.z);
-            spriteRenderer.flipX = Patrol.Facing == PlayerLocomotionState.FacingDirection.Right;
+            spriteRenderer.flipX = patrol.Facing == PlayerLocomotionState.FacingDirection.Right;
 
             if (suspicionLabel != null)
             {
-                suspicionLabel.text = Suspicion.DisplayPercent + "%";
+                suspicionLabel.text = Entity.Suspicion.DisplayPercent + "%";
                 suspicionLabel.transform.position = new Vector3(
                     transform.position.x,
                     transform.position.y + labelHeight * Px,
                     suspicionLabel.transform.position.z);
             }
-        }
-
-        private float ViewWidth()
-        {
-            var cam = viewCamera != null ? viewCamera : Camera.main;
-            if (cam == null || !cam.orthographic) return FallbackViewWidth;
-            return cam.orthographicSize * 2f * cam.aspect / Px;
-        }
-
-        // Original: mouse_y > room_height/2 — the cursor in the lower half of the screen (GM's
-        // y grows downward; Unity's screen y grows upward).
-        private static bool PlayerLookingDown()
-        {
-            return Screen.height > 0 && Input.mousePosition.y < Screen.height * 0.5f;
         }
     }
 }

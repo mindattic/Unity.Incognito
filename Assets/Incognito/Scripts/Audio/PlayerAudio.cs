@@ -1,4 +1,5 @@
 using Incognito.Player;
+using Incognito.World;
 using UnityEngine;
 
 namespace Incognito.Audio
@@ -18,6 +19,7 @@ namespace Incognito.Audio
         [SerializeField] private AudioClip whoosh;
 
         private PlayerLocomotion locomotion;
+        private GameSession session;
         private PlayerLocomotionState.FacingDirection lastFacing;
 
         private void Start()
@@ -25,12 +27,19 @@ namespace Incognito.Audio
             locomotion = GetComponent<PlayerLocomotion>();
             if (audioSource == null) audioSource = GetComponent<AudioSource>();
             lastFacing = locomotion.State.Facing;
-            locomotion.State.OnBobPeak += PlayFootstep;
+            session = locomotion.Session;
+            if (session != null) session.Played += OnPlayed;
         }
 
         private void OnDestroy()
         {
-            if (locomotion != null && locomotion.State != null) locomotion.State.OnBobPeak -= PlayFootstep;
+            if (session != null) session.Played -= OnPlayed;
+        }
+
+        // The walk bob peaked: a footstep.
+        private void OnPlayed(GameEvent e)
+        {
+            if (e is PlayerFootstep step && step.Player == locomotion.Id) PlayFootstep();
         }
 
         private void LateUpdate()

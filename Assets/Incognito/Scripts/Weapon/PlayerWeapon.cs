@@ -1,16 +1,17 @@
-using Incognito.Eye;
 using Incognito.Player;
+using Incognito.World;
 using UnityEngine;
 
 namespace Incognito.Weapon
 {
     /// <summary>
-    /// Drives <see cref="PlayerWeaponState"/> from input and applies it to the two arm sprites,
-    /// fired bullets and sounds. See docs/RECONSTRUCTION.md §1. Z toggles draw/holster, the right
-    /// mouse button held aims (walking locked), the left button fires while aiming.
-    /// Also raises the U.INC-T5 <c>Aiming</c> flag on the eye cursor (reticle) and the player's
-    /// eyeball (fixed gaze). The HUD pistol icon that also calls ToggleGun belongs to U.INC-T7.
-    /// Runs before <see cref="PlayerLocomotion"/> so the movement lock applies the same frame.
+    /// Sends the weapon input as commands (<see cref="ToggleGun"/>, <see cref="PressAim"/>,
+    /// <see cref="PressFire"/> and their releases) and plays what the world produces: it applies the
+    /// world's <see cref="PlayerWeaponState"/> to the two arm sprites and spawns a bullet view for each
+    /// <see cref="BulletFired"/> and plays each <see cref="WeaponSounded"/>. See docs/RECONSTRUCTION.md §1.
+    /// Z toggles draw/holster, the right mouse button held aims (walking locked), the left button fires
+    /// while aiming. The eye cursor and eyeball read the aim from the world themselves (U.INC-T5).
+    /// The HUD pistol icon that also toggles the gun belongs to U.INC-T7.
     /// </summary>
     [DefaultExecutionOrder(-10)]
     [RequireComponent(typeof(PlayerLocomotion))]
@@ -53,46 +54,58 @@ namespace Incognito.Weapon
         [Header("Input")]
         [SerializeField] private KeyCode toggleKey = KeyCode.Z;
 
-        [Header("Eyes (U.INC-T5): reticle cursor and fixed aiming gaze")]
-        [SerializeField] private EyeCursor eyeCursor;
-        [SerializeField] private PlayerEyeball playerEyeball;
-
-        public PlayerWeaponState State { get; private set; }
+        /// <summary>This player's weapon in the world; read it, never write it.</summary>
+        public PlayerWeaponState State => locomotion.Entity?.Weapon;
 
         private PlayerLocomotion locomotion;
+        private GameSession session;
 
         private void Awake()
         {
             locomotion = GetComponent<PlayerLocomotion>();
-            State = new PlayerWeaponState();
-            State.OnSound += PlaySound;
+        }
+
+        // Start, not OnEnable: the seat (and so the session) is set in PlayerLocomotion.Awake.
+        private void Start()
+        {
+            session = locomotion.Session;
+            if (session != null) session.Played += OnPlayed;
+        }
+
+        private void OnDestroy()
+        {
+            if (session != null) session.Played -= OnPlayed;
         }
 
         private void Update()
         {
-            var facing = locomotion.State.Facing;
+            if (session == null) return;
+            var id = locomotion.Id;
 
-            if (Input.GetKeyDown(toggleKey)) State.ToggleGun();
-            if (Input.GetMouseButtonDown(1)) State.AimPressed();
-            if (Input.GetMouseButtonUp(1)) State.AimReleased();
-            if (Input.GetMouseButtonDown(0) && State.FirePressed(facing, out var spawn)) Fire(spawn);
-            if (Input.GetMouseButtonUp(0)) State.FireReleased();
-
-            locomotion.MovementLocked = State.IsAiming;
-            if (eyeCursor != null)
-            {
-                eyeCursor.Aiming = State.IsAiming;
-                eyeCursor.WeaponDrawn = State.Mode != PlayerWeaponState.AimMode.Off;
-            }
-            if (playerEyeball != null) playerEyeball.Aiming = State.IsAiming;
+            if (Input.GetKeyDown(toggleKey)) session.Submit(new ToggleGun(id));
+            if (Input.GetMouseButtonDown(1)) session.Submit(new PressAim(id));
+            if (Input.GetMouseButtonUp(1)) session.Submit(new ReleaseAim(id));
+            if (Input.GetMouseButtonDown(0)) session.Submit(new PressFire(id));
+            if (Input.GetMouseButtonUp(0)) session.Submit(new ReleaseFire(id));
         }
 
-        // LateUpdate: after locomotion has settled this frame's walk mode, facing and bob.
+        // After the session has stepped the world this frame.
         private void LateUpdate()
         {
-            bool sprint = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
-            State.Step(Time.deltaTime, locomotion.State.CurrentMode, locomotion.State.Facing, sprint, MouseBelowCentre());
-            ApplyArms();
+            if (State != null) ApplyArms();
+        }
+
+        private void OnPlayed(GameEvent e)
+        {
+            switch (e)
+            {
+                case BulletFired fired when fired.Player == locomotion.Id:
+                    Fire(fired.Spawn);
+                    break;
+                case WeaponSounded sounded when sounded.Player == locomotion.Id:
+                    PlaySound(sounded.Sound);
+                    break;
+            }
         }
 
         private void ApplyArms()
@@ -139,7 +152,7 @@ namespace Incognito.Weapon
             var sr = go.GetComponent<SpriteRenderer>();
             sr.sprite = bulletSprite;
             sr.sortingOrder = bulletSortingOrder;
-            go.AddComponent<Bullet>().Launch(muzzle, spawn.Direction, bulletSpeed * px, room);
+            go.AddComponent<Bullet>().Launch(muzzle, spawn.Direction, bulletSpeed * px, room, locomotion.Id);
 
             if (muzzleEffect != null) Instantiate(muzzleEffect, new Vector3(muzzle.x, muzzle.y, 0f), Quaternion.identity);
         }
@@ -155,15 +168,6 @@ namespace Incognito.Weapon
                 _ => fireClip,
             };
             if (clip != null) audioSource.PlayOneShot(clip);
-        }
-
-        /// <summary>Cursor distance below the view's middle, in original px (GM: mouse_y - room_height/2).
-        /// The original room was exactly one view tall, so this is screen-relative.</summary>
-        private float MouseBelowCentre()
-        {
-            if (Screen.height <= 0) return 0f;
-            float fromTop = 1f - Input.mousePosition.y / Screen.height;
-            return (fromTop - 0.5f) * State.ViewHeight;
         }
     }
 }

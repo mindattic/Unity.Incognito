@@ -1,3 +1,5 @@
+using Incognito.Player;
+using Incognito.Weapon;
 using UnityEngine;
 
 namespace Incognito.Eye
@@ -15,6 +17,8 @@ namespace Incognito.Eye
     public sealed class EyeCursor : MonoBehaviour
     {
         [SerializeField] private Camera viewCamera;
+        [Tooltip("The player whose weapon decides the reticle (read from the world, never written).")]
+        [SerializeField] private PlayerLocomotion player;
         [SerializeField] private EyeCursorMode mode = EyeCursorMode.Look;
 
         [Header("Sprites (spr_cursor_eye/talk/pointer/reticle)")]
@@ -27,12 +31,16 @@ namespace Incognito.Eye
 
         public EyeCursorMode Mode { get => mode; set => mode = value; }
 
-        /// <summary>Set by the weapon system (U.INC-T9) while aimmode == "aiming".</summary>
-        public bool Aiming { get; set; }
+        public PlayerLocomotion Player { get => player; set => player = value; }
 
-        /// <summary>Set by the weapon system while the gun is out (aimmode != "off"): a right
-        /// click then aims rather than cycling look/talk.</summary>
-        public bool WeaponDrawn { get; set; }
+        private PlayerWeaponState Weapon => player != null && player.Entity != null ? player.Entity.Weapon : null;
+
+        /// <summary>The player's aimmode == "aiming" (U.INC-T9), read from the world.</summary>
+        public bool Aiming => Weapon != null && Weapon.IsAiming;
+
+        /// <summary>The gun is out (aimmode != "off"): a right click then aims rather than
+        /// cycling look/talk. Read from the world.</summary>
+        public bool WeaponDrawn => Weapon != null && Weapon.Mode != PlayerWeaponState.AimMode.Off;
 
         public EyeCursorSprite CurrentSprite => EyeCursorSprites.For(mode, Aiming);
 
@@ -49,7 +57,7 @@ namespace Incognito.Eye
         private void OnEnable() => Cursor.visible = false;
         private void OnDisable() => Cursor.visible = true;
 
-        // Runs after PlayerWeapon.Update (execution order 100), so WeaponDrawn is this frame's.
+        // Runs after PlayerWeapon.Update (execution order 100), and the weapon commands apply at once, so WeaponDrawn is this frame's.
         private void Update()
         {
             if (EyeCursorModes.ShouldCycle(Input.mouseScrollDelta.y, Input.GetMouseButtonDown(1), WeaponDrawn))
