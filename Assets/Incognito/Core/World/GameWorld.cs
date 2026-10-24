@@ -117,7 +117,10 @@ namespace Incognito.World
             public int Id;
             public float StripX;
             public float PlayerWidth;
-            public bool Taken;
+
+            // Per player, not one flag for the whole exit: a seat taking it must not block every
+            // other seat sharing the room (the multiplayer seam).
+            public readonly HashSet<PlayerId> TakenBy = new HashSet<PlayerId>();
         }
 
         private readonly List<PlayerEntity> players = new List<PlayerEntity>();
@@ -365,10 +368,10 @@ namespace Incognito.World
 
                 foreach (SideExit exit in sideExits)
                 {
-                    if (exit.Taken) continue;
+                    if (exit.TakenBy.Contains(player.Id)) continue;
                     if (!RoomExitRules.Overlaps(player.Locomotion.PositionX, exit.PlayerWidth, exit.StripX)) continue;
 
-                    exit.Taken = true;
+                    exit.TakenBy.Add(player.Id);
                     player.AutoWalk = true;
                     events.Add(new SideExitReached(player.Id, exit.Id));
                 }

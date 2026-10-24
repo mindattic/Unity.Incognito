@@ -223,10 +223,10 @@ namespace Incognito.EditorTools
             hackingSo.ApplyModifiedPropertiesWithoutUndo();
 
             var targets = new GameObject("Console Targets");
-            AddConsoleTarget(targets.transform, groundSprite, ConsoleObjectType.Sheep, "0097", roomWidth * 0.5f + 15f);
-            AddConsoleTarget(targets.transform, groundSprite, ConsoleObjectType.Sheep, "0102", roomWidth * 0.5f - 25f);
-            AddConsoleTarget(targets.transform, groundSprite, ConsoleObjectType.Camera, "07", roomWidth * 0.5f + 40f);
-            AddConsoleTarget(targets.transform, groundSprite, ConsoleObjectType.Sheep, "0451", roomWidth * 0.5f + 120f);
+            AddConsoleTarget(targets.transform, groundSprite, ConsoleObjectType.Sheep, "0097", roomWidth * 0.5f + 15f, session);
+            AddConsoleTarget(targets.transform, groundSprite, ConsoleObjectType.Sheep, "0102", roomWidth * 0.5f - 25f, session);
+            AddConsoleTarget(targets.transform, groundSprite, ConsoleObjectType.Camera, "07", roomWidth * 0.5f + 40f, session);
+            AddConsoleTarget(targets.transform, groundSprite, ConsoleObjectType.Sheep, "0451", roomWidth * 0.5f + 120f, session);
 
             if (!AssetDatabase.IsValidFolder(SceneDir))
             {
@@ -269,7 +269,7 @@ namespace Incognito.EditorTools
             return AssetDatabase.LoadAssetAtPath<Sprite>(path);
         }
 
-        private static void AddConsoleTarget(Transform parent, Sprite sprite, ConsoleObjectType type, string id, float x)
+        private static void AddConsoleTarget(Transform parent, Sprite sprite, ConsoleObjectType type, string id, float x, GameSession session)
         {
             var go = new GameObject($"{type} {id}", typeof(SpriteRenderer));
             var sr = go.GetComponent<SpriteRenderer>();
@@ -278,7 +278,11 @@ namespace Incognito.EditorTools
             go.transform.SetParent(parent);
             go.transform.localScale = type == ConsoleObjectType.Sheep ? new Vector3(4f, 8f, 1f) : new Vector3(1.5f, 1.5f, 1f);
             go.transform.position = new Vector3(x, type == ConsoleObjectType.Sheep ? 4f : 14f, 0.5f);
-            go.AddComponent<ConsoleTarget>().Configure(type, id);
+            var target = go.AddComponent<ConsoleTarget>();
+            target.Configure(type, id);
+            var targetSo = new SerializedObject(target);
+            targetSo.FindProperty("session").objectReferenceValue = session;
+            targetSo.ApplyModifiedPropertiesWithoutUndo();
         }
 
         private static SpriteRenderer CreateArm(string name, Transform player, Sprite sprite, int sortingOrder)

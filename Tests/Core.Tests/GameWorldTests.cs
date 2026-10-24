@@ -204,6 +204,32 @@ namespace Incognito.Tests
             Assert.AreEqual(0, world.TakeEvents().OfType<SideExitReached>().Count(), "it fires once");
         }
 
+        [Test]
+        public void A_side_exit_catches_every_seat_sharing_the_room_independently()
+        {
+            var world = WorldWithPlayers(P1, P2);
+            int exit = world.AddSideExit(-10f, 512f);
+            world.Submit(new TeleportPlayer(P1, 0f));
+            world.Submit(new TeleportPlayer(P2, 1000f)); // clear of the strip until P1 has already taken it
+            world.Step(Dt);
+
+            Assert.IsTrue(world.FindPlayer(P1).AutoWalk);
+            Assert.IsFalse(world.FindPlayer(P2).AutoWalk, "P1 taking the exit must not take it for P2 too");
+            var firstReach = world.TakeEvents().OfType<SideExitReached>().ToList();
+            Assert.AreEqual(1, firstReach.Count);
+            Assert.AreEqual(P1, firstReach[0].Player);
+
+            // P2 now walks into the same strip: it still catches them.
+            world.Submit(new TeleportPlayer(P2, 0f));
+            world.Step(Dt);
+
+            Assert.IsTrue(world.FindPlayer(P2).AutoWalk);
+            var secondReach = world.TakeEvents().OfType<SideExitReached>().ToList();
+            Assert.AreEqual(1, secondReach.Count);
+            Assert.AreEqual(P2, secondReach[0].Player);
+            Assert.AreEqual(exit, secondReach[0].Exit);
+        }
+
         private static NpcEntity AddNpc(GameWorld world, PlayerId watching, float x = 500f)
         {
             return world.AddNpc(new NpcSetup
