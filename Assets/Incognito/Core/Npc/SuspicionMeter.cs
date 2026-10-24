@@ -1,6 +1,7 @@
 using System;
 using Incognito.Player;
 using Incognito.Settings;
+using Unity.Shared.Core.Json;
 
 namespace Incognito.Npc
 {
@@ -54,6 +55,29 @@ namespace Incognito.Npc
         {
             if (float.IsNaN(value) || float.IsInfinity(value))
                 throw new SettingsValidationException("SuspicionTuning." + field + " must be a finite number: " + value);
+        }
+
+        /// <summary>
+        /// Reads a category from the settings registry's JSON (U.INC-T25: Unity.Shared.Core's
+        /// dependency-free <see cref="JsonObject"/> reader, not UnityEngine.JsonUtility, so this
+        /// stays loadable from a plain C# test). A missing or null <paramref name="json"/> keeps
+        /// every field at its default; a present field overrides only that field.
+        /// </summary>
+        public static SuspicionTuning FromJson(JsonObject json)
+        {
+            var tuning = new SuspicionTuning();
+            if (json == null) return tuning;
+            tuning.NearRate = json.GetFloat(nameof(NearRate), tuning.NearRate);
+            tuning.MidRate = json.GetFloat(nameof(MidRate), tuning.MidRate);
+            tuning.FarRateDecay = json.GetFloat(nameof(FarRateDecay), tuning.FarRateDecay);
+            tuning.EyeContactRateBonus = json.GetFloat(nameof(EyeContactRateBonus), tuning.EyeContactRateBonus);
+            tuning.LookingDownRatePenalty = json.GetFloat(nameof(LookingDownRatePenalty), tuning.LookingDownRatePenalty);
+            tuning.NotFacingRatePenalty = json.GetFloat(nameof(NotFacingRatePenalty), tuning.NotFacingRatePenalty);
+            tuning.NearRangeViews = json.GetFloat(nameof(NearRangeViews), tuning.NearRangeViews);
+            tuning.MidRangeViews = json.GetFloat(nameof(MidRangeViews), tuning.MidRangeViews);
+            tuning.MinSuspicion = json.GetFloat(nameof(MinSuspicion), tuning.MinSuspicion);
+            tuning.MaxSuspicion = json.GetFloat(nameof(MaxSuspicion), tuning.MaxSuspicion);
+            return tuning;
         }
     }
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Incognito.Settings;
+using Unity.Shared.Core.Json;
 
 namespace Incognito.Content
 {
@@ -8,8 +9,10 @@ namespace Incognito.Content
     /// The whole game's authored content catalog (U.INC-T22): every room, every NPC and the
     /// console's text, in one validated place instead of literals spread across
     /// RoomSceneBuilder, SandboxSceneBuilder and CommandInterpreter. Loaded from
-    /// <c>Resources/Data/game-content.json</c> by <c>Incognito.Settings.GameSettings</c> (Runtime);
-    /// this type itself stays engine-free so it can be built and validated from a plain C# test.
+    /// <c>Resources/Data/game-content.json</c> by <c>Incognito.Settings.GameSettings</c> (Runtime,
+    /// which only reads the file's bytes); parsed here with Unity.Shared.Core's engine-free JSON
+    /// reader (U.INC-T25, replacing UnityEngine.JsonUtility), so this type stays engine-free and
+    /// can be built, parsed and validated from a plain C# test.
     /// </summary>
     [Serializable]
     public sealed class GameContent
@@ -100,6 +103,23 @@ namespace Incognito.Content
                 throw new SettingsValidationException(
                     "Room '" + fromRoomId + "'s " + what + " enters '" + destination.Id + "' at x=" + enterX +
                     ", outside that room (width " + destination.Width + ").");
+        }
+
+        /// <summary>
+        /// Parses <paramref name="json"/> (<c>game-content.json</c>'s text) with Unity.Shared.Core's
+        /// <see cref="MiniJson"/>/<see cref="JsonObject"/> reader (U.INC-T25). Throws
+        /// <see cref="JsonFormatException"/> on text that is not a JSON object; does not validate
+        /// (callers validate separately, as <c>GameSettings.Load</c> does).
+        /// </summary>
+        public static GameContent FromJson(string json)
+        {
+            JsonObject root = JsonObject.Parse(json);
+            return new GameContent
+            {
+                Rooms = root.GetObjectArray(nameof(Rooms), RoomDefinition.FromJson),
+                Npcs = root.GetObjectArray(nameof(Npcs), NpcDefinition.FromJson),
+                Console = ConsoleText.FromJson(root.GetObject(nameof(Console))),
+            };
         }
     }
 }

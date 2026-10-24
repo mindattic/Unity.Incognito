@@ -1,5 +1,6 @@
 using System;
 using Incognito.Settings;
+using Unity.Shared.Core.Json;
 
 namespace Incognito.Content
 {
@@ -50,6 +51,22 @@ namespace Incognito.Content
                 throw new SettingsValidationException(label + "'s WalkSpeed must be positive: " + WalkSpeed);
             if (float.IsNaN(ArriveRange) || ArriveRange <= 0f)
                 throw new SettingsValidationException(label + "'s ArriveRange must be positive: " + ArriveRange);
+        }
+
+        /// <summary>U.INC-T25: parsed with Unity.Shared.Core's engine-free <see cref="JsonObject"/> reader.</summary>
+        public static NpcDefinition FromJson(JsonObject json)
+        {
+            var npc = new NpcDefinition();
+            if (json == null) return npc;
+            npc.Id = json.GetString(nameof(Id), npc.Id);
+            npc.SheepId = json.GetString(nameof(SheepId), npc.SheepId);
+            npc.RoomId = json.GetString(nameof(RoomId), npc.RoomId);
+            npc.Description = json.GetString(nameof(Description), npc.Description);
+            npc.SpawnX = json.GetFloat(nameof(SpawnX), npc.SpawnX);
+            npc.Waypoints = json.GetFloatArray(nameof(Waypoints));
+            npc.WalkSpeed = json.GetFloat(nameof(WalkSpeed), npc.WalkSpeed);
+            npc.ArriveRange = json.GetFloat(nameof(ArriveRange), npc.ArriveRange);
+            return npc;
         }
     }
 }

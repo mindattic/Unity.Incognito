@@ -1,7 +1,9 @@
 {
     "name": "Incognito.Core",
     "rootNamespace": "Incognito",
-    "references": [],
+    "references": [
+        "Unity.Shared.Core"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

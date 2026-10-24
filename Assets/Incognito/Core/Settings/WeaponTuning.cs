@@ -1,4 +1,5 @@
 using System;
+using Unity.Shared.Core.Json;
 
 namespace Incognito.Settings
 {
@@ -54,6 +55,23 @@ namespace Incognito.Settings
                 throw new SettingsValidationException("WeaponTuning.SprintSwingRange must be positive: " + SprintSwingRange);
             if (float.IsNaN(SprintRotSpeed) || SprintRotSpeed <= 0f)
                 throw new SettingsValidationException("WeaponTuning.SprintRotSpeed must be positive: " + SprintRotSpeed);
+        }
+
+        /// <summary>U.INC-T25: parsed with Unity.Shared.Core's engine-free <see cref="JsonObject"/> reader.</summary>
+        public static WeaponTuning FromJson(JsonObject json)
+        {
+            var tuning = new WeaponTuning();
+            if (json == null) return tuning;
+            tuning.AimRaiseSteps = json.GetFloat(nameof(AimRaiseSteps), tuning.AimRaiseSteps);
+            tuning.ViewHeight = json.GetFloat(nameof(ViewHeight), tuning.ViewHeight);
+            tuning.AimDivisor = json.GetFloat(nameof(AimDivisor), tuning.AimDivisor);
+            tuning.MuzzleReach = json.GetFloat(nameof(MuzzleReach), tuning.MuzzleReach);
+            tuning.MuzzleRise = json.GetFloat(nameof(MuzzleRise), tuning.MuzzleRise);
+            tuning.WalkSwingRange = json.GetFloat(nameof(WalkSwingRange), tuning.WalkSwingRange);
+            tuning.WalkRotSpeed = json.GetFloat(nameof(WalkRotSpeed), tuning.WalkRotSpeed);
+            tuning.SprintSwingRange = json.GetFloat(nameof(SprintSwingRange), tuning.SprintSwingRange);
+            tuning.SprintRotSpeed = json.GetFloat(nameof(SprintRotSpeed), tuning.SprintRotSpeed);
+            return tuning;
         }
     }
 }

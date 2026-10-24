@@ -1,4 +1,5 @@
 using System;
+using Unity.Shared.Core.Json;
 
 namespace Incognito.Settings
 {
@@ -45,6 +46,22 @@ namespace Incognito.Settings
                 throw new SettingsValidationException("RainTuning.FallMin must not exceed FallMax: " + FallMin + " > " + FallMax);
             if (float.IsNaN(Alpha) || Alpha < 0f || Alpha > 1f)
                 throw new SettingsValidationException("RainTuning.Alpha must be between 0 and 1: " + Alpha);
+        }
+
+        /// <summary>U.INC-T25: parsed with Unity.Shared.Core's engine-free <see cref="JsonObject"/> reader.</summary>
+        public static RainTuning FromJson(JsonObject json)
+        {
+            var tuning = new RainTuning();
+            if (json == null) return tuning;
+            tuning.RoomHeight = json.GetFloat(nameof(RoomHeight), tuning.RoomHeight);
+            tuning.DropsPerStep = json.GetInt(nameof(DropsPerStep), tuning.DropsPerStep);
+            tuning.DropHeight = json.GetInt(nameof(DropHeight), tuning.DropHeight);
+            tuning.DriftMin = json.GetInt(nameof(DriftMin), tuning.DriftMin);
+            tuning.DriftMax = json.GetInt(nameof(DriftMax), tuning.DriftMax);
+            tuning.FallMin = json.GetInt(nameof(FallMin), tuning.FallMin);
+            tuning.FallMax = json.GetInt(nameof(FallMax), tuning.FallMax);
+            tuning.Alpha = json.GetFloat(nameof(Alpha), tuning.Alpha);
+            return tuning;
         }
     }
 }

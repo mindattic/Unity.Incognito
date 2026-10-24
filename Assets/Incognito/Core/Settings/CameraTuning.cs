@@ -1,4 +1,5 @@
 using System;
+using Unity.Shared.Core.Json;
 
 namespace Incognito.Settings
 {
@@ -52,6 +53,21 @@ namespace Incognito.Settings
                 throw new SettingsValidationException("CameraTuning.CursorFollowBorder must not be negative: " + CursorFollowBorder);
             if (float.IsNaN(CursorFollowPanSpeed))
                 throw new SettingsValidationException("CameraTuning.CursorFollowPanSpeed must be a number.");
+        }
+
+        /// <summary>U.INC-T25: parsed with Unity.Shared.Core's engine-free <see cref="JsonObject"/> reader.</summary>
+        public static CameraTuning FromJson(JsonObject json)
+        {
+            var tuning = new CameraTuning();
+            if (json == null) return tuning;
+            tuning.ViewWidth = json.GetFloat(nameof(ViewWidth), tuning.ViewWidth);
+            tuning.PlayerWidth = json.GetFloat(nameof(PlayerWidth), tuning.PlayerWidth);
+            tuning.HorizontalDeadzone = json.GetFloat(nameof(HorizontalDeadzone), tuning.HorizontalDeadzone);
+            tuning.HorizontalPanSpeed = json.GetFloat(nameof(HorizontalPanSpeed), tuning.HorizontalPanSpeed);
+            tuning.MaxVerticalPan = json.GetFloat(nameof(MaxVerticalPan), tuning.MaxVerticalPan);
+            tuning.CursorFollowBorder = json.GetFloat(nameof(CursorFollowBorder), tuning.CursorFollowBorder);
+            tuning.CursorFollowPanSpeed = json.GetFloat(nameof(CursorFollowPanSpeed), tuning.CursorFollowPanSpeed);
+            return tuning;
         }
     }
 }

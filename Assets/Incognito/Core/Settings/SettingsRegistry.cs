@@ -1,5 +1,6 @@
 using System;
 using Incognito.Npc;
+using Unity.Shared.Core.Json;
 
 namespace Incognito.Settings
 {
@@ -8,8 +9,9 @@ namespace Incognito.Settings
     /// validated place, instead of each one's numbers being duplicated as serialized fields on a
     /// MonoBehaviour or left as constants spread through scripts (AGENTS.md law 2/4). Loaded from
     /// <c>Resources/Data/game-tuning.json</c> by <c>Incognito.Settings.GameSettings</c> (Runtime,
-    /// since reading a file needs UnityEngine); this type itself stays engine-free so it can be
-    /// built and validated from a plain C# test.
+    /// which only reads the file's bytes, since that needs UnityEngine); parsing is done here with
+    /// Unity.Shared.Core's engine-free JSON reader (U.INC-T25, replacing UnityEngine.JsonUtility),
+    /// so this type stays engine-free and can be built, parsed and validated from a plain C# test.
     /// </summary>
     [Serializable]
     public sealed class SettingsRegistry
@@ -37,6 +39,25 @@ namespace Incognito.Settings
             Camera.Validate();
             Weapon.Validate();
             Rain.Validate();
+        }
+
+        /// <summary>
+        /// Parses <paramref name="json"/> (<c>game-tuning.json</c>'s text) with Unity.Shared.Core's
+        /// <see cref="MiniJson"/>/<see cref="JsonObject"/> reader (U.INC-T25). Throws
+        /// <see cref="JsonFormatException"/> on text that is not a JSON object; does not validate
+        /// (callers validate separately, as <c>GameSettings.Load</c> does).
+        /// </summary>
+        public static SettingsRegistry FromJson(string json)
+        {
+            JsonObject root = JsonObject.Parse(json);
+            return new SettingsRegistry
+            {
+                Suspicion = SuspicionTuning.FromJson(root.GetObject(nameof(Suspicion))),
+                Locomotion = LocomotionTuning.FromJson(root.GetObject(nameof(Locomotion))),
+                Camera = CameraTuning.FromJson(root.GetObject(nameof(Camera))),
+                Weapon = WeaponTuning.FromJson(root.GetObject(nameof(Weapon))),
+                Rain = RainTuning.FromJson(root.GetObject(nameof(Rain))),
+            };
         }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using Unity.Shared.Core.Json;
 
 namespace Incognito.Settings
 {
@@ -47,6 +48,21 @@ namespace Incognito.Settings
                 throw new SettingsValidationException("LocomotionTuning.Friction must be between 0 and 1 (exclusive): " + Friction);
             if (float.IsNaN(StopThreshold) || StopThreshold <= 0f)
                 throw new SettingsValidationException("LocomotionTuning.StopThreshold must be positive: " + StopThreshold);
+        }
+
+        /// <summary>U.INC-T25: parsed with Unity.Shared.Core's engine-free <see cref="JsonObject"/> reader.</summary>
+        public static LocomotionTuning FromJson(JsonObject json)
+        {
+            var tuning = new LocomotionTuning();
+            if (json == null) return tuning;
+            tuning.BobAmplitude = json.GetFloat(nameof(BobAmplitude), tuning.BobAmplitude);
+            tuning.BobRampSpeed = json.GetFloat(nameof(BobRampSpeed), tuning.BobRampSpeed);
+            tuning.WalkSpeed = json.GetFloat(nameof(WalkSpeed), tuning.WalkSpeed);
+            tuning.SprintMultiplier = json.GetFloat(nameof(SprintMultiplier), tuning.SprintMultiplier);
+            tuning.SprintAccelStep = json.GetFloat(nameof(SprintAccelStep), tuning.SprintAccelStep);
+            tuning.Friction = json.GetFloat(nameof(Friction), tuning.Friction);
+            tuning.StopThreshold = json.GetFloat(nameof(StopThreshold), tuning.StopThreshold);
+            return tuning;
         }
     }
 }

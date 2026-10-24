@@ -1,5 +1,6 @@
 using System;
 using Incognito.Settings;
+using Unity.Shared.Core.Json;
 
 namespace Incognito.Content
 {
@@ -62,6 +63,27 @@ namespace Incognito.Content
         {
             if (string.IsNullOrEmpty(value))
                 throw new SettingsValidationException("ConsoleText." + field + " must not be empty.");
+        }
+
+        /// <summary>U.INC-T25: parsed with Unity.Shared.Core's engine-free <see cref="JsonObject"/> reader.</summary>
+        public static ConsoleText FromJson(JsonObject json)
+        {
+            var text = new ConsoleText();
+            if (json == null) return text;
+            text.HelpText = json.GetString(nameof(HelpText), text.HelpText);
+            text.ListUsageText = json.GetString(nameof(ListUsageText), text.ListUsageText);
+            text.SheepHeader = json.GetString(nameof(SheepHeader), text.SheepHeader);
+            text.CameraHeader = json.GetString(nameof(CameraHeader), text.CameraHeader);
+            text.ComputerHeader = json.GetString(nameof(ComputerHeader), text.ComputerHeader);
+            text.NoneLabel = json.GetString(nameof(NoneLabel), text.NoneLabel);
+            text.NoObjectsDetectedText = json.GetString(nameof(NoObjectsDetectedText), text.NoObjectsDetectedText);
+            text.NotRecognizedText = json.GetString(nameof(NotRecognizedText), text.NotRecognizedText);
+            text.ObjectNotFoundPrefix = json.GetString(nameof(ObjectNotFoundPrefix), text.ObjectNotFoundPrefix);
+            text.RebootSummary = json.GetString(nameof(RebootSummary), text.RebootSummary);
+            text.RebootProgressive = json.GetString(nameof(RebootProgressive), text.RebootProgressive);
+            text.OverwriteSummary = json.GetString(nameof(OverwriteSummary), text.OverwriteSummary);
+            text.OverwriteProgressive = json.GetString(nameof(OverwriteProgressive), text.OverwriteProgressive);
+            return text;
         }
     }
 }

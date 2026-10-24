@@ -1,5 +1,6 @@
 using System;
 using Incognito.Settings;
+using Unity.Shared.Core.Json;
 
 namespace Incognito.Content
 {
@@ -14,6 +15,16 @@ namespace Incognito.Content
         {
             if (string.IsNullOrWhiteSpace(Description))
                 throw new SettingsValidationException(label + " needs a Description.");
+        }
+
+        /// <summary>U.INC-T25: parsed with Unity.Shared.Core's engine-free <see cref="JsonObject"/> reader.</summary>
+        public static PropSpot FromJson(JsonObject json)
+        {
+            var spot = new PropSpot();
+            if (json == null) return spot;
+            spot.X = json.GetFloat(nameof(X), spot.X);
+            spot.Description = json.GetString(nameof(Description), spot.Description);
+            return spot;
         }
     }
 
@@ -32,6 +43,23 @@ namespace Incognito.Content
                 throw new SettingsValidationException(label + " must name a destination room.");
             if (!Enum.IsDefined(typeof(RoomEntranceKind), Enter))
                 throw new SettingsValidationException(label + " has an unrecognized Enter value: " + Enter);
+        }
+
+        /// <summary>
+        /// U.INC-T25: parsed with Unity.Shared.Core's engine-free <see cref="JsonObject"/> reader.
+        /// <see cref="Enter"/> is written (as <c>JsonUtility</c> wrote it) as the enum's underlying
+        /// int, e.g. 1 for <see cref="RoomEntranceKind.Right"/>; an out-of-range number is kept
+        /// as-is so <see cref="Validate"/> reports it, rather than silently clamped.
+        /// </summary>
+        public static SideExitSpec FromJson(JsonObject json)
+        {
+            var exit = new SideExitSpec();
+            if (json == null) return exit;
+            exit.X = json.GetFloat(nameof(X), exit.X);
+            exit.To = json.GetString(nameof(To), exit.To);
+            exit.Enter = (RoomEntranceKind)json.GetInt(nameof(Enter), (int)exit.Enter);
+            exit.EnterX = json.GetFloat(nameof(EnterX), exit.EnterX);
+            return exit;
         }
     }
 
@@ -54,6 +82,20 @@ namespace Incognito.Content
                 throw new SettingsValidationException(label + " must name a destination room.");
             if (!Enum.IsDefined(typeof(RoomEntranceKind), Enter))
                 throw new SettingsValidationException(label + " has an unrecognized Enter value: " + Enter);
+        }
+
+        /// <summary>U.INC-T25: parsed with Unity.Shared.Core's engine-free <see cref="JsonObject"/> reader (see <see cref="SideExitSpec.FromJson"/> on <see cref="Enter"/>'s encoding).</summary>
+        public static DoorSpec FromJson(JsonObject json)
+        {
+            var door = new DoorSpec();
+            if (json == null) return door;
+            door.X = json.GetFloat(nameof(X), door.X);
+            door.Y = json.GetFloat(nameof(Y), door.Y);
+            door.Label = json.GetString(nameof(Label), door.Label);
+            door.To = json.GetString(nameof(To), door.To);
+            door.Enter = (RoomEntranceKind)json.GetInt(nameof(Enter), (int)door.Enter);
+            door.EnterX = json.GetFloat(nameof(EnterX), door.EnterX);
+            return door;
         }
     }
 
@@ -141,6 +183,30 @@ namespace Incognito.Content
             const float margin = 200f;
             if (x < -margin || x > width + margin)
                 throw new SettingsValidationException(roomLabel + ": " + what + " at x=" + x + " is far outside the room (width " + width + ").");
+        }
+
+        /// <summary>U.INC-T25: parsed with Unity.Shared.Core's engine-free <see cref="JsonObject"/> reader.</summary>
+        public static RoomDefinition FromJson(JsonObject json)
+        {
+            var room = new RoomDefinition();
+            if (json == null) return room;
+            room.Id = json.GetString(nameof(Id), room.Id);
+            room.DisplayName = json.GetString(nameof(DisplayName), room.DisplayName);
+            room.Width = json.GetFloat(nameof(Width), room.Width);
+            room.BackgroundSlices = json.GetStringArray(nameof(BackgroundSlices));
+            room.PlayerStartX = json.GetFloat(nameof(PlayerStartX), room.PlayerStartX);
+            room.Lampposts = json.GetObjectArray(nameof(Lampposts), PropSpot.FromJson);
+            room.Mailboxes = json.GetObjectArray(nameof(Mailboxes), PropSpot.FromJson);
+            room.SideExits = json.GetObjectArray(nameof(SideExits), SideExitSpec.FromJson);
+            room.Doors = json.GetObjectArray(nameof(Doors), DoorSpec.FromJson);
+            room.Barriers = json.GetFloatArray(nameof(Barriers));
+            room.Rain = json.GetBool(nameof(Rain), room.Rain);
+            room.KeepNpc = json.GetBool(nameof(KeepNpc), room.KeepNpc);
+            room.Music = json.GetString(nameof(Music), room.Music);
+            room.OpeningText = json.GetString(nameof(OpeningText), room.OpeningText);
+            room.OpeningTextX = json.GetFloat(nameof(OpeningTextX), room.OpeningTextX);
+            room.OpeningTextY = json.GetFloat(nameof(OpeningTextY), room.OpeningTextY);
+            return room;
         }
     }
 }
