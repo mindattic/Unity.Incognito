@@ -1,4 +1,5 @@
 using Incognito.Player;
+using Incognito.Settings;
 
 namespace Incognito.CameraRig
 {
@@ -45,6 +46,22 @@ namespace Incognito.CameraRig
 
         public float CenterX { get; private set; }
         public float VerticalOffset { get; private set; }
+
+        /// <summary>
+        /// Builds from a validated <see cref="CameraTuning"/> (U.INC-T22); null takes the
+        /// original's own values, same as every field's own default above (so the parameterless
+        /// object-initializer form tests use still works unchanged). Room bounds are per-room
+        /// scene data, not tuning, so they keep their own field defaults here.
+        /// </summary>
+        public CloseFramingCameraState(CameraTuning tuning = null)
+        {
+            CameraTuning t = tuning ?? new CameraTuning();
+            ViewWidth = t.ViewWidth;
+            PlayerWidth = t.PlayerWidth;
+            HorizontalDeadzone = t.HorizontalDeadzone;
+            HorizontalPanSpeed = t.HorizontalPanSpeed;
+            MaxVerticalPan = t.MaxVerticalPan;
+        }
 
         /// <summary>Where obj_camera itself would sit this step (before the view-follow lag).</summary>
         public float TargetX(float playerX, PlayerLocomotionState.FacingDirection facing)

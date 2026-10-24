@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Incognito.Content;
 
 namespace Incognito.Terminal
 {
@@ -25,17 +26,26 @@ namespace Incognito.Terminal
     /// </summary>
     public sealed class CommandInterpreter
     {
+        /// <summary>
+        /// The original's text, kept as a back-compat constant for callers that just want the
+        /// known default (as this class's own tests do). The live value a built interpreter prints
+        /// is <see cref="ConsoleText.NotRecognizedText"/> (U.INC-T22): data, not a literal in this
+        /// class's methods, so the console's copy can be authored without touching code.
+        /// </summary>
         public const string NotRecognized = "Command not recognized";
 
         private static readonly ConsoleObjectType[] AllTypes =
             (ConsoleObjectType[])Enum.GetValues(typeof(ConsoleObjectType));
 
         private readonly Func<IEnumerable<ConsoleObject>> vicinity;
+        private readonly ConsoleText text;
 
         /// <param name="vicinity">Returns the objects currently in range of the player.</param>
-        public CommandInterpreter(Func<IEnumerable<ConsoleObject>> vicinity)
+        /// <param name="text">The console's text (U.INC-T22); null takes the original's own copy.</param>
+        public CommandInterpreter(Func<IEnumerable<ConsoleObject>> vicinity, ConsoleText text = null)
         {
             this.vicinity = vicinity ?? throw new ArgumentNullException(nameof(vicinity));
+            this.text = text ?? new ConsoleText();
         }
 
         /// <summary>Raised when <c>reboot &lt;id&gt;</c> resolves a target.</summary>
@@ -55,13 +65,13 @@ namespace Incognito.Terminal
             }
         }
 
-        public static string HeaderFor(ConsoleObjectType type)
+        private string HeaderFor(ConsoleObjectType type)
         {
             switch (type)
             {
-                case ConsoleObjectType.Sheep: return "Detected civilians:";
-                case ConsoleObjectType.Camera: return "Detected cameras:";
-                case ConsoleObjectType.Computer: return "Detected computers:";
+                case ConsoleObjectType.Sheep: return text.SheepHeader;
+                case ConsoleObjectType.Camera: return text.CameraHeader;
+                case ConsoleObjectType.Computer: return text.ComputerHeader;
                 default: throw new ArgumentOutOfRangeException(nameof(type), type, null);
             }
         }
@@ -84,30 +94,20 @@ namespace Incognito.Terminal
             {
                 case "help": return Help();
                 case "list": return List(command);
-                case "reboot": return Target(command, "reboot", "Reboots an object", "Rebooting", Rebooted);
-                case "overwrite": return Target(command, "overwrite", "Overwrite command level function", "Overwriting", Overwritten);
+                case "reboot": return Target(command, "reboot", text.RebootSummary, text.RebootProgressive, Rebooted);
+                case "overwrite": return Target(command, "overwrite", text.OverwriteSummary, text.OverwriteProgressive, Overwritten);
                 case "clear": return string.Empty;
-                default: return NotRecognized;
+                default: return text.NotRecognizedText;
             }
         }
 
-        private static string Help()
-        {
-            return "help\n\n" +
-                   "   list: List objects in vicinity\n" +
-                   "   reboot: Reboots an object\n" +
-                   "   overwrite: Overwrite command level function";
-        }
+        private string Help() => text.HelpText;
 
         private string List(string[] command)
         {
             if (command.Length == 1)
             {
-                return "list\n\n" +
-                       "   Usage:\n" +
-                       "   list all: List all objects in vicinity\n" +
-                       "   list [type]: List all objects of a certain type.\n" +
-                       "   [sheep, camera, computer].";
+                return text.ListUsageText;
             }
 
             List<ConsoleObject> nearby = vicinity().ToList();
@@ -118,7 +118,7 @@ namespace Incognito.Terminal
                     .Where(t => nearby.Any(o => o.Type == t))
                     .Select(t => Section(t, nearby))
                     .ToList();
-                return sections.Count == 0 ? "No objects detected" : string.Join("\n\n", sections);
+                return sections.Count == 0 ? text.NoObjectsDetectedText : string.Join("\n\n", sections);
             }
 
             foreach (ConsoleObjectType type in AllTypes)
@@ -126,10 +126,10 @@ namespace Incognito.Terminal
                 if (command[1] == TypeWord(type)) return Section(type, nearby);
             }
 
-            return NotRecognized;
+            return text.NotRecognizedText;
         }
 
-        private static string Section(ConsoleObjectType type, IEnumerable<ConsoleObject> nearby)
+        private string Section(ConsoleObjectType type, IEnumerable<ConsoleObject> nearby)
         {
             var sb = new StringBuilder(HeaderFor(type)).Append('\n');
             bool any = false;
@@ -139,7 +139,7 @@ namespace Incognito.Terminal
                 any = true;
             }
 
-            if (!any) sb.Append("\n   none");
+            if (!any) sb.Append("\n   ").Append(text.NoneLabel);
             return sb.ToString();
         }
 
@@ -163,7 +163,7 @@ namespace Incognito.Terminal
                 }
             }
 
-            return "Object not found: " + wanted;
+            return text.ObjectNotFoundPrefix + wanted;
         }
 
         /// <summary>Accepts the printed handle (<c>shp#0097</c>) or the bare id (<c>0097</c>).</summary>

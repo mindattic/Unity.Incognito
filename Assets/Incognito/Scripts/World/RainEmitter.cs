@@ -1,22 +1,23 @@
 using System.Collections.Generic;
 using Incognito.Player;
+using Incognito.Settings;
 using UnityEngine;
 
 namespace Incognito.World
 {
     /// <summary>
-    /// Draws <see cref="RainState"/> with pooled spr_rain sprites at the original 0.75 alpha, in
-    /// front of the player (obj_raindrop depth -1) and behind front props. Drops spawn across the
-    /// camera's current view, as obj_raindrop read view_xview.
+    /// Draws <see cref="RainState"/> with pooled spr_rain sprites at its tuned alpha, in front of
+    /// the player (obj_raindrop depth -1) and behind front props. Drops spawn across the camera's
+    /// current view, as obj_raindrop read view_xview. Drop count/size/drift/fall/alpha come from
+    /// the validated settings registry (U.INC-T22), not serialized fields here.
     /// </summary>
     public sealed class RainEmitter : MonoBehaviour
     {
         [SerializeField] private Sprite raindrop;
         [SerializeField] private Camera viewCamera;
         [SerializeField] private int sortingOrder = 2;
-        [SerializeField] private float alpha = 0.75f;
 
-        public RainState State { get; } = new RainState();
+        public RainState State { get; private set; }
 
         private readonly StepClock clock = new StepClock();
         private readonly List<SpriteRenderer> pool = new List<SpriteRenderer>();
@@ -26,6 +27,11 @@ namespace Incognito.World
             this.raindrop = raindrop;
             this.viewCamera = viewCamera;
             this.sortingOrder = sortingOrder;
+        }
+
+        private void Awake()
+        {
+            State = new RainState(tuning: GameSettings.Tuning.Rain);
         }
 
         private void Update()
@@ -57,7 +63,7 @@ namespace Incognito.World
             var sr = go.GetComponent<SpriteRenderer>();
             sr.sprite = raindrop;
             sr.sortingOrder = sortingOrder;
-            sr.color = new Color(1f, 1f, 1f, alpha);
+            sr.color = new Color(1f, 1f, 1f, State.Alpha);
             return sr;
         }
     }

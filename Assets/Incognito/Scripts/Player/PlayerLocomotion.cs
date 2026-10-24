@@ -1,3 +1,4 @@
+using Incognito.Settings;
 using Incognito.Terminal;
 using Incognito.World;
 using UnityEngine;
@@ -18,11 +19,6 @@ namespace Incognito.Player
         [SerializeField] private GameSession session;
         [Tooltip("This player's id in the world; every command from this seat carries it.")]
         [SerializeField] private int playerId = 1;
-
-        [SerializeField] private float bobAmplitude = 5f;
-        [SerializeField] private float bobRampSpeed = 0.3f;
-        [SerializeField] private float walkSpeed = 4f;
-        [SerializeField] private float sprintMultiplier = 2f;
 
         public GameSession Session => session;
         public PlayerId Id => new PlayerId(playerId);
@@ -56,13 +52,14 @@ namespace Incognito.Player
                 return;
             }
 
+            // U.INC-T22: locomotion/weapon tuning comes from the validated settings registry, not
+            // serialized fields duplicated here.
+            var tuning = GameSettings.Tuning;
             Entity = session.World.AddPlayer(Id, new PlayerSetup
             {
                 StartX = transform.position.x / WorldUnitsPerOriginalPixel,
-                BobAmplitude = bobAmplitude,
-                BobRampSpeed = bobRampSpeed,
-                WalkSpeed = walkSpeed,
-                SprintMultiplier = sprintMultiplier,
+                Locomotion = tuning.Locomotion,
+                Weapon = tuning.Weapon,
             });
         }
 

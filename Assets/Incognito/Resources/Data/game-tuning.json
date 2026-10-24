@@ -1,0 +1,53 @@
+{
+  "Suspicion": {
+    "NearRate": 0.2,
+    "MidRate": 0.1,
+    "FarRateDecay": 0.1,
+    "EyeContactRateBonus": 0.1,
+    "LookingDownRatePenalty": 0.2,
+    "NotFacingRatePenalty": 0.1,
+    "NearRangeViews": 0.5,
+    "MidRangeViews": 1.0,
+    "MinSuspicion": 0.0,
+    "MaxSuspicion": 100.0
+  },
+  "Locomotion": {
+    "BobAmplitude": 5.0,
+    "BobRampSpeed": 0.3,
+    "WalkSpeed": 4.0,
+    "SprintMultiplier": 2.0,
+    "SprintAccelStep": 0.1,
+    "Friction": 0.9,
+    "StopThreshold": 1.0
+  },
+  "Camera": {
+    "ViewWidth": 1920.0,
+    "PlayerWidth": 512.0,
+    "HorizontalDeadzone": 50.0,
+    "HorizontalPanSpeed": 20.0,
+    "MaxVerticalPan": 135.0,
+    "CursorFollowBorder": 32.0,
+    "CursorFollowPanSpeed": 10.0
+  },
+  "Weapon": {
+    "AimRaiseSteps": 5.0,
+    "ViewHeight": 1080.0,
+    "AimDivisor": 30.0,
+    "MuzzleReach": 500.0,
+    "MuzzleRise": 88.0,
+    "WalkSwingRange": 3.0,
+    "WalkRotSpeed": 0.06,
+    "SprintSwingRange": 6.0,
+    "SprintRotSpeed": 0.24
+  },
+  "Rain": {
+    "RoomHeight": 1080.0,
+    "DropsPerStep": 6,
+    "DropHeight": 4,
+    "DriftMin": -6,
+    "DriftMax": -3,
+    "FallMin": 40,
+    "FallMax": 50,
+    "Alpha": 0.75
+  }
+}

@@ -1,5 +1,6 @@
 using System;
 using Incognito.Motion;
+using Incognito.Settings;
 
 namespace Incognito.Player
 {
@@ -45,6 +46,23 @@ namespace Incognito.Player
         }
 
         private readonly TriangleWaveBob bob = new TriangleWaveBob();
+
+        /// <summary>
+        /// Builds from a validated <see cref="LocomotionTuning"/> (U.INC-T22); null takes the
+        /// original's own values, same as every field's own default above (so the parameterless
+        /// object-initializer form tests use still works unchanged).
+        /// </summary>
+        public PlayerLocomotionState(LocomotionTuning tuning = null)
+        {
+            LocomotionTuning t = tuning ?? new LocomotionTuning();
+            BobAmplitude = t.BobAmplitude;
+            BobRampSpeed = t.BobRampSpeed;
+            WalkSpeed = t.WalkSpeed;
+            SprintMultiplier = t.SprintMultiplier;
+            SprintAccelStep = t.SprintAccelStep;
+            Friction = t.Friction;
+            StopThreshold = t.StopThreshold;
+        }
 
         /// <summary>Original aim entry (obj_walker right-pressed): mode = "idle", dx = 0, and the
         /// idle branch zeroes walkY. Used while aiming locks movement (U.INC-T9).</summary>

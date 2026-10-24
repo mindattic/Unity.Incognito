@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using Incognito.Content;
 using Incognito.Npc;
 using Incognito.Player;
+using Incognito.Settings;
 using Incognito.Terminal;
 using Incognito.Weapon;
 
@@ -13,15 +15,9 @@ namespace Incognito.World
         internal PlayerEntity(PlayerId id, PlayerSetup setup)
         {
             Id = id;
-            Locomotion = new PlayerLocomotionState
-            {
-                BobAmplitude = setup.BobAmplitude,
-                BobRampSpeed = setup.BobRampSpeed,
-                WalkSpeed = setup.WalkSpeed,
-                SprintMultiplier = setup.SprintMultiplier,
-            };
+            Locomotion = new PlayerLocomotionState(setup.Locomotion);
             Locomotion.SetInitialPositionX(setup.StartX);
-            Weapon = new PlayerWeaponState();
+            Weapon = new PlayerWeaponState(setup.Weapon);
         }
 
         public PlayerId Id { get; }
@@ -38,22 +34,20 @@ namespace Incognito.World
         public bool MovementLocked => Weapon.IsAiming;
     }
 
-    /// <summary>How a player is set up when seated: walk tuning and where they start (original px).</summary>
+    /// <summary>How a player is set up when seated: where they start (original px) and their
+    /// validated locomotion/weapon tuning (U.INC-T22, <see cref="SettingsRegistry"/>).</summary>
     public struct PlayerSetup
     {
         public float StartX;
-        public float BobAmplitude;
-        public float BobRampSpeed;
-        public float WalkSpeed;
-        public float SprintMultiplier;
+        public LocomotionTuning Locomotion;
+        public WeaponTuning Weapon;
 
+        /// <summary>The original's own tuning, for callers that need a setup without loading one.</summary>
         public static PlayerSetup Default => new PlayerSetup
         {
             StartX = 0f,
-            BobAmplitude = 5f,
-            BobRampSpeed = 0.3f,
-            WalkSpeed = 4f,
-            SprintMultiplier = 2f,
+            Locomotion = new LocomotionTuning(),
+            Weapon = new WeaponTuning(),
         };
     }
 
@@ -131,6 +125,14 @@ namespace Incognito.World
         private readonly List<GameEvent> events = new List<GameEvent>();
         private int nextNpcId = 1;
         private int nextSideExitId = 1;
+
+        /// <summary>The typed console's text (U.INC-T22); null takes the original's own copy.</summary>
+        public ConsoleText ConsoleText { get; set; }
+
+        public GameWorld(ConsoleText consoleText = null)
+        {
+            ConsoleText = consoleText ?? new ConsoleText();
+        }
 
         public IReadOnlyList<PlayerEntity> Players => players;
         public IReadOnlyList<NpcEntity> Npcs => npcs;
@@ -324,7 +326,7 @@ namespace Incognito.World
 
         private void RunConsole(PlayerId player, RunConsoleCommand command)
         {
-            var interpreter = new CommandInterpreter(() => Vicinity.Within(command.Origin, command.Radius, consoleObjects));
+            var interpreter = new CommandInterpreter(() => Vicinity.Within(command.Origin, command.Radius, consoleObjects), ConsoleText);
             interpreter.Rebooted += obj => events.Add(new ConsoleObjectRebooted(player, obj));
             interpreter.Overwritten += obj => events.Add(new ConsoleObjectOverwritten(player, obj));
             events.Add(new ConsoleOutput(player, interpreter.Execute(command.Line)));

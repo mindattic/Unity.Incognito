@@ -1,4 +1,5 @@
 using Incognito.Player;
+using Incognito.Settings;
 using UnityEngine;
 
 namespace Incognito.CameraRig
@@ -14,15 +15,9 @@ namespace Incognito.CameraRig
     {
         [SerializeField] private PlayerLocomotion player;
 
-        [Header("Room extent (world units)")]
+        [Header("Room extent (world units; per-room scene data, not tuning)")]
         [SerializeField] private float roomMinX = 0f;
         [SerializeField] private float roomMaxX = 360f;
-
-        [Header("Framing (original pixels)")]
-        [SerializeField] private float playerWidth = 512f;
-        [SerializeField] private float horizontalDeadzone = 50f;
-        [SerializeField] private float horizontalPanSpeed = 20f;
-        [SerializeField] private float maxVerticalPan = 135f;
 
         public CloseFramingCameraState State { get; private set; }
 
@@ -40,14 +35,16 @@ namespace Incognito.CameraRig
             cam = GetComponent<Camera>();
             restY = transform.position.y;
 
-            State = new CloseFramingCameraState
+            // U.INC-T22: framing tuning comes from the validated settings registry; only the room
+            // bounds (per-room scene data) stay as this component's own serialized fields.
+            var tuning = GameSettings.Tuning.Camera;
+            cursorFollowBorder = tuning.CursorFollowBorder;
+            cursorFollowPanSpeed = tuning.CursorFollowPanSpeed;
+
+            State = new CloseFramingCameraState(tuning)
             {
-                PlayerWidth = playerWidth,
                 RoomMinX = roomMinX / PlayerLocomotion.WorldUnitsPerOriginalPixel,
                 RoomMaxX = roomMaxX / PlayerLocomotion.WorldUnitsPerOriginalPixel,
-                HorizontalDeadzone = horizontalDeadzone,
-                HorizontalPanSpeed = horizontalPanSpeed,
-                MaxVerticalPan = maxVerticalPan,
             };
         }
 
@@ -100,13 +97,13 @@ namespace Incognito.CameraRig
             {
                 case FollowMode.Cursor:
                     State.StepToward(Time.deltaTime, State.CursorX(MouseViewportX()),
-                        State.ViewWidth * 0.5f - CursorBorder, ConsolePanSpeed, mouseY);
+                        State.ViewWidth * 0.5f - cursorFollowBorder, cursorFollowPanSpeed, mouseY);
                     break;
 
                 case FollowMode.Target when followTarget != null:
                     State.StepToward(Time.deltaTime,
                         followTarget.position.x / PlayerLocomotion.WorldUnitsPerOriginalPixel,
-                        0f, ConsolePanSpeed, mouseY);
+                        0f, cursorFollowPanSpeed, mouseY);
                     break;
 
                 default:
@@ -119,9 +116,10 @@ namespace Incognito.CameraRig
 
         private enum FollowMode { Player, Cursor, Target }
 
-        // obj_walker's console toggle: view_hborder[0] = 32, view_hspeed[0] = 10.
-        private const float CursorBorder = 32f;
-        private const float ConsolePanSpeed = 10f;
+        // obj_walker's console toggle: view_hborder[0] = 32, view_hspeed[0] = 10. Set from the
+        // validated CameraTuning in Awake (U.INC-T22).
+        private float cursorFollowBorder;
+        private float cursorFollowPanSpeed;
 
         private FollowMode followMode = FollowMode.Player;
         private Transform followTarget;

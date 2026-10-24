@@ -1,0 +1,103 @@
+{
+  "Rooms": [
+    {
+      "Id": "Street00",
+      "DisplayName": "Bleecher Street",
+      "Width": 11520.0,
+      "BackgroundSlices": ["bg_street00_00", "bg_street00_01", "bg_street00_02", "bg_street00_03", "bg_street00_04", "bg_street00_05"],
+      "PlayerStartX": 11008.0,
+      "Lampposts": [
+        { "X": 1632.0, "Description": "It's a lamp post.\nNothing sinister about that..." },
+        { "X": 4032.0, "Description": "It's a lamp post.\nNothing sinister about that..." },
+        { "X": 6496.0, "Description": "It's a lamp post.\nNothing sinister about that..." },
+        { "X": 8928.0, "Description": "It's a lamp post.\nNothing sinister about that..." }
+      ],
+      "Mailboxes": [
+        { "X": 672.0, "Description": "It's just a mailbox.\n...or is it?" },
+        { "X": 7104.0, "Description": "It's just a mailbox.\n...or is it?" }
+      ],
+      "SideExits": [
+        { "X": -32.0, "To": "Street01", "Enter": 1, "EnterX": 0.0 },
+        { "X": 11552.0, "To": "Street01", "Enter": 0, "EnterX": 0.0 }
+      ],
+      "Doors": [
+        { "X": 9504.0, "Y": 480.0, "Label": "Simon's Pawn and Loan", "To": "Shop", "Enter": 1, "EnterX": 0.0 }
+      ],
+      "Barriers": [],
+      "Rain": true,
+      "KeepNpc": true,
+      "Music": "music_oppressivegloom",
+      "OpeningText": "In a strange city lying alone\nFar down within the dim West,\nWhere the good and the bad and the worst and the best\nHave gone to their eternal rest.\nThere shrines and palaces and towers\n(Time-eaten towers that tremble not!)\nResemble nothing that is ours.\nAround, by lifting winds forgot,\nResignedly beneath the sky\nThe melancholy waters lie.",
+      "OpeningTextX": 10870.0,
+      "OpeningTextY": 100.0
+    },
+    {
+      "Id": "Street01",
+      "DisplayName": "2nd Avenue",
+      "Width": 15360.0,
+      "BackgroundSlices": ["bg_street01_00", "bg_street01_01", "bg_street01_02", "bg_street01_03", "bg_street01_04", "bg_street01_05", "bg_street01_06", "bg_street01_07"],
+      "PlayerStartX": 512.0,
+      "Lampposts": [],
+      "Mailboxes": [],
+      "SideExits": [
+        { "X": -32.0, "To": "Street00", "Enter": 1, "EnterX": 0.0 },
+        { "X": 15392.0, "To": "Street00", "Enter": 0, "EnterX": 0.0 }
+      ],
+      "Doors": [],
+      "Barriers": [],
+      "Rain": true,
+      "KeepNpc": false,
+      "Music": "music_oppressivegloom",
+      "OpeningText": "",
+      "OpeningTextX": 0.0,
+      "OpeningTextY": 0.0
+    },
+    {
+      "Id": "Shop",
+      "DisplayName": "Simon's Pawn and Loan",
+      "Width": 5760.0,
+      "BackgroundSlices": ["bg_shop_00", "bg_shop_01", "bg_shop_02"],
+      "PlayerStartX": 5248.0,
+      "Lampposts": [],
+      "Mailboxes": [],
+      "SideExits": [
+        { "X": 5792.0, "To": "Street00", "Enter": 2, "EnterX": 9500.0 }
+      ],
+      "Doors": [],
+      "Barriers": [800.0],
+      "Rain": false,
+      "KeepNpc": false,
+      "Music": "music_dubferal",
+      "OpeningText": "",
+      "OpeningTextX": 0.0,
+      "OpeningTextY": 0.0
+    }
+  ],
+  "Npcs": [
+    {
+      "Id": "0097",
+      "SheepId": "0097",
+      "RoomId": "Street00",
+      "Description": "A young woman with tell tale red eyes and a meandering gait.\nBless the young and stoned.",
+      "SpawnX": 2400.0,
+      "Waypoints": [9000.0, 2400.0],
+      "WalkSpeed": 5.0,
+      "ArriveRange": 20.0
+    }
+  ],
+  "Console": {
+    "HelpText": "help\n\n   list: List objects in vicinity\n   reboot: Reboots an object\n   overwrite: Overwrite command level function",
+    "ListUsageText": "list\n\n   Usage:\n   list all: List all objects in vicinity\n   list [type]: List all objects of a certain type.\n   [sheep, camera, computer].",
+    "SheepHeader": "Detected civilians:",
+    "CameraHeader": "Detected cameras:",
+    "ComputerHeader": "Detected computers:",
+    "NoneLabel": "none",
+    "NoObjectsDetectedText": "No objects detected",
+    "NotRecognizedText": "Command not recognized",
+    "ObjectNotFoundPrefix": "Object not found: ",
+    "RebootSummary": "Reboots an object",
+    "RebootProgressive": "Rebooting",
+    "OverwriteSummary": "Overwrite command level function",
+    "OverwriteProgressive": "Overwriting"
+  }
+}

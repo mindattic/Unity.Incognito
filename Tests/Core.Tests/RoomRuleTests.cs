@@ -124,7 +124,7 @@ namespace Incognito.Tests
             var rain = new RainState((min, max) => { rolls.Add((min, max)); return min; });
             rain.Step(1, 8000f, 1920f);
 
-            Assert.AreEqual(RainState.DropsPerStep, rain.Drops.Count);
+            Assert.AreEqual(rain.DropsPerStep, rain.Drops.Count);
             CollectionAssert.Contains(rolls, (8000, 9920));  // x across the view
             CollectionAssert.Contains(rolls, (-1080, -4));   // y up to a room above
             CollectionAssert.Contains(rolls, (-6, -3));      // drift left

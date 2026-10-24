@@ -1,5 +1,6 @@
 using System;
 using Incognito.Player;
+using Incognito.Settings;
 
 namespace Incognito.Npc
 {
@@ -31,6 +32,29 @@ namespace Incognito.Npc
         /// <summary>Rebuild decision: the original never clamped suspicion (it went negative).</summary>
         public float MinSuspicion = 0f;
         public float MaxSuspicion = 100f;
+
+        /// <summary>Validated on load (U.INC-T22, AGENTS.md law 4): throws on an unusable value.</summary>
+        public void Validate()
+        {
+            RequireNumber(nameof(NearRate), NearRate);
+            RequireNumber(nameof(MidRate), MidRate);
+            RequireNumber(nameof(FarRateDecay), FarRateDecay);
+            RequireNumber(nameof(EyeContactRateBonus), EyeContactRateBonus);
+            RequireNumber(nameof(LookingDownRatePenalty), LookingDownRatePenalty);
+            RequireNumber(nameof(NotFacingRatePenalty), NotFacingRatePenalty);
+            if (float.IsNaN(NearRangeViews) || NearRangeViews <= 0f)
+                throw new SettingsValidationException("SuspicionTuning.NearRangeViews must be positive: " + NearRangeViews);
+            if (float.IsNaN(MidRangeViews) || MidRangeViews < NearRangeViews)
+                throw new SettingsValidationException("SuspicionTuning.MidRangeViews must be at least NearRangeViews: " + MidRangeViews);
+            if (float.IsNaN(MinSuspicion) || float.IsNaN(MaxSuspicion) || MinSuspicion > MaxSuspicion)
+                throw new SettingsValidationException("SuspicionTuning.MinSuspicion must not exceed MaxSuspicion: " + MinSuspicion + " > " + MaxSuspicion);
+        }
+
+        private static void RequireNumber(string field, float value)
+        {
+            if (float.IsNaN(value) || float.IsInfinity(value))
+                throw new SettingsValidationException("SuspicionTuning." + field + " must be a finite number: " + value);
+        }
     }
 
     /// <summary>

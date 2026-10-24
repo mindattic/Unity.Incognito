@@ -1,5 +1,6 @@
 using System;
 using Incognito.Player;
+using Incognito.Settings;
 
 namespace Incognito.Weapon
 {
@@ -88,8 +89,23 @@ namespace Incognito.Weapon
         private float raiseStepsLeft;
         private float rotSpeed;
 
-        public PlayerWeaponState()
+        /// <summary>
+        /// Builds from a validated <see cref="WeaponTuning"/> (U.INC-T22); null takes the
+        /// original's own values, same as every field's own default above.
+        /// </summary>
+        public PlayerWeaponState(WeaponTuning tuning = null)
         {
+            WeaponTuning t = tuning ?? new WeaponTuning();
+            AimRaiseSteps = t.AimRaiseSteps;
+            ViewHeight = t.ViewHeight;
+            AimDivisor = t.AimDivisor;
+            MuzzleReach = t.MuzzleReach;
+            MuzzleRise = t.MuzzleRise;
+            WalkSwingRange = t.WalkSwingRange;
+            WalkRotSpeed = t.WalkRotSpeed;
+            SprintSwingRange = t.SprintSwingRange;
+            SprintRotSpeed = t.SprintRotSpeed;
+
             rotSpeed = WalkRotSpeed;
         }
 

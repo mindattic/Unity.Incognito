@@ -65,6 +65,10 @@ namespace Incognito.Npc
                 return;
             }
 
+            // U.INC-T22: this NPC's own suspicion tuning is Inspector-editable data; validated on
+            // load rather than trusted blindly, same as the data files the settings registry loads.
+            suspicion.Validate();
+
             Entity = session.World.AddNpc(new NpcSetup
             {
                 Watching = player != null ? player.Id : default,

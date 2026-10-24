@@ -1,9 +1,11 @@
 using System.IO;
 using Incognito.CameraRig;
+using Incognito.Content;
 using Incognito.Eye;
 using Incognito.Hacking;
 using Incognito.Npc;
 using Incognito.Player;
+using Incognito.Settings;
 using Incognito.Terminal;
 using Incognito.Weapon;
 using Incognito.World;
@@ -98,13 +100,15 @@ namespace Incognito.EditorTools
             var audio = player.AddComponent<AudioSource>();
             audio.playOnAwake = false;
 
-            // One patrolling NPC at the original street00 placement (x = 2400). The original's
-            // only waypoint was x = 12000, past the room's end; the sandbox patrols the street
-            // instead so the NPC keeps crossing the player's path. Like obj_walker, obj_npc's
+            // One patrolling NPC, placed and routed from the validated content catalog
+            // (U.INC-T22, GameSettings.Content.Npcs) instead of literals here. The original's only
+            // waypoint was x = 12000, past the room's end; the sandbox's data instead patrols the
+            // street so the NPC keeps crossing the player's path. Like obj_walker, obj_npc's
             // initialY = room_height - sprite_height/2 puts its origin 512px above the floor.
+            NpcDefinition npcDef = GameSettings.Content.FindNpc("0097");
             var npc = new GameObject("NPC", typeof(SpriteRenderer));
             npc.GetComponent<SpriteRenderer>().sprite = npcSprite;
-            npc.transform.position = new Vector3(2400f * px, 512f * px, 0.5f);
+            npc.transform.position = new Vector3(npcDef.SpawnX * px, 512f * px, 0.5f);
             npc.AddComponent<BoxCollider2D>(); // after the sprite, so it fits the sprite's bounds
             npc.AddComponent<BulletTarget>();  // U.INC-T9: a shot shoves the NPC 100px
             var npcController = npc.AddComponent<NpcController>();
@@ -125,9 +129,10 @@ namespace Incognito.EditorTools
 
             var npcSo = new SerializedObject(npcController);
             var route = npcSo.FindProperty("waypoints");
-            route.arraySize = 2;
-            route.GetArrayElementAtIndex(0).floatValue = 9000f;
-            route.GetArrayElementAtIndex(1).floatValue = 2400f;
+            route.arraySize = npcDef.Waypoints.Length;
+            for (int i = 0; i < npcDef.Waypoints.Length; i++) route.GetArrayElementAtIndex(i).floatValue = npcDef.Waypoints[i];
+            npcSo.FindProperty("walkSpeed").floatValue = npcDef.WalkSpeed;
+            npcSo.FindProperty("arriveRange").floatValue = npcDef.ArriveRange;
             npcSo.FindProperty("suspicionLabel").objectReferenceValue = text;
             npcSo.ApplyModifiedPropertiesWithoutUndo();
 
@@ -175,7 +180,7 @@ namespace Incognito.EditorTools
             // types obj_npc's description, a talk click walks the NPC over to the player.
             var interaction = npc.AddComponent<NpcInteraction>();
             interaction.Cursor = cursor;
-            interaction.Description = "A young woman with tell tale red eyes and a meandering gait.\nBless the young and stoned.";
+            interaction.Description = npcDef.Description;
             var interactionSo = new SerializedObject(interaction);
             interactionSo.FindProperty("viewCamera").objectReferenceValue = cam;
             interactionSo.FindProperty("descriptionBorder").objectReferenceValue = ImportOriginal("spr_desc_border", 0, 0).texture;

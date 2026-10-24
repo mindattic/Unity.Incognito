@@ -3,8 +3,10 @@ using System.IO;
 using System.Linq;
 using Incognito.Audio;
 using Incognito.CameraRig;
+using Incognito.Content;
 using Incognito.Eye;
 using Incognito.Player;
+using Incognito.Settings;
 using Incognito.Terminal;
 using Incognito.Weapon;
 using Incognito.World;
@@ -19,12 +21,15 @@ namespace Incognito.EditorTools
     /// Assets/Incognito/Scenes/Rooms/: Titlescreen, Street00 (Bleecher Street), Street01 (2nd
     /// Avenue) and Shop (Simon's Pawn and Loan), and puts them in the build with the title first.
     ///
-    /// Every room is laid out from the data below, transcribed from the original
-    /// rooms/*.room.gmx (tile slices, instance positions and creation code), on top of a copy
-    /// of the player rig in PlayerSandbox.unity — player, arms, eyeball, eye cursor, close camera,
-    /// typed console (and the street00 NPC) — minus the sandbox's placeholder ground, markers and
-    /// console targets. Rebuild the sandbox first if the rig changes, then rerun this. Safe to
-    /// re-run (overwrites the scenes and re-applies the original assets' import settings).
+    /// Every room is laid out from <see cref="GameSettings.Content"/>'s validated
+    /// <see cref="RoomDefinition"/>s (U.INC-T22) — transcribed from the original rooms/*.room.gmx
+    /// (tile slices, instance positions and creation code) into
+    /// Assets/Incognito/Resources/Data/game-content.json, instead of a hard-coded table here — on
+    /// top of a copy of the player rig in PlayerSandbox.unity — player, arms, eyeball, eye cursor,
+    /// close camera, typed console (and the street00 NPC) — minus the sandbox's placeholder
+    /// ground, markers and console targets. Rebuild the sandbox first if the rig changes, then
+    /// rerun this. Safe to re-run (overwrites the scenes and re-applies the original assets'
+    /// import settings).
     /// </summary>
     public static class RoomSceneBuilder
     {
@@ -52,99 +57,17 @@ namespace Incognito.EditorTools
         public const string Street01 = "Street01";
         public const string Shop = "Shop";
 
-        private const string IntroPoem =
-            "In a strange city lying alone\n" +
-            "Far down within the dim West,\n" +
-            "Where the good and the bad and the worst and the best\n" +
-            "Have gone to their eternal rest.\n" +
-            "There shrines and palaces and towers\n" +
-            "(Time-eaten towers that tremble not!)\n" +
-            "Resemble nothing that is ours.\n" +
-            "Around, by lifting winds forgot,\n" +
-            "Resignedly beneath the sky\n" +
-            "The melancholy waters lie.";
-
-        private sealed class SideExitSpec
+        /// <summary>RoomEntranceKind (Core, data) -> RoomEntrance (Runtime): the same three cases,
+        /// kept as separate types so room data stays engine-free (U.INC-T22).</summary>
+        private static RoomEntrance Convert(RoomEntranceKind kind)
         {
-            public float X;
-            public string To;
-            public RoomEntrance Enter;
-            public float EnterX;
-        }
-
-        private sealed class DoorSpec
-        {
-            public Vector2 Position;
-            public string Label;
-            public string To;
-            public RoomEntrance Enter;
-        }
-
-        private sealed class RoomSpec
-        {
-            public string Scene;
-            public string Name;      // get_room_name.gml
-            public float Width;
-            public string[] Slices;  // tiles, 1920 wide each, left to right from x = 0
-            public float PlayerStartX; // where a directly-opened scene puts the player
-            public float[] Lampposts = new float[0];
-            public float[] Mailboxes = new float[0];
-            public SideExitSpec[] SideExits = new SideExitSpec[0];
-            public DoorSpec[] Doors = new DoorSpec[0];
-            public float[] Barriers = new float[0];
-            public bool Rain;
-            public bool KeepNpc;
-            public string Music;
-            public string OpeningText;
-            public Vector2 OpeningTextPosition;
-        }
-
-        private static readonly RoomSpec[] Rooms =
-        {
-            new RoomSpec
+            switch (kind)
             {
-                Scene = Street00, Name = "Bleecher Street", Width = 11520f,
-                Slices = Enumerable.Range(0, 6).Select(i => $"bg_street00_{i:00}").ToArray(),
-                PlayerStartX = 11520f - 512f, // start_game's enter_from = "right"
-                Lampposts = new[] { 1632f, 4032f, 6496f, 8928f },
-                Mailboxes = new[] { 672f, 7104f },
-                SideExits = new[]
-                {
-                    new SideExitSpec { X = -32f, To = Street01, Enter = RoomEntrance.Right },
-                    new SideExitSpec { X = 11552f, To = Street01, Enter = RoomEntrance.Left },
-                },
-                Doors = new[]
-                {
-                    new DoorSpec { Position = new Vector2(9504f, 480f), Label = "Simon's Pawn and Loan", To = Shop, Enter = RoomEntrance.Right },
-                },
-                Rain = true, KeepNpc = true, Music = "music_oppressivegloom",
-                OpeningText = IntroPoem, OpeningTextPosition = new Vector2(11520f - 650f, 100f),
-            },
-            new RoomSpec
-            {
-                Scene = Street01, Name = "2nd Avenue", Width = 15360f,
-                Slices = Enumerable.Range(0, 8).Select(i => $"bg_street01_{i:00}").ToArray(),
-                PlayerStartX = 512f,
-                SideExits = new[]
-                {
-                    new SideExitSpec { X = -32f, To = Street00, Enter = RoomEntrance.Right },
-                    new SideExitSpec { X = 15392f, To = Street00, Enter = RoomEntrance.Left },
-                },
-                Rain = true, Music = "music_oppressivegloom",
-            },
-            new RoomSpec
-            {
-                Scene = Shop, Name = "Simon's Pawn and Loan", Width = 5760f,
-                Slices = Enumerable.Range(0, 3).Select(i => $"bg_shop_{i:00}").ToArray(),
-                PlayerStartX = 5760f - 512f,
-                Barriers = new[] { 800f },
-                SideExits = new[]
-                {
-                    new SideExitSpec { X = 5792f, To = Street00, Enter = RoomEntrance.At, EnterX = 9500f },
-                },
-                Music = "music_dubferal",
-            },
-        };
+                case RoomEntranceKind.Left: return RoomEntrance.Left;
+                case RoomEntranceKind.Right: return RoomEntrance.Right;
+                default: return RoomEntrance.At;
+            }
+        }
 
         [MenuItem("Incognito/Build Room Scenes")]
         public static void BuildAll()
@@ -154,7 +77,7 @@ namespace Incognito.EditorTools
             ImportAudio();
 
             var scenes = new List<string> { BuildTitle() };
-            foreach (var spec in Rooms) scenes.Add(BuildRoom(spec));
+            foreach (RoomDefinition spec in GameSettings.Content.Rooms) scenes.Add(BuildRoom(spec));
 
             EditorBuildSettings.scenes = scenes.Select(p => new EditorBuildSettingsScene(p, true)).ToArray();
             AssetDatabase.SaveAssets();
@@ -212,7 +135,7 @@ namespace Incognito.EditorTools
 
         // ---------------------------------------------------------------- rooms
 
-        private static string BuildRoom(RoomSpec spec)
+        private static string BuildRoom(RoomDefinition spec)
         {
             var scene = EditorSceneManager.OpenScene(SandboxPath, OpenSceneMode.Single);
 
@@ -278,12 +201,12 @@ namespace Incognito.EditorTools
 
             // The room: background slices (tiles at depth 1000000), left to right.
             var backdrop = new GameObject("Background");
-            for (int i = 0; i < spec.Slices.Length; i++)
+            for (int i = 0; i < spec.BackgroundSlices.Length; i++)
             {
-                var slice = new GameObject(spec.Slices[i], typeof(SpriteRenderer));
+                var slice = new GameObject(spec.BackgroundSlices[i], typeof(SpriteRenderer));
                 slice.transform.SetParent(backdrop.transform, false);
                 var sr = slice.GetComponent<SpriteRenderer>();
-                sr.sprite = ImportSprite($"{BackgroundDir}/{spec.Slices[i]}.png", 0, 0);
+                sr.sprite = ImportSprite($"{BackgroundDir}/{spec.BackgroundSlices[i]}.png", 0, 0);
                 sr.sortingOrder = BackgroundOrder;
                 slice.transform.position = GmToWorld(i * ViewWidth, 0f);
             }
@@ -292,13 +215,13 @@ namespace Incognito.EditorTools
             var fade = new GameObject("Fade").AddComponent<RoomFade>();
             var room = new GameObject("Room").AddComponent<Room>();
             var roomSo = new SerializedObject(room);
-            roomSo.FindProperty("displayName").stringValue = spec.Name;
+            roomSo.FindProperty("displayName").stringValue = spec.DisplayName;
             roomSo.FindProperty("roomWidth").floatValue = spec.Width;
             roomSo.FindProperty("playerWidth").floatValue = 512f;
             roomSo.FindProperty("player").objectReferenceValue = player;
             roomSo.FindProperty("music").objectReferenceValue = LoadClip($"{spec.Music}.ogg");
             roomSo.FindProperty("openingText").stringValue = spec.OpeningText ?? string.Empty;
-            roomSo.FindProperty("openingTextPosition").vector2Value = spec.OpeningTextPosition;
+            roomSo.FindProperty("openingTextPosition").vector2Value = new Vector2(spec.OpeningTextX, spec.OpeningTextY);
             roomSo.FindProperty("descriptionBorder").objectReferenceValue = border;
             roomSo.FindProperty("viewCamera").objectReferenceValue = cam;
             roomSo.ApplyModifiedPropertiesWithoutUndo();
@@ -308,22 +231,22 @@ namespace Incognito.EditorTools
             var lamppost = ImportSprite($"{ArtDir}/spr_lamppost.png", 64, 0);
             var lamplight = ImportSprite($"{ArtDir}/spr_lamplight01.png", 800, 800);
             var mailbox = ImportSprite($"{ArtDir}/spr_mailbox.png", 0, 0);
-            foreach (float x in spec.Lampposts)
+            foreach (PropSpot l in spec.Lampposts)
             {
-                var post = CreateProp(props.transform, "Lamppost", lamppost, LamppostOrder, x, 0f,
-                    "It's a lamp post.\nNothing sinister about that...", cursor, cam, border);
+                var post = CreateProp(props.transform, "Lamppost", lamppost, LamppostOrder, l.X, 0f,
+                    l.Description, cursor, cam, border);
                 var glow = new GameObject("Lamplight", typeof(SpriteRenderer));
                 glow.transform.SetParent(post.transform, false);
-                glow.transform.position = GmToWorld(x, -100f);
+                glow.transform.position = GmToWorld(l.X, -100f);
                 var glowSr = glow.GetComponent<SpriteRenderer>();
                 glowSr.sprite = lamplight;
                 glowSr.sortingOrder = LamplightOrder;
                 post.AddComponent<LampFlicker>().Configure(glowSr);
             }
-            foreach (float x in spec.Mailboxes)
+            foreach (PropSpot m in spec.Mailboxes)
             {
-                CreateProp(props.transform, "Mailbox", mailbox, FrontPropOrder, x, 800f,
-                    "It's just a mailbox.\n...or is it?", cursor, cam, border);
+                CreateProp(props.transform, "Mailbox", mailbox, FrontPropOrder, m.X, 800f,
+                    m.Description, cursor, cam, border);
             }
 
             if (spec.Rain)
@@ -334,15 +257,15 @@ namespace Incognito.EditorTools
 
             // Exits.
             var exits = new GameObject("Exits");
-            foreach (var e in spec.SideExits)
+            foreach (SideExitSpec e in spec.SideExits)
             {
                 var go = new GameObject($"Exit Side x={e.X:0} -> {e.To}");
                 go.transform.SetParent(exits.transform, false);
-                go.AddComponent<SideExit>().Configure(e.X, e.To, e.Enter, e.EnterX, room, fade);
+                go.AddComponent<SideExit>().Configure(e.X, e.To, Convert(e.Enter), e.EnterX, room, fade);
             }
             var icon = ImportSprite($"{ArtDir}/spr_icon_exit.png", 32, 32);
             var doorClip = LoadClip("sfx_door_open.wav");
-            foreach (var d in spec.Doors)
+            foreach (DoorSpec d in spec.Doors)
             {
                 var go = new GameObject($"Exit {d.Label} -> {d.To}", typeof(SpriteRenderer));
                 go.transform.SetParent(exits.transform, false);
@@ -350,8 +273,9 @@ namespace Incognito.EditorTools
                 sr.sprite = icon;
                 sr.sortingOrder = ExitOrder;
                 sr.color = new Color(1f, 1f, 1f, 0f);
-                go.transform.position = GmToWorld(d.Position.x, d.Position.y);
-                go.AddComponent<DoorExit>().Configure(d.Position, d.Label, d.To, d.Enter, 0f, room, fade, playerAudioSource, doorClip, cam);
+                var doorPosition = new Vector2(d.X, d.Y);
+                go.transform.position = GmToWorld(d.X, d.Y);
+                go.AddComponent<DoorExit>().Configure(doorPosition, d.Label, d.To, Convert(d.Enter), 0f, room, fade, playerAudioSource, doorClip, cam);
             }
             foreach (float x in spec.Barriers)
             {
@@ -360,7 +284,7 @@ namespace Incognito.EditorTools
                 go.AddComponent<RoomBarrier>().Configure(x, room);
             }
 
-            string path = $"{RoomsDir}/{spec.Scene}.unity";
+            string path = $"{RoomsDir}/{spec.Id}.unity";
             EditorSceneManager.SaveScene(scene, path);
             return path;
         }

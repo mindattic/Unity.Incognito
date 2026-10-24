@@ -1,4 +1,5 @@
 using System;
+using Incognito.Settings;
 using UnityEngine;
 
 namespace Incognito.World
@@ -20,12 +21,20 @@ namespace Incognito.World
         /// <summary>The local seat: single-player games have exactly this one player.</summary>
         public static readonly PlayerId LocalPlayer = new PlayerId(1);
 
+        // Built with no data here: a field initializer runs during Unity's own (de)serialization
+        // of this component, when Resources.Load (which GameSettings needs) is not allowed to run.
+        // The validated console text is applied in Awake instead (U.INC-T22).
         public GameWorld World { get; } = new GameWorld();
 
         /// <summary>Raised for each <see cref="GameEvent"/> the world produces, in order.</summary>
         public event Action<GameEvent> Played;
 
         private bool playing;
+
+        private void Awake()
+        {
+            World.ConsoleText = GameSettings.Content.Console;
+        }
 
         /// <summary>
         /// The session views of this scene use when none was assigned: the one in the scene. The scene
