@@ -413,7 +413,7 @@ Android, iOS, WinPhone, Windows8, Tizen, Mac, Linux and html5 export configs.
 | Standard | State on main | Ticket |
 |---|---|---|
 | Assembly definitions, engine-free Core | one `Incognito.Runtime` asmdef; the `*State` classes import `UnityEngine`; `noEngineReferences` false | T19 |
-| Core tested outside Unity | EditMode tests only, no `dotnet test` project | T20 |
+| Core tested outside Unity | Done: `Tests/Core.Tests` run by `run-core-tests.ps1` (`dotnet test`, C# 9); EditMode keeps the MonoBehaviour layer, PlayMode traversal | T20 |
 | Commands to events, player-id seams | MonoBehaviours read each other directly | T21 |
 | Content and tuning as validated data | tuning is serialized fields on MonoBehaviours | T22 |
 | Input System | legacy `UnityEngine.Input` (32 sites), `activeInputHandler: 0` | T23 |

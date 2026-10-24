@@ -1,8 +1,11 @@
+// NUnit 4 moved the classic Assert; the tests were written against it (Unity Test Framework).
+using Assert = NUnit.Framework.Legacy.ClassicAssert;
+using CollectionAssert = NUnit.Framework.Legacy.CollectionAssert;
+using StringAssert = NUnit.Framework.Legacy.StringAssert;
 using System.Collections.Generic;
 using Incognito.Eye;
 using Incognito.Player;
 using NUnit.Framework;
-using UnityEngine;
 
 namespace Incognito.Tests
 {

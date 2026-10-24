@@ -8,6 +8,7 @@
 /[Mm]emoryCaptures/
 /artifacts/
 *.csproj
+!Tests/**/*.csproj
 *.sln
 *.slnx
 *.suo
@@ -21,3 +22,5 @@
 *.log
 __pycache__/
 /.utmp/
+Tests/**/obj/
+Tests/**/bin/

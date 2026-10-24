@@ -1,3 +1,7 @@
+// NUnit 4 moved the classic Assert; the tests were written against it (Unity Test Framework).
+using Assert = NUnit.Framework.Legacy.ClassicAssert;
+using CollectionAssert = NUnit.Framework.Legacy.CollectionAssert;
+using StringAssert = NUnit.Framework.Legacy.StringAssert;
 using Incognito.Npc;
 using Incognito.Player;
 using NUnit.Framework;
@@ -62,7 +66,7 @@ namespace Incognito.Tests
             for (int i = 0; i < 400; i++)
             {
                 state.Step(Dt);
-                maxX = UnityEngine.Mathf.Max(maxX, state.PositionX);
+                maxX = CoreMath.Max(maxX, state.PositionX);
                 if (state.Facing == PlayerLocomotionState.FacingDirection.Left) turnedLeft = true;
             }
 
@@ -99,8 +103,8 @@ namespace Incognito.Tests
             for (int i = 0; i < 200; i++)
             {
                 state.Step(Dt);
-                min = UnityEngine.Mathf.Min(min, state.BobOffset);
-                max = UnityEngine.Mathf.Max(max, state.BobOffset);
+                min = CoreMath.Min(min, state.BobOffset);
+                max = CoreMath.Max(max, state.BobOffset);
             }
 
             Assert.AreEqual(5f, max, 0.0001f);

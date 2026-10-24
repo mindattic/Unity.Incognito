@@ -1,3 +1,7 @@
+// NUnit 4 moved the classic Assert; the tests were written against it (Unity Test Framework).
+using Assert = NUnit.Framework.Legacy.ClassicAssert;
+using CollectionAssert = NUnit.Framework.Legacy.CollectionAssert;
+using StringAssert = NUnit.Framework.Legacy.StringAssert;
 using System.Collections.Generic;
 using Incognito.Player;
 using Incognito.Weapon;
@@ -186,8 +190,8 @@ namespace Incognito.Tests
             for (int i = 0; i < 40; i++)
             {
                 state.Step(Dt, Walking, Left, false, 0f);
-                supportMin = UnityEngine.Mathf.Min(supportMin, state.SupportArm.Angle);
-                gunMax = UnityEngine.Mathf.Max(gunMax, state.GunArm.Angle);
+                supportMin = CoreMath.Min(supportMin, state.SupportArm.Angle);
+                gunMax = CoreMath.Max(gunMax, state.GunArm.Angle);
             }
 
             Assert.Less(supportMin, 0f, "arm1 starts swinging forward (clockwise)");
@@ -209,8 +213,8 @@ namespace Incognito.Tests
             {
                 walk.Step(Dt, Walking, Left, false, 0f);
                 sprint.Step(Dt, Walking, Left, true, 0f);
-                walkPeak = UnityEngine.Mathf.Max(walkPeak, UnityEngine.Mathf.Abs(walk.GunArm.Angle));
-                sprintPeak = UnityEngine.Mathf.Max(sprintPeak, UnityEngine.Mathf.Abs(sprint.GunArm.Angle));
+                walkPeak = CoreMath.Max(walkPeak, CoreMath.Abs(walk.GunArm.Angle));
+                sprintPeak = CoreMath.Max(sprintPeak, CoreMath.Abs(sprint.GunArm.Angle));
             }
 
             Assert.AreEqual(3f, walkPeak, 0.1f);

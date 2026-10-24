@@ -1,3 +1,7 @@
+// NUnit 4 moved the classic Assert; the tests were written against it (Unity Test Framework).
+using Assert = NUnit.Framework.Legacy.ClassicAssert;
+using CollectionAssert = NUnit.Framework.Legacy.CollectionAssert;
+using StringAssert = NUnit.Framework.Legacy.StringAssert;
 using NUnit.Framework;
 using Incognito.Player;
 
@@ -95,8 +99,8 @@ namespace Incognito.Tests
             for (int i = 0; i < 200; i++)
             {
                 state.Step(Dt, moveLeft: false, moveRight: true, sprint: false);
-                min = UnityEngine.Mathf.Min(min, state.BobOffset);
-                max = UnityEngine.Mathf.Max(max, state.BobOffset);
+                min = CoreMath.Min(min, state.BobOffset);
+                max = CoreMath.Max(max, state.BobOffset);
             }
 
             Assert.AreEqual(state.BobAmplitude, max, 0.0001f);
