@@ -167,8 +167,8 @@ namespace Incognito.Tests
             var left = state.ComputeSpawn(Left, state.AimAngle(Left, 300f));
             var right = state.ComputeSpawn(Right, state.AimAngle(Right, 300f));
 
-            var leftTravel = new BulletState(UnityEngine.Vector2.zero, left.Direction, 60f).VelocityPerStep;
-            var rightTravel = new BulletState(UnityEngine.Vector2.zero, right.Direction, 60f).VelocityPerStep;
+            var leftTravel = new BulletState(Vec2.Zero, left.Direction, 60f).VelocityPerStep;
+            var rightTravel = new BulletState(Vec2.Zero, right.Direction, 60f).VelocityPerStep;
 
             Assert.Less(leftTravel.x, 0f);
             Assert.Less(leftTravel.y, 0f);

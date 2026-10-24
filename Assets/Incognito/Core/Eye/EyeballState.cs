@@ -1,6 +1,5 @@
 using System;
 using Incognito.Player;
-using UnityEngine;
 
 namespace Incognito.Eye
 {
@@ -40,7 +39,7 @@ namespace Incognito.Eye
         public float SocketOffsetX { get; private set; }
 
         /// <summary>Pupil centre relative to the socket (original px, y down), pixel-snapped.</summary>
-        public Vector2Int PupilOffset { get; private set; }
+        public Vec2Int PupilOffset { get; private set; }
 
         /// <summary>How far the eyelid has dropped over the eye: 0 = open, EyelidHeight = shut.</summary>
         public float EyelidDrop { get; private set; }
@@ -78,12 +77,12 @@ namespace Incognito.Eye
                 ? (left ? AimPupilOffsetLeft : AimPupilOffsetRight)
                 : PupilBaseOffsetX + mouseOffsetX / ParallaxDivisor;
             float pupilY = PupilBaseOffsetY + mouseY / ParallaxDivisor;
-            PupilOffset = new Vector2Int(Mathf.RoundToInt(pupilX), Mathf.RoundToInt(pupilY));
+            PupilOffset = new Vec2Int(CoreMath.RoundToInt(pupilX), CoreMath.RoundToInt(pupilY));
 
             // The blink is a discrete per-step state machine with a per-step dice roll, so it
             // runs in whole original steps to keep both the 1-in-161 odds and the 2px lid speed
             // identical at any frame rate.
-            stepAccumulator += Mathf.Max(deltaTime, 0f) * ReferenceFps;
+            stepAccumulator += CoreMath.Max(deltaTime, 0f) * ReferenceFps;
             // (A hair of tolerance so 60 x (1/60f) float round-off still counts as a step.)
             while (stepAccumulator >= 1f - 1e-4f)
             {

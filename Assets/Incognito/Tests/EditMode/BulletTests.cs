@@ -12,10 +12,10 @@ namespace Incognito.Tests
         [Test]
         public void Travels_its_speed_per_step_along_its_direction()
         {
-            var bullet = new BulletState(Vector2.zero, 180f, 60f);
-            Vector2 before = bullet.Step(Dt);
+            var bullet = new BulletState(Vec2.Zero, 180f, 60f);
+            Vec2 before = bullet.Step(Dt);
 
-            Assert.AreEqual(Vector2.zero, before);
+            Assert.AreEqual(Vec2.Zero, before);
             Assert.AreEqual(-60f, bullet.Position.x, 1e-3f);
             Assert.AreEqual(0f, bullet.Position.y, 1e-3f);
         }
@@ -23,8 +23,8 @@ namespace Incognito.Tests
         [Test]
         public void Is_outside_once_it_leaves_the_room()
         {
-            var room = new Rect(0f, 0f, 1000f, 1080f);
-            var bullet = new BulletState(new Vector2(100f, 500f), 180f, 60f);
+            var room = new Rect2(0f, 0f, 1000f, 1080f);
+            var bullet = new BulletState(new Vec2(100f, 500f), 180f, 60f);
             Assert.IsFalse(bullet.IsOutside(room));
 
             bullet.Step(Dt);

@@ -2,6 +2,7 @@
     "name": "Incognito.Tests.PlayMode",
     "rootNamespace": "Incognito.Tests",
     "references": [
+        "Incognito.Core",
         "Incognito.Runtime",
         "UnityEngine.TestRunner"
     ],

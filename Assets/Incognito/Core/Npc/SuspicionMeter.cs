@@ -1,6 +1,5 @@
 using System;
 using Incognito.Player;
-using UnityEngine;
 
 namespace Incognito.Npc
 {
@@ -12,24 +11,24 @@ namespace Incognito.Npc
     [Serializable]
     public sealed class SuspicionTuning
     {
-        [Tooltip("How Close? Rate while within NearRangeViews of the view width.")]
+        /// <summary>How Close? Rate while within NearRangeViews of the view width.</summary>
         public float NearRate = 0.2f;
-        [Tooltip("How Close? Rate while within MidRangeViews of the view width.")]
+        /// <summary>How Close? Rate while within MidRangeViews of the view width.</summary>
         public float MidRate = 0.1f;
-        [Tooltip("How Close? Beyond mid range the rate is not reset, it decays by this per step.")]
+        /// <summary>How Close? Beyond mid range the rate is not reset, it decays by this per step.</summary>
         public float FarRateDecay = 0.1f;
 
-        [Tooltip("Facing each other and the player is not looking down.")]
+        /// <summary>Facing each other and the player is not looking down.</summary>
         public float EyeContactRateBonus = 0.1f;
-        [Tooltip("Facing each other but the player is looking down.")]
+        /// <summary>Facing each other but the player is looking down.</summary>
         public float LookingDownRatePenalty = 0.2f;
-        [Tooltip("Not facing each other.")]
+        /// <summary>Not facing each other.</summary>
         public float NotFacingRatePenalty = 0.1f;
 
         public float NearRangeViews = 0.5f;
         public float MidRangeViews = 1f;
 
-        [Tooltip("Rebuild decision: the original never clamped suspicion (it went negative).")]
+        /// <summary>Rebuild decision: the original never clamped suspicion (it went negative).</summary>
         public float MinSuspicion = 0f;
         public float MaxSuspicion = 100f;
     }
@@ -53,7 +52,7 @@ namespace Incognito.Npc
         public float Rate { get; private set; }
 
         /// <summary>The percentage the original drew over the NPC's head: round(suspicion).</summary>
-        public int DisplayPercent => Mathf.RoundToInt(Suspicion);
+        public int DisplayPercent => CoreMath.RoundToInt(Suspicion);
 
         public SuspicionMeter(SuspicionTuning tuning = null)
         {
@@ -66,7 +65,7 @@ namespace Incognito.Npc
             float playerX, PlayerLocomotionState.FacingDirection playerFacing,
             float viewWidth, bool playerLookingDown)
         {
-            float steps = Mathf.Max(deltaTime, 0f) * ReferenceFps;
+            float steps = CoreMath.Max(deltaTime, 0f) * ReferenceFps;
             var t = Tuning;
 
             // Are they facing each other? / is Player looking down?
@@ -81,7 +80,7 @@ namespace Incognito.Npc
             }
 
             // How Close? (point_distance(player.x, 0, x, 0): horizontal only)
-            float distance = Mathf.Abs(playerX - npcX);
+            float distance = CoreMath.Abs(playerX - npcX);
             if (distance <= viewWidth * t.NearRangeViews)
             {
                 Rate = t.NearRate + facingAdjust;
@@ -97,7 +96,7 @@ namespace Incognito.Npc
                 Rate += (-t.FarRateDecay + facingAdjust) * steps;
             }
 
-            Suspicion = Mathf.Clamp(Suspicion + Rate * steps, t.MinSuspicion, t.MaxSuspicion);
+            Suspicion = CoreMath.Clamp(Suspicion + Rate * steps, t.MinSuspicion, t.MaxSuspicion);
         }
 
         /// <summary>

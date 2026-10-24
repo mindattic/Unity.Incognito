@@ -1,4 +1,3 @@
-using UnityEngine;
 
 namespace Incognito.Weapon
 {
@@ -44,7 +43,7 @@ namespace Incognito.Weapon
         /// stepped by a fixed amount and could jitter around 0 forever; this lands on 0.</summary>
         public void Relax(float steps, float rotSpeed)
         {
-            Angle = Mathf.MoveTowards(Angle, 0f, rotSpeed * steps);
+            Angle = CoreMath.MoveTowards(Angle, 0f, rotSpeed * steps);
         }
 
         /// <summary>Aiming: the angle is driven directly (mouse), no oscillation.</summary>

@@ -1,4 +1,3 @@
-using UnityEngine;
 
 namespace Incognito.Typing
 {
@@ -37,7 +36,7 @@ namespace Incognito.Typing
         {
             if (Done) return;
 
-            stepsSinceTick += Mathf.Max(deltaTime, 0f) * ReferenceFps;
+            stepsSinceTick += CoreMath.Max(deltaTime, 0f) * ReferenceFps;
             while (!Done && stepsSinceTick >= TypeSpeedSteps)
             {
                 stepsSinceTick -= TypeSpeedSteps;

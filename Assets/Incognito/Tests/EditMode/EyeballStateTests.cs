@@ -31,13 +31,13 @@ namespace Incognito.Tests
             var state = NeverBlinks();
             // pupiloffsetX = 7 + (mouse_x - player.x)/160; pupilY = -3 + mouse_y/160.
             state.Step(Dt, Left, 0f, 0f, false);
-            Assert.AreEqual(new Vector2Int(7, -3), state.PupilOffset);
+            Assert.AreEqual(new Vec2Int(7, -3), state.PupilOffset);
 
             state.Step(Dt, Left, 960f, 1080f, false); // half a view right, bottom of screen
-            Assert.AreEqual(new Vector2Int(13, 4), state.PupilOffset); // 7+6, round(-3+6.75)
+            Assert.AreEqual(new Vec2Int(13, 4), state.PupilOffset); // 7+6, round(-3+6.75)
 
             state.Step(Dt, Left, -960f, 540f, false);
-            Assert.AreEqual(new Vector2Int(1, 0), state.PupilOffset); // 7-6, round(-3+3.375)
+            Assert.AreEqual(new Vec2Int(1, 0), state.PupilOffset); // 7-6, round(-3+3.375)
         }
 
         [Test]
@@ -55,9 +55,9 @@ namespace Incognito.Tests
         {
             var state = NeverBlinks();
             state.Step(Dt, Left, 960f, 1080f, true);
-            Assert.AreEqual(new Vector2Int(-1, 4), state.PupilOffset);
+            Assert.AreEqual(new Vec2Int(-1, 4), state.PupilOffset);
             state.Step(Dt, Right, -960f, 1080f, true);
-            Assert.AreEqual(new Vector2Int(15, 4), state.PupilOffset);
+            Assert.AreEqual(new Vec2Int(15, 4), state.PupilOffset);
         }
 
         [Test]

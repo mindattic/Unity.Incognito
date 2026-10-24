@@ -1,5 +1,4 @@
 using Incognito.Player;
-using UnityEngine;
 
 namespace Incognito.CameraRig
 {
@@ -87,8 +86,8 @@ namespace Incognito.CameraRig
         /// </summary>
         public void StepToward(float deltaTime, float targetX, float deadzone, float panSpeed, float mouseViewportY)
         {
-            float steps = Mathf.Max(deltaTime, 0f) * ReferenceFps;
-            deadzone = Mathf.Max(deadzone, 0f);
+            float steps = CoreMath.Max(deltaTime, 0f) * ReferenceFps;
+            deadzone = CoreMath.Max(deadzone, 0f);
 
             float desired = CenterX;
             if (targetX > CenterX + deadzone)
@@ -101,7 +100,7 @@ namespace Incognito.CameraRig
             }
 
             CenterX = panSpeed > 0f
-                ? Mathf.MoveTowards(CenterX, desired, panSpeed * steps)
+                ? CoreMath.MoveTowards(CenterX, desired, panSpeed * steps)
                 : desired;
             CenterX = ClampToRoom(CenterX);
 
@@ -121,12 +120,12 @@ namespace Incognito.CameraRig
             {
                 return (RoomMinX + RoomMaxX) * 0.5f;
             }
-            return Mathf.Clamp(centerX, min, max);
+            return CoreMath.Clamp(centerX, min, max);
         }
 
         private float VerticalPanFor(float mouseViewportY)
         {
-            float normalized = Mathf.Clamp(mouseViewportY * 2f - 1f, -1f, 1f);
+            float normalized = CoreMath.Clamp(mouseViewportY * 2f - 1f, -1f, 1f);
             return normalized * MaxVerticalPan;
         }
     }

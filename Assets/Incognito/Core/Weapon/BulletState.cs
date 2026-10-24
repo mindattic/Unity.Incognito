@@ -1,4 +1,3 @@
-using UnityEngine;
 
 namespace Incognito.Weapon
 {
@@ -11,29 +10,29 @@ namespace Incognito.Weapon
     {
         public const float ReferenceFps = PlayerWeaponState.ReferenceFps;
 
-        public Vector2 Position { get; private set; }
+        public Vec2 Position { get; private set; }
 
         /// <summary>Displacement per original 60fps step.</summary>
-        public Vector2 VelocityPerStep { get; }
+        public Vec2 VelocityPerStep { get; }
 
-        public BulletState(Vector2 position, float directionDegrees, float speedPerStep)
+        public BulletState(Vec2 position, float directionDegrees, float speedPerStep)
         {
             Position = position;
-            float rad = directionDegrees * Mathf.Deg2Rad;
-            VelocityPerStep = new Vector2(Mathf.Cos(rad), Mathf.Sin(rad)) * speedPerStep;
+            float rad = directionDegrees * CoreMath.Deg2Rad;
+            VelocityPerStep = new Vec2(CoreMath.Cos(rad), CoreMath.Sin(rad)) * speedPerStep;
         }
 
         /// <summary>Advances one frame and returns where the bullet was before it moved, so the
         /// caller can sweep the segment for hits (a 60px/step bullet would skip thin targets).</summary>
-        public Vector2 Step(float deltaTime)
+        public Vec2 Step(float deltaTime)
         {
-            Vector2 previous = Position;
-            Position += VelocityPerStep * (Mathf.Max(deltaTime, 0f) * ReferenceFps);
+            Vec2 previous = Position;
+            Position += VelocityPerStep * (CoreMath.Max(deltaTime, 0f) * ReferenceFps);
             return previous;
         }
 
         /// <summary>obj_bullet step: destroyed when x/y leave the room.</summary>
-        public bool IsOutside(Rect room) =>
+        public bool IsOutside(Rect2 room) =>
             Position.x < room.xMin || Position.x > room.xMax || Position.y < room.yMin || Position.y > room.yMax;
 
         /// <summary>obj_npc collision with obj_bullet: shoved <paramref name="distance"/> away

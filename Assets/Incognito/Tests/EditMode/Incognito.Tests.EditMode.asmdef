@@ -2,6 +2,7 @@
     "name": "Incognito.Tests.EditMode",
     "rootNamespace": "Incognito.Tests",
     "references": [
+        "Incognito.Core",
         "Incognito.Runtime",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
@@ -15,7 +16,7 @@
     "precompiledReferences": [
         "nunit.framework.dll"
     ],
-    "autoReferenced": true,
+    "autoReferenced": false,
     "defineConstraints": [
         "UNITY_INCLUDE_TESTS"
     ],

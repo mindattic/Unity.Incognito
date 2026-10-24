@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Incognito.Motion;
 using Incognito.Player;
-using UnityEngine;
 
 namespace Incognito.Npc
 {
@@ -108,7 +107,7 @@ namespace Incognito.Npc
 
         public void Step(float deltaTime)
         {
-            float steps = Mathf.Max(deltaTime, 0f) * ReferenceFps;
+            float steps = CoreMath.Max(deltaTime, 0f) * ReferenceFps;
 
             if (!started && route.Count > 0)
             {
@@ -148,8 +147,8 @@ namespace Incognito.Npc
         /// <summary>hspeed *= 0.9 until abs(hspeed) &lt; 1; true once stopped.</summary>
         private bool CoastToStop(float steps)
         {
-            HorizontalSpeed *= Mathf.Pow(Friction, steps);
-            if (Mathf.Abs(HorizontalSpeed) >= StopThreshold) return false;
+            HorizontalSpeed *= CoreMath.Pow(Friction, steps);
+            if (CoreMath.Abs(HorizontalSpeed) >= StopThreshold) return false;
             HorizontalSpeed = 0f;
             return true;
         }

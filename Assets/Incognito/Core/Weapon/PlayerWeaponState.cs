@@ -1,6 +1,5 @@
 using System;
 using Incognito.Player;
-using UnityEngine;
 
 namespace Incognito.Weapon
 {
@@ -36,10 +35,10 @@ namespace Incognito.Weapon
         /// and which way it travels (degrees, counter-clockwise from +x).</summary>
         public readonly struct BulletSpawn
         {
-            public readonly Vector2 Offset;
+            public readonly Vec2 Offset;
             public readonly float Direction;
 
-            public BulletSpawn(Vector2 offset, float direction)
+            public BulletSpawn(Vec2 offset, float direction)
             {
                 Offset = offset;
                 Direction = direction;
@@ -172,7 +171,7 @@ namespace Incognito.Weapon
             bool sprint,
             float mouseBelowCentre)
         {
-            float steps = Mathf.Max(deltaTime, 0f) * ReferenceFps;
+            float steps = CoreMath.Max(deltaTime, 0f) * ReferenceFps;
 
             if (raiseStepsLeft > 0f)
             {
@@ -215,7 +214,7 @@ namespace Incognito.Weapon
         public float AimAngle(PlayerLocomotionState.FacingDirection facing, float mouseBelowCentre)
         {
             float half = ViewHeight * 0.5f;
-            float m = Mathf.Clamp(mouseBelowCentre, -half, half);
+            float m = CoreMath.Clamp(mouseBelowCentre, -half, half);
             return facing == PlayerLocomotionState.FacingDirection.Left ? m / AimDivisor : -m / AimDivisor;
         }
 
@@ -224,8 +223,8 @@ namespace Incognito.Weapon
         {
             bool left = facing == PlayerLocomotionState.FacingDirection.Left;
             float reach = left ? -MuzzleReach : MuzzleReach;
-            float rad = armAngle * Mathf.Deg2Rad;
-            var offset = new Vector2(reach * Mathf.Cos(rad), reach * Mathf.Sin(rad) + MuzzleRise);
+            float rad = armAngle * CoreMath.Deg2Rad;
+            var offset = new Vec2(reach * CoreMath.Cos(rad), reach * CoreMath.Sin(rad) + MuzzleRise);
             float direction = left ? armAngle - 180f : armAngle;
             return new BulletSpawn(offset, direction);
         }

@@ -12,12 +12,12 @@ namespace Incognito.Weapon
         public BulletState State { get; private set; }
         public bool IsSpent { get; private set; }
 
-        private Rect room;
+        private Rect2 room;
 
         public void Launch(Vector2 worldPosition, float directionDegrees, float worldSpeedPerStep, Rect worldRoom)
         {
-            State = new BulletState(worldPosition, directionDegrees, worldSpeedPerStep);
-            room = worldRoom;
+            State = new BulletState(new Vec2(worldPosition.x, worldPosition.y), directionDegrees, worldSpeedPerStep);
+            room = new Rect2(worldRoom.x, worldRoom.y, worldRoom.width, worldRoom.height);
             transform.SetPositionAndRotation(
                 new Vector3(worldPosition.x, worldPosition.y, transform.position.z),
                 Quaternion.Euler(0f, 0f, directionDegrees));
@@ -30,8 +30,10 @@ namespace Incognito.Weapon
         {
             if (IsSpent || State == null) return;
 
-            Vector2 from = State.Step(deltaTime);
-            Vector2 to = State.Position;
+            Vec2 start = State.Step(deltaTime);
+            Vec2 end = State.Position;
+            var from = new Vector2(start.x, start.y);
+            var to = new Vector2(end.x, end.y);
 
             foreach (var hit in Physics2D.LinecastAll(from, to))
             {

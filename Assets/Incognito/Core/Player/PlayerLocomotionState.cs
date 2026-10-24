@@ -1,6 +1,5 @@
 using System;
 using Incognito.Motion;
-using UnityEngine;
 
 namespace Incognito.Player
 {
@@ -69,7 +68,7 @@ namespace Incognito.Player
 
         public void Step(float deltaTime, bool moveLeft, bool moveRight, bool sprint)
         {
-            float steps = Mathf.Max(deltaTime, 0f) * ReferenceFps;
+            float steps = CoreMath.Max(deltaTime, 0f) * ReferenceFps;
             bool pressingRight = moveRight && !moveLeft;
             bool pressingLeft = moveLeft && !moveRight;
 
@@ -88,8 +87,8 @@ namespace Incognito.Player
             else if (CurrentMode == WalkMode.Walking || CurrentMode == WalkMode.Stopping)
             {
                 CurrentMode = WalkMode.Stopping;
-                HorizontalSpeed *= Mathf.Pow(Friction, steps);
-                if (Mathf.Abs(HorizontalSpeed) < StopThreshold)
+                HorizontalSpeed *= CoreMath.Pow(Friction, steps);
+                if (CoreMath.Abs(HorizontalSpeed) < StopThreshold)
                 {
                     HorizontalSpeed = 0f;
                     CurrentMode = WalkMode.Idle;
@@ -121,11 +120,11 @@ namespace Incognito.Player
             // Original: holding Shift ramps dx by +/-0.1 per step toward walk_speed*2,
             // continuing from whatever dx already was (so it can start mid-ramp).
             float cap = target >= 0 ? WalkSpeed * SprintMultiplier : -WalkSpeed * SprintMultiplier;
-            float step = SprintAccelStep * steps * Mathf.Sign(target);
+            float step = SprintAccelStep * steps * CoreMath.Sign(target);
             HorizontalSpeed += step;
             HorizontalSpeed = target >= 0
-                ? Mathf.Min(HorizontalSpeed, cap)
-                : Mathf.Max(HorizontalSpeed, cap);
+                ? CoreMath.Min(HorizontalSpeed, cap)
+                : CoreMath.Max(HorizontalSpeed, cap);
         }
 
         private void Bob(float steps)
