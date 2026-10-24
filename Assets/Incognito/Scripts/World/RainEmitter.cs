@@ -15,6 +15,7 @@ namespace Incognito.World
     {
         [SerializeField] private Sprite raindrop;
         [SerializeField] private Camera viewCamera;
+        [SerializeField] private string sortingLayer = "Default";
         [SerializeField] private int sortingOrder = 2;
 
         public RainState State { get; private set; }
@@ -22,10 +23,11 @@ namespace Incognito.World
         private readonly StepClock clock = new StepClock();
         private readonly List<SpriteRenderer> pool = new List<SpriteRenderer>();
 
-        public void Configure(Sprite raindrop, Camera viewCamera, int sortingOrder)
+        public void Configure(Sprite raindrop, Camera viewCamera, string sortingLayer, int sortingOrder)
         {
             this.raindrop = raindrop;
             this.viewCamera = viewCamera;
+            this.sortingLayer = sortingLayer;
             this.sortingOrder = sortingOrder;
         }
 
@@ -62,6 +64,7 @@ namespace Incognito.World
             go.transform.SetParent(transform, false);
             var sr = go.GetComponent<SpriteRenderer>();
             sr.sprite = raindrop;
+            sr.sortingLayerName = sortingLayer;
             sr.sortingOrder = sortingOrder;
             sr.color = new Color(1f, 1f, 1f, State.Alpha);
             return sr;

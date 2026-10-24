@@ -31,8 +31,11 @@ namespace Incognito.EditorTools
         private const string ArtDir = "Assets/Incognito/Art/Placeholder";
         private const string OriginalArtDir = "Assets/Incognito/Art/Original";
 
-        // Street backdrop sits behind everything, including the bullet (obj_bullet depth 5).
+        // Street backdrop sits behind everything, including the bullet (obj_bullet depth 5). Its
+        // own sorting layer (ProjectSettings/TagManager.asset) keeps it behind gameplay sprites
+        // regardless of sortingOrder, the same depth trick RECONSTRUCTION.md §7 calls for (U.INC-T24).
         private const int BackdropOrder = -10;
+        private const string BackPropLayer = "BackProps";
 
         [MenuItem("Incognito/Build Player Sandbox Scene")]
         public static void Build()
@@ -52,6 +55,7 @@ namespace Incognito.EditorTools
 
             var ground = new GameObject("Ground", typeof(SpriteRenderer));
             ground.GetComponent<SpriteRenderer>().sprite = groundSprite;
+            ground.GetComponent<SpriteRenderer>().sortingLayerName = BackPropLayer;
             ground.GetComponent<SpriteRenderer>().sortingOrder = BackdropOrder;
             ground.transform.localScale = new Vector3(roomWidth, 2f, 1f);
             ground.transform.position = new Vector3(roomWidth * 0.5f, -1f, 0f);
@@ -62,6 +66,7 @@ namespace Incognito.EditorTools
             {
                 var marker = new GameObject($"Marker {x:0}", typeof(SpriteRenderer));
                 marker.GetComponent<SpriteRenderer>().sprite = groundSprite;
+                marker.GetComponent<SpriteRenderer>().sortingLayerName = BackPropLayer;
                 marker.GetComponent<SpriteRenderer>().sortingOrder = BackdropOrder;
                 marker.transform.SetParent(markers.transform);
                 marker.transform.localScale = new Vector3(0.5f, 12f, 1f);

@@ -3,7 +3,7 @@ codex: 1
 project: Unity.Incognito
 layer: bible
 status: living
-updated: 2026-10-22
+updated: 2026-10-24
 ---
 
 # Incognito — rebuild bible
@@ -145,6 +145,23 @@ of the usual wide adventure-game establishing shot — the game's whole premise 
   persistent player also kept the gun state). Clouds and the unplaced `obj_lamplight01` /
   `obj_prop_back|front` are not ported (no art, never placed). Text is IMGUI, outlined, at
   fnt_large's size. See `Assets/Incognito/Scripts/World/` and `Scripts/Audio/`.
+
+- **URP behind a pipeline-agnostic layer (U.INC-T24).** `com.unity.render-pipelines.universal`
+  17.4.0 (the version Unity.SpaceGod and Unity.Hare also pin), set up as a 2D project: a
+  `UniversalRenderPipelineAsset` (`Assets/Incognito/Settings/Incognito_URP.asset`) backed by the 2D
+  renderer (`Incognito_Renderer2D.asset`, `Renderer2DData` — no 3D forward/deferred renderer), MSAA
+  off and HDR/shadows off (nothing here casts a shadow or needs antialiasing against pixel art),
+  assigned in both `GraphicsSettings` and every `QualitySettings` tier. The original's cheap
+  front-prop/back-prop depth trick (RECONSTRUCTION.md §7) is now actual Unity sorting layers
+  (`ProjectSettings/TagManager.asset`), back to front: `Background` (tiles, title/scrolling
+  backdrops), `BackProps` (lamppost, its light, side/door exits), `Default` (player, NPCs, arms,
+  bullet, eye stack — unchanged), `Effects` (rain), `FrontProps` (mailbox), `Cursor` (the eye
+  cursor, frontmost of all, as before). `sortingOrder` still gives the fine-grained order the
+  original's depths encoded; the layer is the coarse band a sprite can never cross out of
+  regardless of its order. Core and gameplay code reference only `SpriteRenderer.sortingLayerName`
+  (plain Unity, not URP) and never `UnityEngine.Rendering.Universal`; no asmdef gained a pipeline
+  reference. See `Assets/Incognito/Editor/{Room,Sandbox}SceneBuilder.cs`,
+  `Assets/Incognito/Scripts/Eye/EyeCursor.cs`, `Assets/Incognito/Scripts/World/RainEmitter.cs`.
 
 - **Hacking overlay (U.INC-T7).** Ported from what the original actually wired (RECONSTRUCTION
   §5, re-read): Q toggles the console view, which puts the cursor in pointer mode, fades

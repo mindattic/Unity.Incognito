@@ -44,13 +44,21 @@ namespace Incognito.EditorTools
         private const float ViewHeight = 1080f;
         private const float PlayerOriginAboveFloor = 512f; // obj_walker initialY = room_height - sprite_height/2
 
-        // Sorting orders, from the original depths (lower depth draws in front).
+        // Sorting orders, from the original depths (lower depth draws in front). Each band also
+        // gets its own sorting layer (ProjectSettings/TagManager.asset) so the original's
+        // front-prop/back-prop depth trick (RECONSTRUCTION.md §7) survives URP's sprite sort
+        // (U.INC-T24) instead of relying on sortingOrder alone.
         private const int BackgroundOrder = -100; // tiles, depth 1000000
         private const int ExitOrder = -19;        // obj_exit, depth 19
         private const int LamppostOrder = -10;    // obj_prop_lamppost, depth 10 (behind obj_bullet's 5)
         private const int LamplightOrder = -9;    // drawn in the lamppost's own draw event, after the post
         private const int RainOrder = 2;          // obj_raindrop, depth -1: in front of the player and arms
         private const int FrontPropOrder = 10;    // obj_prop_mailbox, depth -10
+
+        private const string BackgroundLayer = "Background"; // tiles, title/scrolling backdrops
+        private const string BackPropLayer = "BackProps";    // lamppost, its light, side/door exits
+        private const string EffectsLayer = "Effects";       // rain, in front of player and arms
+        private const string FrontPropLayer = "FrontProps";  // mailbox, in front of the player
 
         public const string TitleScene = "Titlescreen";
         public const string Street00 = "Street00";
@@ -117,6 +125,7 @@ namespace Incognito.EditorTools
             citySr.sprite = ImportSprite($"{BackgroundDir}/bg_city_black.png", 0, 0, tiled: true);
             citySr.drawMode = SpriteDrawMode.Tiled;
             citySr.size = new Vector2(ViewWidth * 3f * Px, ViewHeight * Px);
+            citySr.sortingLayerName = BackgroundLayer;
             citySr.sortingOrder = BackgroundOrder;
             city.transform.position = new Vector3(0f, ViewHeight * Px, 0f);
             city.AddComponent<ScrollingBackground>().Configure(-2f);
@@ -124,6 +133,7 @@ namespace Incognito.EditorTools
             var title = new GameObject("bg_titlescreen", typeof(SpriteRenderer));
             var titleSr = title.GetComponent<SpriteRenderer>();
             titleSr.sprite = ImportSprite($"{BackgroundDir}/bg_titlescreen.png", 0, 0);
+            titleSr.sortingLayerName = BackgroundLayer;
             titleSr.sortingOrder = BackgroundOrder + 1;
             title.transform.position = new Vector3(0f, ViewHeight * Px, 0f);
 
@@ -208,6 +218,7 @@ namespace Incognito.EditorTools
                 slice.transform.SetParent(backdrop.transform, false);
                 var sr = slice.GetComponent<SpriteRenderer>();
                 sr.sprite = ImportSprite($"{BackgroundDir}/{spec.BackgroundSlices[i]}.png", 0, 0);
+                sr.sortingLayerName = BackgroundLayer;
                 sr.sortingOrder = BackgroundOrder;
                 slice.transform.position = GmToWorld(i * ViewWidth, 0f);
             }
@@ -234,26 +245,27 @@ namespace Incognito.EditorTools
             var mailbox = ImportSprite($"{ArtDir}/spr_mailbox.png", 0, 0);
             foreach (PropSpot l in spec.Lampposts)
             {
-                var post = CreateProp(props.transform, "Lamppost", lamppost, LamppostOrder, l.X, 0f,
+                var post = CreateProp(props.transform, "Lamppost", lamppost, BackPropLayer, LamppostOrder, l.X, 0f,
                     l.Description, cursor, cam, border);
                 var glow = new GameObject("Lamplight", typeof(SpriteRenderer));
                 glow.transform.SetParent(post.transform, false);
                 glow.transform.position = GmToWorld(l.X, -100f);
                 var glowSr = glow.GetComponent<SpriteRenderer>();
                 glowSr.sprite = lamplight;
+                glowSr.sortingLayerName = BackPropLayer;
                 glowSr.sortingOrder = LamplightOrder;
                 post.AddComponent<LampFlicker>().Configure(glowSr);
             }
             foreach (PropSpot m in spec.Mailboxes)
             {
-                CreateProp(props.transform, "Mailbox", mailbox, FrontPropOrder, m.X, 800f,
+                CreateProp(props.transform, "Mailbox", mailbox, FrontPropLayer, FrontPropOrder, m.X, 800f,
                     m.Description, cursor, cam, border);
             }
 
             if (spec.Rain)
             {
                 new GameObject("Rain").AddComponent<RainEmitter>()
-                    .Configure(ImportSprite($"{ArtDir}/spr_rain.png", 0, 0), cam, RainOrder);
+                    .Configure(ImportSprite($"{ArtDir}/spr_rain.png", 0, 0), cam, EffectsLayer, RainOrder);
             }
 
             // Exits.
@@ -272,6 +284,7 @@ namespace Incognito.EditorTools
                 go.transform.SetParent(exits.transform, false);
                 var sr = go.GetComponent<SpriteRenderer>();
                 sr.sprite = icon;
+                sr.sortingLayerName = BackPropLayer;
                 sr.sortingOrder = ExitOrder;
                 sr.color = new Color(1f, 1f, 1f, 0f);
                 var doorPosition = new Vector2(d.X, d.Y);
@@ -290,13 +303,14 @@ namespace Incognito.EditorTools
             return path;
         }
 
-        private static GameObject CreateProp(Transform parent, string name, Sprite sprite, int order, float x, float y,
+        private static GameObject CreateProp(Transform parent, string name, Sprite sprite, string sortingLayer, int order, float x, float y,
             string description, EyeCursor cursor, Camera cam, Texture2D border)
         {
             var go = new GameObject($"{name} x={x:0}", typeof(SpriteRenderer));
             go.transform.SetParent(parent, false);
             var sr = go.GetComponent<SpriteRenderer>();
             sr.sprite = sprite;
+            sr.sortingLayerName = sortingLayer;
             sr.sortingOrder = order;
             go.transform.position = GmToWorld(x, y);
             go.AddComponent<BoxCollider2D>(); // after the sprite, so it fits the sprite's bounds

@@ -28,6 +28,9 @@ namespace Incognito.Eye
         [SerializeField] private Sprite pointerSprite;
         [SerializeField] private Sprite reticleSprite;
 
+        [Tooltip("Its own sorting layer (ProjectSettings/TagManager.asset), frontmost of all of them, " +
+            "so the cursor draws in front of everything regardless of sortingOrder elsewhere (U.INC-T24).")]
+        [SerializeField] private string sortingLayer = "Cursor";
         [SerializeField] private int sortingOrder = 5000;
 
         public EyeCursorMode Mode { get => mode; set => mode = value; }
@@ -52,6 +55,7 @@ namespace Incognito.Eye
         private void Awake()
         {
             spriteRenderer = GetComponent<SpriteRenderer>();
+            spriteRenderer.sortingLayerName = sortingLayer;
             spriteRenderer.sortingOrder = sortingOrder;
         }
 
