@@ -68,27 +68,40 @@ MonoBehaviour:
       - rid: 703196463129428001
       - rid: 703196463129428002
     m_RuntimeSettings:
-      m_List: []
+      m_List:
+      - rid: 703196463129427972
+      - rid: 703196463129427977
+      - rid: 703196463129427978
+      - rid: 703196463129427979
+      - rid: 703196463129427982
+      - rid: 703196463129427984
+      - rid: 703196463129427987
+      - rid: 703196463129427988
+      - rid: 703196463129427990
+      - rid: 703196463129427992
+      - rid: 703196463129427994
+      - rid: 703196463129427995
+      - rid: 703196463129427998
   m_AssetVersion: 10
   m_ObsoleteDefaultVolumeProfile: {fileID: 0}
   m_RenderingLayerNames:
   - Default
   m_ValidRenderingLayers: 0
-  lightLayerName0:
-  lightLayerName1:
-  lightLayerName2:
-  lightLayerName3:
-  lightLayerName4:
-  lightLayerName5:
-  lightLayerName6:
-  lightLayerName7:
+  lightLayerName0: 
+  lightLayerName1: 
+  lightLayerName2: 
+  lightLayerName3: 
+  lightLayerName4: 
+  lightLayerName5: 
+  lightLayerName6: 
+  lightLayerName7: 
   apvScenesData:
     obsoleteSceneBounds:
       m_Keys: []
       m_Values: []
     obsoleteHasProbeVolumes:
       m_Keys: []
-      m_Values:
+      m_Values: 
   references:
     version: 2
     RefIds:
@@ -292,7 +305,7 @@ MonoBehaviour:
       type: {class: URPDefaultVolumeProfileSettings, ns: UnityEngine.Rendering.Universal, asm: Unity.RenderPipelines.Universal.Runtime}
       data:
         m_Version: 0
-        m_VolumeProfile: {fileID: 11400000, guid: c0c8be321e770d549b8ac2e0e32c764b, type: 2}
+        m_VolumeProfile: {fileID: 11400000, guid: d14c95983acca9e4784e21407835eaf9, type: 2}
     - rid: 703196463129427988
       type: {class: Renderer2DResources, ns: UnityEngine.Rendering.Universal, asm: Unity.RenderPipelines.Universal.Runtime}
       data:
@@ -387,7 +400,7 @@ MonoBehaviour:
         m_version: 0
         m_IncludeReferencedInScenes: 0
         m_IncludeAssetsByLabel: 0
-        m_LabelToInclude:
+        m_LabelToInclude: 
     - rid: 703196463129427997
       type: {class: ProbeVolumeDebugResources, ns: UnityEngine.Rendering, asm: Unity.RenderPipelines.Core.Runtime}
       data:
