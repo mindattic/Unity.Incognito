@@ -105,7 +105,10 @@ namespace Incognito.EditorTools
             // waypoint was x = 12000, past the room's end; the sandbox's data instead patrols the
             // street so the NPC keeps crossing the player's path. Like obj_walker, obj_npc's
             // initialY = room_height - sprite_height/2 puts its origin 512px above the floor.
-            NpcDefinition npcDef = GameSettings.Content.FindNpc("0097");
+            const string SandboxNpcId = "0097";
+            NpcDefinition npcDef = GameSettings.Content.FindNpc(SandboxNpcId)
+                ?? throw new System.InvalidOperationException(
+                    $"game-content.json has no NPC with Id '{SandboxNpcId}' for the sandbox to place.");
             var npc = new GameObject("NPC", typeof(SpriteRenderer));
             npc.GetComponent<SpriteRenderer>().sprite = npcSprite;
             npc.transform.position = new Vector3(npcDef.SpawnX * px, 512f * px, 0.5f);

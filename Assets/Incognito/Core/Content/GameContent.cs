@@ -55,11 +55,17 @@ namespace Incognito.Content
             foreach (RoomDefinition room in Rooms)
             {
                 foreach (SideExitSpec exit in room.SideExits)
+                {
                     if (!roomIds.Contains(exit.To))
                         throw new SettingsValidationException("Room '" + room.Id + "'s side exit targets unknown room '" + exit.To + "'.");
+                    CheckEnterX(room.Id, "side exit at x=" + exit.X, exit.Enter, exit.EnterX, FindRoom(exit.To));
+                }
                 foreach (DoorSpec door in room.Doors)
+                {
                     if (!roomIds.Contains(door.To))
                         throw new SettingsValidationException("Room '" + room.Id + "'s door '" + door.Label + "' targets unknown room '" + door.To + "'.");
+                    CheckEnterX(room.Id, "door '" + door.Label + "'", door.Enter, door.EnterX, FindRoom(door.To));
+                }
             }
 
             if (Npcs == null)
@@ -83,6 +89,17 @@ namespace Incognito.Content
             if (Console == null)
                 throw new SettingsValidationException("GameContent.Console is required.");
             Console.Validate();
+        }
+
+        // An "At" entrance lands the player at a specific x in the destination room; a bad EnterX
+        // would otherwise silently place them off the room's strip (U.INC-T22 review).
+        private static void CheckEnterX(string fromRoomId, string what, RoomEntranceKind enter, float enterX, RoomDefinition destination)
+        {
+            if (enter != RoomEntranceKind.At || destination == null) return;
+            if (enterX < 0f || enterX > destination.Width)
+                throw new SettingsValidationException(
+                    "Room '" + fromRoomId + "'s " + what + " enters '" + destination.Id + "' at x=" + enterX +
+                    ", outside that room (width " + destination.Width + ").");
         }
     }
 }

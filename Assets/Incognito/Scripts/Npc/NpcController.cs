@@ -1,4 +1,5 @@
 using Incognito.Player;
+using Incognito.Settings;
 using Incognito.World;
 using UnityEngine;
 
@@ -25,7 +26,6 @@ namespace Incognito.Npc
         [SerializeField] private float arriveRange = 20f;
 
         [Header("Suspicion")]
-        [SerializeField] private SuspicionTuning suspicion = new SuspicionTuning();
         [SerializeField] private TextMesh suspicionLabel;
         [Tooltip("Label height above the NPC's origin, in original pixels.")]
         [SerializeField] private float labelHeight = 200f;
@@ -65,10 +65,8 @@ namespace Incognito.Npc
                 return;
             }
 
-            // U.INC-T22: this NPC's own suspicion tuning is Inspector-editable data; validated on
-            // load rather than trusted blindly, same as the data files the settings registry loads.
-            suspicion.Validate();
-
+            // U.INC-T22: suspicion tuning comes from the validated settings registry, not a
+            // serialized field duplicated on every NPC.
             Entity = session.World.AddNpc(new NpcSetup
             {
                 Watching = player != null ? player.Id : default,
@@ -76,7 +74,7 @@ namespace Incognito.Npc
                 Waypoints = waypoints,
                 WalkSpeed = walkSpeed,
                 ArriveRange = arriveRange,
-                Suspicion = suspicion,
+                Suspicion = GameSettings.Tuning.Suspicion,
             });
 
             // U.INC-T9: a shot NPC is shoved 100px; the world owns the position, so the shove is a command.

@@ -30,6 +30,8 @@ namespace Incognito.Content
         {
             if (string.IsNullOrWhiteSpace(To))
                 throw new SettingsValidationException(label + " must name a destination room.");
+            if (!Enum.IsDefined(typeof(RoomEntranceKind), Enter))
+                throw new SettingsValidationException(label + " has an unrecognized Enter value: " + Enter);
         }
     }
 
@@ -50,6 +52,8 @@ namespace Incognito.Content
                 throw new SettingsValidationException(label + " needs a Label.");
             if (string.IsNullOrWhiteSpace(To))
                 throw new SettingsValidationException(label + " must name a destination room.");
+            if (!Enum.IsDefined(typeof(RoomEntranceKind), Enter))
+                throw new SettingsValidationException(label + " has an unrecognized Enter value: " + Enter);
         }
     }
 

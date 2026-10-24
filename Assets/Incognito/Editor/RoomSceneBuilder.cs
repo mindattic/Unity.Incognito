@@ -65,7 +65,8 @@ namespace Incognito.EditorTools
             {
                 case RoomEntranceKind.Left: return RoomEntrance.Left;
                 case RoomEntranceKind.Right: return RoomEntrance.Right;
-                default: return RoomEntrance.At;
+                case RoomEntranceKind.At: return RoomEntrance.At;
+                default: throw new System.ArgumentOutOfRangeException(nameof(kind), kind, "Unrecognized RoomEntranceKind.");
             }
         }
 
@@ -217,7 +218,7 @@ namespace Incognito.EditorTools
             var roomSo = new SerializedObject(room);
             roomSo.FindProperty("displayName").stringValue = spec.DisplayName;
             roomSo.FindProperty("roomWidth").floatValue = spec.Width;
-            roomSo.FindProperty("playerWidth").floatValue = 512f;
+            roomSo.FindProperty("playerWidth").floatValue = GameSettings.Tuning.Camera.PlayerWidth;
             roomSo.FindProperty("player").objectReferenceValue = player;
             roomSo.FindProperty("music").objectReferenceValue = LoadClip($"{spec.Music}.ogg");
             roomSo.FindProperty("openingText").stringValue = spec.OpeningText ?? string.Empty;

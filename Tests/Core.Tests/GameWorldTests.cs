@@ -4,6 +4,7 @@ using CollectionAssert = NUnit.Framework.Legacy.CollectionAssert;
 using StringAssert = NUnit.Framework.Legacy.StringAssert;
 using System.Collections.Generic;
 using System.Linq;
+using Incognito.Content;
 using Incognito.Npc;
 using Incognito.Player;
 using Incognito.Terminal;
@@ -310,6 +311,32 @@ namespace Incognito.Tests
             var events = world.TakeEvents();
             Assert.AreEqual(near, events.OfType<ConsoleObjectRebooted>().Single().Target);
             Assert.AreEqual("Rebooting SHP#0097...", events.OfType<ConsoleOutput>().Single().Text);
+        }
+
+        [Test]
+        public void The_worlds_authored_console_text_reaches_every_console_reply()
+        {
+            // U.INC-T22: a GameWorld built with custom ConsoleText uses it for every reply, not
+            // the ported defaults — proving the console's text is real data, not a code literal.
+            var text = new ConsoleText
+            {
+                NotRecognizedText = "XX-not-recognized-XX",
+                NoneLabel = "XX-none-XX",
+                RebootProgressive = "XX-rebooting-XX",
+            };
+            var world = new GameWorld(text);
+            world.AddPlayer(P1, PlayerSetup.Default);
+            var sheep = new ConsoleObject(ConsoleObjectType.Sheep, "0097");
+            world.RegisterConsoleObject(sheep, new Vec2(0f, 0f));
+
+            world.Submit(new RunConsoleCommand(P1, "nonsense", Vec2.Zero, 1920f));
+            StringAssert.Contains(text.NotRecognizedText, world.TakeEvents().OfType<ConsoleOutput>().Single().Text);
+
+            world.Submit(new RunConsoleCommand(P1, "list camera", Vec2.Zero, 1920f));
+            StringAssert.Contains(text.NoneLabel, world.TakeEvents().OfType<ConsoleOutput>().Single().Text);
+
+            world.Submit(new RunConsoleCommand(P1, "reboot 0097", Vec2.Zero, 1920f));
+            StringAssert.Contains(text.RebootProgressive, world.TakeEvents().OfType<ConsoleOutput>().Single().Text);
         }
 
         [Test]
