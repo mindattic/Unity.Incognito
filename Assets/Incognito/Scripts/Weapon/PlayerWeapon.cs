@@ -1,3 +1,4 @@
+using Incognito.Controls;
 using Incognito.Player;
 using Incognito.World;
 using UnityEngine;
@@ -51,9 +52,6 @@ namespace Incognito.Weapon
         [SerializeField] private AudioClip whooshClip;
         [SerializeField] private AudioClip fireClip;
 
-        [Header("Input")]
-        [SerializeField] private KeyCode toggleKey = KeyCode.Z;
-
         /// <summary>This player's weapon in the world; read it, never write it.</summary>
         public PlayerWeaponState State => locomotion.Entity?.Weapon;
 
@@ -82,11 +80,11 @@ namespace Incognito.Weapon
             if (session == null) return;
             var id = locomotion.Id;
 
-            if (Input.GetKeyDown(toggleKey)) session.Submit(new ToggleGun(id));
-            if (Input.GetMouseButtonDown(1)) session.Submit(new PressAim(id));
-            if (Input.GetMouseButtonUp(1)) session.Submit(new ReleaseAim(id));
-            if (Input.GetMouseButtonDown(0)) session.Submit(new PressFire(id));
-            if (Input.GetMouseButtonUp(0)) session.Submit(new ReleaseFire(id));
+            if (GameInput.Current.DrawPressed) session.Submit(new ToggleGun(id));
+            if (GameInput.Current.AimPressed) session.Submit(new PressAim(id));
+            if (GameInput.Current.AimReleased) session.Submit(new ReleaseAim(id));
+            if (GameInput.Current.LeftClickPressed) session.Submit(new PressFire(id));
+            if (GameInput.Current.FireReleased) session.Submit(new ReleaseFire(id));
         }
 
         // After the session has stepped the world this frame.

@@ -1,3 +1,4 @@
+using Incognito.Controls;
 using Incognito.Player;
 using Incognito.Terminal;
 using UnityEngine;
@@ -19,7 +20,6 @@ namespace Incognito.World
         [SerializeField] private string nextRoom = string.Empty;
         [SerializeField] private RoomEntrance entrance = RoomEntrance.Right;
         [SerializeField] private float enterX;
-        [SerializeField] private KeyCode useKey = KeyCode.W;
         [SerializeField] private Room room;
         [SerializeField] private RoomFade fade;
         [SerializeField] private AudioSource audioSource;
@@ -83,7 +83,7 @@ namespace Incognito.World
             for (int i = 0; i < steps; i++) alpha = RoomExitRules.DoorAlphaStep(alpha, playerX, position.x);
             Apply();
 
-            if (!CommandPrompt.CapturesKeyboard && Input.GetKeyDown(useKey)) TryUse();
+            if (!CommandPrompt.CapturesKeyboard && GameInput.Current.DoorUsePressed) TryUse();
         }
 
         /// <summary>

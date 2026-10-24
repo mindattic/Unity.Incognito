@@ -1,3 +1,4 @@
+using Incognito.Controls;
 using Incognito.Player;
 using Incognito.Weapon;
 using UnityEngine;
@@ -60,7 +61,7 @@ namespace Incognito.Eye
         // Runs after PlayerWeapon.Update (execution order 100), and the weapon commands apply at once, so WeaponDrawn is this frame's.
         private void Update()
         {
-            if (EyeCursorModes.ShouldCycle(Input.mouseScrollDelta.y, Input.GetMouseButtonDown(1), WeaponDrawn))
+            if (EyeCursorModes.ShouldCycle(GameInput.Current.WheelDeltaY, GameInput.Current.AimPressed, WeaponDrawn))
             {
                 mode = EyeCursorModes.Cycle(mode);
             }
@@ -72,7 +73,7 @@ namespace Incognito.Eye
             if (cam == null) return;
 
             // x = mouse_x; y = mouse_y;
-            Vector3 world = cam.ScreenToWorldPoint(Input.mousePosition);
+            Vector3 world = cam.ScreenToWorldPoint(GameInput.PointerScreenPosition);
             transform.position = new Vector3(world.x, world.y, transform.position.z);
             spriteRenderer.sprite = SpriteFor(CurrentSprite);
         }

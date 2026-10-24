@@ -1,3 +1,4 @@
+using Incognito.Controls;
 using Incognito.Player;
 using UnityEngine;
 
@@ -68,7 +69,7 @@ namespace Incognito.Eye
 
             const float px = PlayerLocomotion.WorldUnitsPerOriginalPixel;
             Vector3 playerPos = player.transform.position;
-            Vector3 mouseScreen = Input.mousePosition;
+            Vector3 mouseScreen = GameInput.PointerScreenPosition;
             Vector3 mouseWorld = cam.ScreenToWorldPoint(mouseScreen);
 
             float mouseOffsetX = (mouseWorld.x - playerPos.x) / px;

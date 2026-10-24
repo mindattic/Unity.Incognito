@@ -1,4 +1,5 @@
 using Incognito.CameraRig;
+using Incognito.Controls;
 using Incognito.Eye;
 using Incognito.Npc;
 using Incognito.Terminal;
@@ -26,7 +27,6 @@ namespace Incognito.Hacking
     /// </summary>
     public sealed class HackingOverlay : MonoBehaviour
     {
-        [SerializeField] private KeyCode toggleKey = KeyCode.Q;
         [SerializeField] private EyeCursor cursor;
         [SerializeField] private CommandPrompt prompt;
         [SerializeField] private CloseFramingCamera viewCamera;
@@ -56,9 +56,9 @@ namespace Incognito.Hacking
         public CloseFramingCamera ViewCamera { get => viewCamera; set => viewCamera = value; }
 
         /// <summary>
-        /// Whether a click at <paramref name="screenPoint"/> (Input.mousePosition) lands on the
-        /// overlay's GUI — the program icon or the console panel — and so must not also click
-        /// the world behind it (obj_mouse_gui's <c>over_gui</c>).
+        /// Whether a click at <paramref name="screenPoint"/> (the pointer's screen position)
+        /// lands on the overlay's GUI — the program icon or the console panel — and so must not
+        /// also click the world behind it (obj_mouse_gui's <c>over_gui</c>).
         /// </summary>
         public static bool IsOverGui(Vector2 screenPoint) => active != null && active.HitsGui(screenPoint);
 
@@ -79,9 +79,9 @@ namespace Incognito.Hacking
         private void Update()
         {
             // The console took the keyboard: Q is a letter being typed, not the toggle.
-            if (!CommandPrompt.CapturesKeyboard && Input.GetKeyDown(toggleKey)) ToggleInverted();
+            if (!CommandPrompt.CapturesKeyboard && GameInput.Current.ConsoleTogglePressed) ToggleInverted();
 
-            if (Input.GetMouseButtonDown(0) && Session.Program.Visible && ProgramIconContains(Input.mousePosition))
+            if (GameInput.Current.LeftClickPressed && Session.Program.Visible && ProgramIconContains(GameInput.PointerScreenPosition))
             {
                 ProgramIconClicked();
             }

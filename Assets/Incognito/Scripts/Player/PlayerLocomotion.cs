@@ -1,3 +1,4 @@
+using Incognito.Controls;
 using Incognito.Settings;
 using Incognito.Terminal;
 using Incognito.World;
@@ -70,11 +71,11 @@ namespace Incognito.Player
         {
             // While the typed console is open the keyboard is typing, not walking (U.INC-T10).
             bool keys = !CommandPrompt.CapturesKeyboard;
-            bool shift = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+            bool shift = GameInput.Current.ShiftHeld;
 
             Send(new SetControls(Id, new PlayerControls(
-                moveLeft: keys && (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A)),
-                moveRight: keys && (Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D)),
+                moveLeft: keys && GameInput.Current.MoveLeftHeld,
+                moveRight: keys && GameInput.Current.MoveRightHeld,
                 sprint: keys && shift,
                 shiftHeld: shift,
                 mouseBelowCentre: MouseBelowCentre(),
@@ -103,7 +104,7 @@ namespace Incognito.Player
         private float MouseBelowCentre()
         {
             if (Screen.height <= 0) return 0f;
-            float fromTop = 1f - Input.mousePosition.y / Screen.height;
+            float fromTop = 1f - GameInput.Current.PointerScreenPosition.y / Screen.height;
             return (fromTop - 0.5f) * Entity.Weapon.ViewHeight;
         }
 
@@ -111,7 +112,7 @@ namespace Incognito.Player
         // y grows downward; Unity's screen y grows upward).
         private static bool PlayerLookingDown()
         {
-            return Screen.height > 0 && Input.mousePosition.y < Screen.height * 0.5f;
+            return Screen.height > 0 && GameInput.Current.PointerScreenPosition.y < Screen.height * 0.5f;
         }
 
         private const float FallbackViewWidth = 1920f;

@@ -1,3 +1,4 @@
+using Incognito.Controls;
 using Incognito.Eye;
 using Incognito.Typing;
 using UnityEngine;
@@ -37,13 +38,13 @@ namespace Incognito.World
 
         private void Update()
         {
-            if (!Input.GetMouseButtonDown(0) || string.IsNullOrEmpty(description)) return;
+            if (!GameInput.Current.LeftClickPressed || string.IsNullOrEmpty(description)) return;
             if (cursor != null && cursor.Aiming) return;
 
             var cam = viewCamera != null ? viewCamera : Camera.main;
             if (cam == null) return;
 
-            Vector3 world = cam.ScreenToWorldPoint(Input.mousePosition);
+            Vector3 world = cam.ScreenToWorldPoint(GameInput.PointerScreenPosition);
             if (!hitArea.OverlapPoint(world)) return;
             DescriptionTypewriter.Show(new Vector3(world.x, world.y, 0f), description, cam, descriptionBorder);
         }

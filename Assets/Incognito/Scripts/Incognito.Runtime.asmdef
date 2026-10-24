@@ -2,7 +2,8 @@
     "name": "Incognito.Runtime",
     "rootNamespace": "Incognito",
     "references": [
-        "Incognito.Core"
+        "Incognito.Core",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

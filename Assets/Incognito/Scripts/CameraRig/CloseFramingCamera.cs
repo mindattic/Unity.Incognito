@@ -1,3 +1,4 @@
+using Incognito.Controls;
 using Incognito.Player;
 using Incognito.Settings;
 using UnityEngine;
@@ -126,7 +127,7 @@ namespace Incognito.CameraRig
 
         private static float MouseViewportX()
         {
-            return Screen.width > 0 ? Mathf.Clamp01(Input.mousePosition.x / Screen.width) : 0.5f;
+            return Screen.width > 0 ? Mathf.Clamp01(GameInput.Current.PointerScreenPosition.x / Screen.width) : 0.5f;
         }
 
         private void SyncViewWidth()
@@ -145,7 +146,7 @@ namespace Incognito.CameraRig
 
         private static float MouseViewportY()
         {
-            return Screen.height > 0 ? Input.mousePosition.y / Screen.height : 0.5f;
+            return Screen.height > 0 ? GameInput.Current.PointerScreenPosition.y / Screen.height : 0.5f;
         }
     }
 }

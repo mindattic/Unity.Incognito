@@ -1,3 +1,4 @@
+using Incognito.Controls;
 using Incognito.Player;
 using Incognito.Terminal;
 using UnityEngine;
@@ -32,9 +33,9 @@ namespace Incognito.World
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Escape) && !CommandPrompt.CapturesKeyboard) Application.Quit();
-            if (Input.GetKeyDown(KeyCode.F1)) Screen.fullScreen = !Screen.fullScreen;
-            if (Input.GetKeyDown(KeyCode.F12)) showReadout = !showReadout;
+            if (GameInput.Current.EscapePressed && !CommandPrompt.CapturesKeyboard) Application.Quit();
+            if (GameInput.Current.DebugFullscreenTogglePressed) Screen.fullScreen = !Screen.fullScreen;
+            if (GameInput.Current.DebugReadoutTogglePressed) showReadout = !showReadout;
         }
 
         private void OnGUI()
@@ -43,7 +44,7 @@ namespace Incognito.World
             var player = FindFirstObjectByType<PlayerLocomotion>();
             float x = player != null ? player.transform.position.x : 0f;
             GUI.Label(new Rect(8, 8, 400, 80),
-                FormatReadout(SceneManager.GetActiveScene().name, x, Input.mousePosition));
+                FormatReadout(SceneManager.GetActiveScene().name, x, GameInput.PointerScreenPosition));
         }
     }
 }

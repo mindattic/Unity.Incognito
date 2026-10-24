@@ -1,3 +1,4 @@
+using Incognito.Controls;
 using Incognito.Player;
 using Incognito.World;
 using UnityEngine;
@@ -24,7 +25,6 @@ namespace Incognito.Terminal
         [Tooltip("The player this console belongs to: its commands carry this player's id.")]
         [SerializeField] private PlayerLocomotion player;
         [SerializeField] private Transform origin;
-        [SerializeField] private KeyCode closeKey = KeyCode.Escape;
 
         [Tooltip("Vicinity radius in original pixels (default: one view width).")]
         [SerializeField] private float vicinityRadius = Vicinity.DefaultRadius;
@@ -66,8 +66,9 @@ namespace Incognito.Terminal
             }
         }
 
-        /// <summary>Whether <paramref name="screenPoint"/> (Input.mousePosition, bottom-left
-        /// origin) is over the visible panel, so the click is the panel's, not the world's.</summary>
+        /// <summary>Whether <paramref name="screenPoint"/> (the pointer's screen position,
+        /// bottom-left origin) is over the visible panel, so the click is the panel's, not the
+        /// world's.</summary>
         public bool ContainsScreenPoint(Vector2 screenPoint)
         {
             if (!Slide.IsOpen) return false;
@@ -157,7 +158,7 @@ namespace Incognito.Terminal
 
         private void Update()
         {
-            if (Slide.IsOpen && Input.GetKeyDown(closeKey)) Close();
+            if (Slide.IsOpen && GameInput.Current.EscapePressed) Close();
 
             Slide.Step(Time.deltaTime);
             if (!Slide.IsOpen && openPrompt == this) openPrompt = null;

@@ -1,4 +1,5 @@
 using System;
+using Incognito.Controls;
 using Incognito.Eye;
 using Incognito.Typing;
 using UnityEngine;
@@ -78,14 +79,14 @@ namespace Incognito.Npc
 
         private void Update()
         {
-            if (!Input.GetMouseButtonDown(0) || cursor == null) return;
+            if (!GameInput.Current.LeftClickPressed || cursor == null) return;
             // A click on the hacking overlay's icon or console panel is the GUI's, not the NPC's.
-            if (Hacking.HackingOverlay.IsOverGui(Input.mousePosition)) return;
+            if (Hacking.HackingOverlay.IsOverGui(GameInput.PointerScreenPosition)) return;
 
             var cam = viewCamera != null ? viewCamera : Camera.main;
             if (cam == null) return;
 
-            Vector3 world = cam.ScreenToWorldPoint(Input.mousePosition);
+            Vector3 world = cam.ScreenToWorldPoint(GameInput.PointerScreenPosition);
             if (hitArea.OverlapPoint(world)) Interact(world);
         }
 

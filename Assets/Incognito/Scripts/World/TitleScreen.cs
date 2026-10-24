@@ -1,4 +1,5 @@
 using Incognito.Audio;
+using Incognito.Controls;
 using Incognito.Player;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -35,7 +36,7 @@ namespace Incognito.World
         {
             if (started) return;
 
-            if (Input.anyKeyDown || Input.GetMouseButton(0)) StartGame();
+            if (GameInput.Current.AnyKeyDown) StartGame();
         }
 
         /// <summary>start_game(): the player is created facing left, then room_goto(next_room).</summary>
