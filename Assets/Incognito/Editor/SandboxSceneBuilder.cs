@@ -36,6 +36,10 @@ namespace Incognito.EditorTools
         // regardless of sortingOrder, the same depth trick RECONSTRUCTION.md §7 calls for (U.INC-T24).
         private const int BackdropOrder = -10;
         private const string BackPropLayer = "BackProps";
+        // Dev-only overlay (not part of the original): the frontmost sorting layer, so rain and
+        // front props drawing on their own layers now (U.INC-T24) can't cover it as they could
+        // when everything shared Default and only sortingOrder told them apart.
+        private const string OverlayLayer = "Cursor";
 
         [MenuItem("Incognito/Build Player Sandbox Scene")]
         public static void Build()
@@ -126,6 +130,7 @@ namespace Incognito.EditorTools
             var text = label.GetComponent<TextMesh>();
             text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             label.GetComponent<MeshRenderer>().sharedMaterial = text.font.material;
+            label.GetComponent<MeshRenderer>().sortingLayerName = OverlayLayer;
             label.GetComponent<MeshRenderer>().sortingOrder = 10;
             text.text = "0%";
             text.fontSize = 48;
