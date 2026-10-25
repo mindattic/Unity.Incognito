@@ -3,7 +3,7 @@ codex: 1
 project: Unity.Incognito
 layer: research
 status: living
-updated: 2026-10-23
+updated: 2026-10-24
 ---
 
 # Incognito — reverse-engineering notes
@@ -66,6 +66,12 @@ facing left), plays `sfx_fire_cannon` and puffs `ef_smoke` at the muzzle. It als
 before they are drawn. `obj_bullet` (`spr_bullet`, 12x12) just destroys itself once it leaves the
 room. `obj_npc`'s collision with `obj_bullet` shoves the NPC 100px away from the side the bullet
 came from and destroys the bullet — no health, death or suspicion change is wired to a hit.
+
+**Unity port note:** `ef_smoke` is one of GameMaker's built-in particle effects (`effect_create_below`
+draws it below every instance), not a script or sprite in the project, so there is nothing in
+`scripts/` or `sprites/` to read its particle count, size or lifetime from. The rebuild's
+`MuzzleSmokeState` approximates it with its own small values (U.INC-T41): a handful of black
+particles that drift sideways and rise from the muzzle while fading out over about half a second.
 
 **Arm swing** — `objects/obj_arm.object.gmx` — is the *other* oscillator in the game, also a
 triangle wave, not trig:

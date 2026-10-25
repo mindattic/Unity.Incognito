@@ -38,7 +38,14 @@
     "WalkSwingRange": 3.0,
     "WalkRotSpeed": 0.06,
     "SprintSwingRange": 6.0,
-    "SprintRotSpeed": 0.24
+    "SprintRotSpeed": 0.24,
+    "MuzzleSmokeParticles": 6,
+    "MuzzleSmokeLifeSteps": 30,
+    "MuzzleSmokeDriftMin": -1.5,
+    "MuzzleSmokeDriftMax": 1.5,
+    "MuzzleSmokeRiseMin": 1.0,
+    "MuzzleSmokeRiseMax": 3.0,
+    "MuzzleSmokeSize": 14.0
   },
   "Rain": {
     "RoomHeight": 1080.0,

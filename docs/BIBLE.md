@@ -47,7 +47,7 @@ Every system below is built. Core is `Assets/Incognito/Core` (engine-free), Runt
 | Cursor mode cycling (look/talk) and descriptions | §3, §4 | `Typing/TypewriterState` / `Npc/NpcInteraction`, `Typing/DescriptionTypewriter` | U.INC-T6 | US-A4 | `CursorModeCyclingTests`, `TypewriterStateTests` |
 | Hacking overlay (console view, pointer-click hack) | §5 | / `Hacking/HackingOverlay`, `Hacking/HackingSession` | U.INC-T7 | US-A5 | `HackingOverlayTests` |
 | NPC patrol and suspicion meter | §4 | `Npc/NpcPatrolState`, `Npc/SuspicionMeter` / `Npc/NpcController` | U.INC-T8 | US-A6 | `NpcPatrolStateTests`, `SuspicionMeterTests` |
-| Weapon equip/aim/fire and bullet | §1 | `Weapon/PlayerWeaponState`, `ArmSwingState`, `BulletState` / `Weapon/PlayerWeapon`, `Bullet` | U.INC-T9 | US-A7 | `PlayerWeaponStateTests`, `BulletStateTests`, `BulletTests` |
+| Weapon equip/aim/fire, bullet and muzzle smoke | §1 | `Weapon/PlayerWeaponState`, `ArmSwingState`, `BulletState`, `MuzzleSmokeState` / `Weapon/PlayerWeapon`, `Bullet`, `MuzzleSmoke` | U.INC-T9, T41 | US-A7 | `PlayerWeaponStateTests`, `BulletStateTests`, `BulletTests`, `MuzzleSmokeStateTests`, `MuzzleSmokeTests` |
 | Typed command console | §6 | `Terminal/CommandInterpreter`, `Vicinity` / `Terminal/CommandPrompt` | U.INC-T10 | US-A8 | `CommandInterpreterTests`, `TerminalRuntimeTests` |
 | Rooms, props, exits, rain, music and sound | §7, §8 | `World/GameWorld`, `RoomExitRules`, `RoomFadeState`, `RainState` / `World/RoomBootstrap`, `RoomComposer`, `Audio/` | U.INC-T11, T26 | US-A9 | `RoomTraversalPlayTests`, `RoomSceneBuilderTests`, `RoomRuleTests` |
 | Debug keys (Escape, F1, F12) | §9 | / `World/DebugHotkeys` | U.INC-T15 | — | `DebugHotkeysTests` |
@@ -61,9 +61,8 @@ Every system below is built. Core is `Assets/Incognito/Core` (engine-free), Runt
 | Art catalog | §10 | `Content/ArtDefinition` / Editor `OriginalArt` | U.INC-T29 | US-A14 | `OriginalArtParityTests` |
 | End-to-end parity run | all | — | U.INC-T35 (open) | US-A15 | — |
 
-Still open: U.INC-T35 (the final scripted parity run with screenshots, US-A15), U.INC-T39
-(drawing the imported but unwired spr_brain_select, spr_cursor_arrow and spr_stealthwall) and
-U.INC-T41 (the muzzle smoke, see the Weapon decision).
+Still open: U.INC-T35 (the final scripted parity run with screenshots, US-A15) and U.INC-T39
+(drawing the imported but unwired spr_brain_select, spr_cursor_arrow and spr_stealthwall).
 
 ## Decisions beyond the original (not yet made — flag when a ticket hits these)
 
@@ -140,8 +139,11 @@ U.INC-T41 (the muzzle smoke, see the Weapon decision).
   Aim angle stays screen-relative (cursor height in the view), as the original's was. Bullets are
   swept per frame (linecast) so the 60px/step shot can't skip a thin target. The weapon sounds
   are the original assets, wired since U.INC-T11. The muzzle smoke (shoot_bullet.gml's
-  `effect_create_below(ef_smoke, ..., 1, c_black)`, a GameMaker built-in effect with no asset) is
-  still an unassigned `muzzleEffect` hook on `PlayerWeapon`: a known gap, U.INC-T41. `PlayerWeapon` sets the T5
+  `effect_create_below(ef_smoke, ..., 1, c_black)`) is a GameMaker built-in particle effect with no
+  original script or asset, so `MuzzleSmokeState`/`MuzzleSmoke` reproduce its puff — a handful of
+  small black particles that drift and rise from the muzzle and fade out — as a code-built effect
+  (`PlayerWeapon.Fire` spawns one on every shot, no Inspector wiring needed); U.INC-T41 fixed the
+  `muzzleEffect` hook that no builder ever assigned. `PlayerWeapon` sets the T5
   `Aiming` flag on `EyeCursor` (reticle) and `PlayerEyeball` (fixed gaze) every frame. The sandbox
   NPC carries a `BulletTarget`, and `NpcController` routes the shove into its patrol position. The
   arm and bullet placeholders carry the original sprites' sizes and origins, so pivots and the

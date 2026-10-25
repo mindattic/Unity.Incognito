@@ -85,6 +85,45 @@ namespace Incognito.Tests
             Assert.Throws<SettingsValidationException>(() => new WeaponTuning { WalkSwingRange = 0f }.Validate());
             Assert.Throws<SettingsValidationException>(() => new WeaponTuning { SprintSwingRange = -1f }.Validate());
         }
+
+        [Test]
+        public void Negative_muzzle_smoke_particle_count_is_rejected()
+        {
+            Assert.Throws<SettingsValidationException>(() => new WeaponTuning { MuzzleSmokeParticles = -1 }.Validate());
+        }
+
+        [Test]
+        public void Zero_particles_is_allowed_to_disable_the_effect()
+        {
+            Assert.DoesNotThrow(() => new WeaponTuning { MuzzleSmokeParticles = 0 }.Validate());
+        }
+
+        [Test]
+        public void Non_positive_muzzle_smoke_life_is_rejected()
+        {
+            Assert.Throws<SettingsValidationException>(() => new WeaponTuning { MuzzleSmokeLifeSteps = 0 }.Validate());
+            Assert.Throws<SettingsValidationException>(() => new WeaponTuning { MuzzleSmokeLifeSteps = -1 }.Validate());
+        }
+
+        [Test]
+        public void Muzzle_smoke_drift_min_above_max_is_rejected()
+        {
+            Assert.Throws<SettingsValidationException>(() =>
+                new WeaponTuning { MuzzleSmokeDriftMin = 1f, MuzzleSmokeDriftMax = -1f }.Validate());
+        }
+
+        [Test]
+        public void Muzzle_smoke_rise_min_above_max_is_rejected()
+        {
+            Assert.Throws<SettingsValidationException>(() =>
+                new WeaponTuning { MuzzleSmokeRiseMin = 5f, MuzzleSmokeRiseMax = 1f }.Validate());
+        }
+
+        [Test]
+        public void Negative_muzzle_smoke_size_is_rejected()
+        {
+            Assert.Throws<SettingsValidationException>(() => new WeaponTuning { MuzzleSmokeSize = -1f }.Validate());
+        }
     }
 
     public class RainTuningTests

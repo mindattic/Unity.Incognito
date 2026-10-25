@@ -8,8 +8,9 @@ namespace Incognito.Weapon
     /// <summary>
     /// Sends the weapon input as commands (<see cref="ToggleGun"/>, <see cref="PressAim"/>,
     /// <see cref="PressFire"/> and their releases) and plays what the world produces: it applies the
-    /// world's <see cref="PlayerWeaponState"/> to the two arm sprites and spawns a bullet view for each
-    /// <see cref="BulletFired"/> and plays each <see cref="WeaponSounded"/>. See docs/RECONSTRUCTION.md §1.
+    /// world's <see cref="PlayerWeaponState"/> to the two arm sprites and spawns a bullet view and a
+    /// <see cref="MuzzleSmoke"/> puff for each <see cref="BulletFired"/>, and plays each
+    /// <see cref="WeaponSounded"/>. See docs/RECONSTRUCTION.md §1.
     /// Z toggles draw/holster, the right mouse button held aims (walking locked), the left button fires
     /// while aiming. The eye cursor and eyeball read the aim from the world themselves (U.INC-T5).
     /// The HUD pistol icon that also toggles the gun is <see cref="HudPistolIcon"/> (U.INC-T30).
@@ -42,8 +43,6 @@ namespace Incognito.Weapon
         [SerializeField] private float bulletSpeed = 60f;
         [Tooltip("World-space room rectangle; bullets leaving it are removed.")]
         [SerializeField] private Rect room = new Rect(0f, 0f, 360f, 33.75f);
-        [Tooltip("Optional effect spawned at the muzzle (the original's ef_smoke).")]
-        [SerializeField] private GameObject muzzleEffect;
 
         [Header("Audio (optional until U.INC-T11 imports the original sounds)")]
         [SerializeField] private AudioSource audioSource;
@@ -163,7 +162,12 @@ namespace Incognito.Weapon
             sr.sortingOrder = bulletSortingOrder;
             go.AddComponent<Bullet>().Launch(muzzle, spawn.Direction, bulletSpeed * px, room, locomotion.Id);
 
-            if (muzzleEffect != null) Instantiate(muzzleEffect, new Vector3(muzzle.x, muzzle.y, 0f), Quaternion.identity);
+            // shoot_bullet.gml: effect_create_below(ef_smoke, originX, originY, 1, c_black) — drawn
+            // one sorting step behind the gun arm, the same "below every instance" depth the
+            // original's effect_create_below gave it (U.INC-T41).
+            string layer = gunArm != null ? gunArm.sortingLayerName : "Default";
+            int order = (gunArm != null ? gunArm.sortingOrder : 0) - 1;
+            MuzzleSmoke.Puff(new Vector3(muzzle.x, muzzle.y, 0f), layer, order);
         }
 
         private void PlaySound(PlayerWeaponState.WeaponSound sound)
