@@ -62,7 +62,8 @@ namespace Incognito.Hacking
     /// 1080px-tall screen at 60 steps/sec. The icon rests just below the screen
     /// (<c>initialY = room_height</c>); "onscreen" eases it up, <c>y -= 1 + |y| * 0.01</c> per
     /// step, until its bottom edge meets the screen's (<c>endY = room_height - sprite_height</c>);
-    /// "offscreen" drops it 10px per step back to rest.
+    /// "offscreen" drops it 10px per step back to rest. obj_icon_pistol's step event is the same
+    /// code, so the HUD pistol icon (U.INC-T30) slides with this too.
     /// </summary>
     public sealed class ProgramIconSlide
     {
@@ -102,6 +103,14 @@ namespace Incognito.Hacking
         public void SlideOut()
         {
             if (Visible) Current = Mode.Offscreen;
+        }
+
+        /// <summary>Puts the icon straight at rest up on screen, as a persistent GM instance that
+        /// already finished its rise would be when the next room starts.</summary>
+        public void Settle()
+        {
+            Y = EndY;
+            Current = Mode.Idle;
         }
 
         public void Step(float deltaTime)
@@ -247,6 +256,29 @@ namespace Incognito.Hacking
             Backdrop.Step(deltaTime);
             Program.Step(deltaTime);
         }
+    }
+
+    /// <summary>What a left click on the GUI layer hit (obj_mouse_gui, RECONSTRUCTION.md §5).</summary>
+    public enum GuiClick { None, ProgramIcon, Console, PistolIcon }
+
+    /// <summary>
+    /// obj_mouse_gui's left-press chain (U.INC-T30): <c>if (collision_point(obj_program)) ... else
+    /// if (obj_console) ... else if (obj_icon_pistol) toggle_gun();</c> — the first GUI element under
+    /// the pointer, in that order, takes the click. A program icon or console click plays
+    /// <c>sfx_flick</c>; a pistol icon click plays nothing itself (toggle_gun's own sfx_reload or
+    /// sfx_holster sounds).
+    /// </summary>
+    public static class MouseGui
+    {
+        public static GuiClick Resolve(bool overProgramIcon, bool overConsole, bool overPistolIcon)
+        {
+            if (overProgramIcon) return GuiClick.ProgramIcon;
+            if (overConsole) return GuiClick.Console;
+            if (overPistolIcon) return GuiClick.PistolIcon;
+            return GuiClick.None;
+        }
+
+        public static bool PlaysFlick(GuiClick click) => click == GuiClick.ProgramIcon || click == GuiClick.Console;
     }
 
     /// <summary>obj_console's "CPU: x/y%" readout (RECONSTRUCTION.md §5).</summary>

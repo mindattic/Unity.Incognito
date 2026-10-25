@@ -20,7 +20,7 @@ namespace Incognito.UI
     /// ordering (a lower depth drew on top): the hacking backdrop (obj_gui_console, depth 10) is
     /// behind everything; then the room's floating world labels and the console panel (undepthed,
     /// depth 0); then the room name and debug readout; then the fade (obj_fade, depth -100) on top
-    /// of all of it. <see cref="EnsureInstalled"/> is safe to call from every consumer's own
+    /// of all of it but the HUD pistol icon (obj_icon_pistol, depth -101, U.INC-T30). <see cref="EnsureInstalled"/> is safe to call from every consumer's own
     /// Awake/OnEnable — whichever runs first builds the panel once.
     /// </summary>
     public static class HudRoot
@@ -37,6 +37,9 @@ namespace Incognito.UI
         public static VisualElement ConsolePanel { get; private set; }
         public static VisualElement RoomInfo { get; private set; }
         public static VisualElement Fade { get; private set; }
+        /// <summary>The HUD pistol icon (obj_icon_pistol, depth -101): one depth above obj_fade, so
+        /// it stays drawn over a room fade (U.INC-T30).</summary>
+        public static VisualElement HudIcons { get; private set; }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void EnsureInstalled()
@@ -69,6 +72,7 @@ namespace Incognito.UI
             ConsolePanel = AddLayer(root, "console-panel");
             RoomInfo = AddLayer(root, "room-info");
             Fade = AddLayer(root, "fade");
+            HudIcons = AddLayer(root, "hud-icons");
         }
 
         private static VisualElement AddLayer(VisualElement root, string name)

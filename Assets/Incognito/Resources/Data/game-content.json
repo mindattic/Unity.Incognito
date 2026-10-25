@@ -104,7 +104,7 @@
     { "Id": "music_oppressivegloom", "File": "music_oppressivegloom.ogg", "Streamed": true, "PlayedBy": "obj_music current_track: street00, street01 and (global default) titlescreen", "Wired": true },
     { "Id": "music_dubferal", "File": "music_dubferal.ogg", "Streamed": true, "PlayedBy": "obj_music current_track: shop", "Wired": true },
     { "Id": "whispers", "File": "whispers.ogg", "Streamed": true, "PlayedBy": "titlescreen obj_music creation code, commented out: //current_track = whispers;", "Wired": false },
-    { "Id": "sfx_flick", "File": "sfx_flick.wav", "Streamed": false, "PlayedBy": "obj_mouse_gui left click on a program icon", "Wired": true },
+    { "Id": "sfx_flick", "File": "sfx_flick.wav", "Streamed": false, "PlayedBy": "obj_mouse_gui left click on a program icon or a console", "Wired": true },
     { "Id": "sfx_type", "File": "sfx_type.wav", "Streamed": false, "PlayedBy": "obj_command_prompt / obj_console keystroke", "Wired": true },
     { "Id": "sfx_door_open", "File": "sfx_door_open.wav", "Streamed": false, "PlayedBy": "obj_exit, entering the door", "Wired": true },
     { "Id": "sfx_whoosh", "File": "sfx_whoosh.wav", "Streamed": false, "PlayedBy": "obj_walker turning around, and drawing to aim", "Wired": true },

@@ -245,6 +245,25 @@ of the usual wide adventure-game establishing shot — the game's whole premise 
   backgrounds are accounted for as live, imported or dead, with the transcription and the image
   bytes diffed against the original.
 
+- **HUD pistol icon and GUI-layer clicks (U.INC-T30).** `HudPistolIcon`
+  (`Assets/Incognito/Scripts/Weapon/HudPistolIcon.cs`) ports obj_icon_pistol: a 96x96 GUI icon
+  40px in from the right edge (start_game.gml's `room_width - sprite_get_width(spr_icon_pistol) -
+  40` on the 1920px view) that eases up from below the screen to `room_height - sprite_height`
+  (984) with obj_program's own step code (`ProgramIconSlide`), drawn above the room fade (its
+  depth -101 is one above obj_fade's -100: HudRoot's new `HudIcons` layer). It shows
+  `spr_icon_pistol_selected` while the gun is out and `spr_icon_pistol` once holstered, read from
+  the player's weapon state in the world, and a left click on it sends `ToggleGun`, the same
+  command Z sends, so toggle_gun's sounds and arm poses follow. **Fixed defect:** the original
+  created the icon at `y = room_height` and only obj_gui_menu's (and the never-created
+  obj_stealth's) dead "scanning" branch ever set it "onscreen", so it never rose and
+  obj_mouse_gui's pistol click was unreachable; the rebuild raises it when play starts and, as
+  the persistent GM instance would, keeps it up in later rooms. obj_mouse_gui's click chain is
+  `MouseGui.Resolve` — program icon, else console, else pistol icon — and a program icon or
+  console click plays `sfx_flick`; a console click selects that console (`selected_id`), which in
+  the rebuild's one-console HUD gives its input line the keyboard focus back. A click on the
+  pistol icon counts as GUI, so it never also looks at or hacks an NPC behind it; firing was never
+  GUI-gated in the original, so a click on it while aiming still fires, then holsters.
+
 ## Laws
 
 See AGENTS.md for the non-negotiables (reconstruction is ground truth, data over hard-coding where

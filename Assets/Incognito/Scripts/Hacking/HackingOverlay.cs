@@ -4,6 +4,7 @@ using Incognito.Eye;
 using Incognito.Npc;
 using Incognito.Terminal;
 using Incognito.UI;
+using Incognito.Weapon;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -25,7 +26,10 @@ namespace Incognito.Hacking
     ///
     /// Drawn with a UI Toolkit backdrop and icon image (U.INC-T26 — was IMGUI) behind the console
     /// panel's own HUD layer (<see cref="HudRoot.HackingBackdrop"/>); an icon click plays
-    /// obj_mouse_gui's <c>sfx_flick</c> (U.INC-T28, set per room by <see cref="ConfigureAudio"/>).
+    /// obj_mouse_gui's <c>sfx_flick</c> (U.INC-T28, set per room by <see cref="ConfigureAudio"/>),
+    /// and so does a click on the open console, which selects it (U.INC-T30). Clicks go through
+    /// obj_mouse_gui's order (<see cref="MouseGui"/>): program icon, console, then the HUD pistol
+    /// icon (<see cref="HudPistolIcon"/>).
     /// </summary>
     public sealed class HackingOverlay : MonoBehaviour
     {
@@ -72,7 +76,16 @@ namespace Incognito.Hacking
         /// lands on the overlay's GUI — the program icon or the console panel — and so must not
         /// also click the world behind it (obj_mouse_gui's <c>over_gui</c>).
         /// </summary>
-        public static bool IsOverGui(Vector2 screenPoint) => active != null && active.HitsGui(screenPoint);
+        public static bool IsOverGui(Vector2 screenPoint) =>
+            IsOverProgramIcon(screenPoint) || IsOverConsole(screenPoint) || HudPistolIcon.IsOverIcon(screenPoint);
+
+        /// <summary>The pointer is over the risen program icon (obj_mouse_gui's obj_program test).</summary>
+        public static bool IsOverProgramIcon(Vector2 screenPoint) =>
+            active != null && active.Session.Program.Visible && active.ProgramIconContains(screenPoint);
+
+        /// <summary>The pointer is over the open console panel (obj_mouse_gui's obj_console test).</summary>
+        public static bool IsOverConsole(Vector2 screenPoint) =>
+            active != null && active.prompt != null && active.prompt.ContainsScreenPoint(screenPoint);
 
         private bool consoleWasShowing;
         private VisualElement backdropElement;
@@ -116,9 +129,12 @@ namespace Incognito.Hacking
             // The console took the keyboard: Q is a letter being typed, not the toggle.
             if (!CommandPrompt.CapturesKeyboard && GameInput.Current.ConsoleTogglePressed) ToggleInverted();
 
-            if (GameInput.Current.LeftClickPressed && Session.Program.Visible && ProgramIconContains(GameInput.PointerScreenPosition))
+            // obj_mouse_gui's chain: the program icon, else the console; the pistol icon (last in
+            // the chain) is HudPistolIcon's own, resolved the same way.
+            if (GameInput.Current.LeftClickPressed)
             {
-                ProgramIconClicked();
+                Vector2 p = GameInput.PointerScreenPosition;
+                GuiClicked(MouseGui.Resolve(IsOverProgramIcon(p), IsOverConsole(p), HudPistolIcon.IsOverIcon(p)));
             }
 
             // Escape (or anything else) closed the console under a running hack: the hack ends.
@@ -151,9 +167,30 @@ namespace Incognito.Hacking
             ApplyView();
         }
 
+        /// <summary>The number of <c>sfx_flick</c> plays so far (so a play test can see the click sounded).</summary>
+        public int FlickCount { get; private set; }
+
+        /// <summary>
+        /// One obj_mouse_gui left click on <paramref name="hit"/>: a program icon or console click
+        /// plays <c>sfx_flick</c>; a program icon click opens or closes the console; a console click
+        /// selects it (<c>selected_id = instance.program_id</c>, which is what lets it take keys —
+        /// the rebuild has the one console, so selecting it gives its input line the keyboard focus
+        /// back, U.INC-T30). The pistol icon's click is <see cref="HudPistolIcon"/>'s own.
+        /// </summary>
+        public void GuiClicked(GuiClick hit)
+        {
+            if (MouseGui.PlaysFlick(hit))
+            {
+                FlickCount++;
+                if (audioSource != null && flickSound != null) audioSource.PlayOneShot(flickSound);
+            }
+
+            if (hit == GuiClick.ProgramIcon) ProgramIconClicked();
+            else if (hit == GuiClick.Console && prompt != null) prompt.Select();
+        }
+
         private void ProgramIconClicked()
         {
-            if (audioSource != null && flickSound != null) audioSource.PlayOneShot(flickSound);
 
             bool open = prompt != null && prompt.IsShowing;
             var reopen = Session.ProgramClicked(open);
@@ -178,12 +215,6 @@ namespace Incognito.Hacking
             if (!Session.Inverted) viewCamera.FollowPlayer();
             else if (Session.Target != null) viewCamera.FollowTarget(Session.Target.transform);
             else viewCamera.FollowCursor();
-        }
-
-        private bool HitsGui(Vector2 screenPoint)
-        {
-            if (Session.Program.Visible && ProgramIconContains(screenPoint)) return true;
-            return prompt != null && prompt.ContainsScreenPoint(screenPoint);
         }
 
         private Rect ProgramIconRect()

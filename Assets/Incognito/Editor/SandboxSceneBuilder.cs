@@ -240,6 +240,15 @@ namespace Incognito.EditorTools
             hackingSo.FindProperty("programIconActive").objectReferenceValue = OriginalArt.ImportTexture("spr_program_active");
             hackingSo.ApplyModifiedPropertiesWithoutUndo();
 
+            // HUD pistol icon (U.INC-T30, obj_icon_pistol): rises at the bottom-right, shows the
+            // selected sprite while the gun is out, and a click toggles the gun as Z does.
+            var pistolIcon = new GameObject("HUD Pistol Icon").AddComponent<HudPistolIcon>();
+            pistolIcon.Player = locomotion;
+            var pistolSo = new SerializedObject(pistolIcon);
+            pistolSo.FindProperty("icon").objectReferenceValue = OriginalArt.ImportTexture("spr_icon_pistol");
+            pistolSo.FindProperty("iconSelected").objectReferenceValue = OriginalArt.ImportTexture("spr_icon_pistol_selected");
+            pistolSo.ApplyModifiedPropertiesWithoutUndo();
+
             var targets = new GameObject("Console Targets");
             AddConsoleTarget(targets.transform, groundSprite, ConsoleObjectType.Sheep, "0097", roomWidth * 0.5f + 15f, session);
             AddConsoleTarget(targets.transform, groundSprite, ConsoleObjectType.Sheep, "0102", roomWidth * 0.5f - 25f, session);

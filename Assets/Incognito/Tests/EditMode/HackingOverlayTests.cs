@@ -1,6 +1,7 @@
 using Incognito.CameraRig;
 using Incognito.Eye;
 using Incognito.Hacking;
+using Incognito.Weapon;
 using NUnit.Framework;
 
 namespace Incognito.Tests
@@ -182,6 +183,50 @@ namespace Incognito.Tests
             for (int i = 0; i < 20; i++) slide.StepOnce();
             Assert.AreEqual(1080f, slide.Y);
             Assert.IsFalse(slide.Visible);
+        }
+
+        // --- obj_icon_pistol (U.INC-T30) ---
+
+        [Test]
+        public void Pistol_icon_rises_to_room_height_minus_its_96px_height()
+        {
+            var slide = new ProgramIconSlide(HudPistolIcon.IconSize);
+            Assert.IsFalse(slide.Visible);
+
+            slide.SlideIn();
+            for (int i = 0; i < 30; i++) slide.StepOnce();
+            Assert.AreEqual(1080f - 96f, slide.Y);
+            Assert.AreEqual(ProgramIconSlide.Mode.Idle, slide.Current);
+        }
+
+        [Test]
+        public void Pistol_icon_settles_straight_up_in_a_later_room()
+        {
+            var slide = new ProgramIconSlide(HudPistolIcon.IconSize);
+            slide.Settle();
+            Assert.AreEqual(984f, slide.Y);
+            Assert.IsTrue(slide.Visible);
+            Assert.AreEqual(ProgramIconSlide.Mode.Idle, slide.Current);
+        }
+
+        // --- obj_mouse_gui click chain (U.INC-T30) ---
+
+        [Test]
+        public void Gui_click_takes_the_program_icon_then_the_console_then_the_pistol()
+        {
+            Assert.AreEqual(GuiClick.ProgramIcon, MouseGui.Resolve(true, true, true));
+            Assert.AreEqual(GuiClick.Console, MouseGui.Resolve(false, true, true));
+            Assert.AreEqual(GuiClick.PistolIcon, MouseGui.Resolve(false, false, true));
+            Assert.AreEqual(GuiClick.None, MouseGui.Resolve(false, false, false));
+        }
+
+        [Test]
+        public void Program_icon_and_console_clicks_flick_and_the_pistol_does_not()
+        {
+            Assert.IsTrue(MouseGui.PlaysFlick(GuiClick.ProgramIcon));
+            Assert.IsTrue(MouseGui.PlaysFlick(GuiClick.Console));
+            Assert.IsFalse(MouseGui.PlaysFlick(GuiClick.PistolIcon));
+            Assert.IsFalse(MouseGui.PlaysFlick(GuiClick.None));
         }
 
         // --- obj_console CPU readout ---

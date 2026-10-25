@@ -165,6 +165,16 @@ namespace Incognito.Terminal
             inputField.Focus();
         }
 
+        /// <summary>obj_mouse_gui's console click (<c>selected_id = instance.program_id</c>): the
+        /// clicked console is the one that takes keys, so an open prompt gets the keyboard focus
+        /// back (U.INC-T30).</summary>
+        public void Select()
+        {
+            if (!Slide.IsOpen) return;
+            openPrompt = this;
+            inputField.Focus();
+        }
+
         public void Close()
         {
             Slide.Close();

@@ -12,7 +12,7 @@ namespace Incognito.Weapon
     /// <see cref="BulletFired"/> and plays each <see cref="WeaponSounded"/>. See docs/RECONSTRUCTION.md §1.
     /// Z toggles draw/holster, the right mouse button held aims (walking locked), the left button fires
     /// while aiming. The eye cursor and eyeball read the aim from the world themselves (U.INC-T5).
-    /// The HUD pistol icon that also toggles the gun belongs to U.INC-T7.
+    /// The HUD pistol icon that also toggles the gun is <see cref="HudPistolIcon"/> (U.INC-T30).
     /// </summary>
     [DefaultExecutionOrder(-10)]
     [RequireComponent(typeof(PlayerLocomotion))]
