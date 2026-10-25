@@ -217,6 +217,13 @@ namespace Incognito.Tests
         }
 
         [Test]
+        public void ArtDefinition_every_field_round_trips()
+        {
+            JsonObject json = FieldCoverage.Build(typeof(ArtDefinition), out Action<object> verify);
+            verify(ArtDefinition.FromJson(json));
+        }
+
+        [Test]
         public void TitleScreenSpec_every_field_round_trips()
         {
             JsonObject json = FieldCoverage.Build(typeof(TitleScreenSpec), out Action<object> verify);

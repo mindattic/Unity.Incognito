@@ -1,5 +1,6 @@
 // NUnit 4 moved the classic Assert; the tests were written against it (Unity Test Framework).
 using Assert = NUnit.Framework.Legacy.ClassicAssert;
+using System.Linq;
 using Incognito.Content;
 using Incognito.Settings;
 using NUnit.Framework;
@@ -304,6 +305,63 @@ namespace Incognito.Tests
             sound = Sound("sfx_flick");
             sound.PlayedBy = "";
             Assert.Throws<SettingsValidationException>(() => sound.Validate());
+        }
+
+        // U.INC-T29: the art catalog.
+        private static ArtDefinition Art(string id, string file = null) => new ArtDefinition
+        {
+            Id = id,
+            File = file ?? id + ".png",
+            Width = 32,
+            Height = 32,
+            UsedBy = "somewhere",
+        };
+
+        [Test]
+        public void An_art_entry_needs_a_png_inside_Art_Original_an_origin_inside_it_and_its_source()
+        {
+            Assert.DoesNotThrow(() => Art("spr_x").Validate());
+            Assert.DoesNotThrow(() => Art("bg_x", "Backgrounds/bg_x.png").Validate());
+
+            Assert.Throws<SettingsValidationException>(() => Art("spr_x", "").Validate());
+            Assert.Throws<SettingsValidationException>(() => Art("spr_x", "Backgrounds\\spr_x.png").Validate());
+            Assert.Throws<SettingsValidationException>(() => Art("spr_x", "../spr_x.png").Validate());
+            Assert.Throws<SettingsValidationException>(() => Art("spr_x", "spr_x.gif").Validate());
+
+            var art = Art("spr_x");
+            art.OriginX = 33;
+            Assert.Throws<SettingsValidationException>(() => art.Validate());
+            art = Art("spr_x");
+            art.Height = 0;
+            Assert.Throws<SettingsValidationException>(() => art.Validate());
+            art = Art("spr_x");
+            art.UsedBy = "";
+            Assert.Throws<SettingsValidationException>(() => art.Validate());
+        }
+
+        [Test]
+        public void Art_ids_and_files_are_unique_and_room_slices_must_be_catalogued()
+        {
+            var room = Room("Street00", 1000f);
+            var content = new GameContent
+            {
+                Rooms = new[] { room },
+                Art = room.BackgroundSlices.Select(slice => Art(slice)).ToArray(),
+            };
+            Assert.DoesNotThrow(() => content.Validate());
+            Assert.IsNotNull(content.FindArt(room.BackgroundSlices[0].ToUpperInvariant()));
+
+            content.Art = content.Art.Concat(new[] { Art("spr_other") }).ToArray();
+            Assert.DoesNotThrow(() => content.Validate());
+
+            content.Art = new[] { Art("spr_other") };
+            Assert.Throws<SettingsValidationException>(() => content.Validate(), "a slice missing from a non-empty catalog");
+
+            content.Art = room.BackgroundSlices.Select(slice => Art(slice)).Concat(new[] { Art("SPR_OTHER"), Art("spr_other", "x.png") }).ToArray();
+            Assert.Throws<SettingsValidationException>(() => content.Validate(), "duplicate id");
+
+            content.Art = room.BackgroundSlices.Select(slice => Art(slice)).Concat(new[] { Art("spr_a", "same.png"), Art("spr_b", "same.png") }).ToArray();
+            Assert.Throws<SettingsValidationException>(() => content.Validate(), "duplicate file");
         }
     }
 }

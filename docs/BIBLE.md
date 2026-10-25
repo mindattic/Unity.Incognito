@@ -223,6 +223,28 @@ of the usual wide adventure-game establishing shot — the game's whole premise 
   "fixed". `Tests/Core.Tests/OriginalAudioParityTests.cs` proves every sound a live original
   object or script plays is catalogued, wired and on disk, and every file on disk is catalogued.
 
+- **Every original sprite and background, as a data catalog (U.INC-T29).** game-content.json's
+  `Art` lists every image the rebuild imports — id (the `.sprite.gmx`/`.background.gmx` name),
+  file under `Art/Original` (copied verbatim), size, GameMaker origin (`xorig`/`yorigin`, 0,0 for
+  backgrounds), whether it imports compressed (painted world art) or uncompressed (pixel sprites,
+  HUD), whether it tiles (only the title's `bg_city_black`) and where the original uses it — and
+  `Editor/OriginalArt` imports every image through it by id, pivot at the GM origin, so neither
+  `RoomSceneBuilder` nor `SandboxSceneBuilder` carries an origin or a file literal any more. Every
+  room's background slice is validated against the catalog. The sweep added what live original
+  objects and rooms use but the rebuild lacked: `spr_icon_pistol` and `_selected`
+  (obj_icon_pistol, toggle_gun), `spr_console` (obj_console), `spr_exit_side` and `spr_barrier`
+  (collision masks), `spr_brain_select` (drawn over the NPC while the console is on),
+  `spr_cursor_arrow` (obj_mouse_gui's GUI cursor), `spr_stealthwall` (obj_gui_menu's dashboard
+  hover backdrop), `spr_black` (obj_fade) and `bg_black` (street00's base layer; the camera already
+  clears to the same black). `spr_command_prompt`/`_selected` and `spr_linewall` are imported too
+  but catalogued `Live: false`: obj_command_prompt, obj_stealth and obj_fade_stealth are never
+  created. Importing is not wiring: the HUD pistol is U.INC-T30, and the brain-select overlay, GUI
+  arrow cursor and dashboard hover are U.INC-T39. `Tests/Core.Tests/OriginalArtParityTests.cs`
+  proves every image a live original object or room uses is catalogued at its GM origin and size
+  and on disk, and (where the original project is on the machine) that all 88 sprites and 21
+  backgrounds are accounted for as live, imported or dead, with the transcription and the image
+  bytes diffed against the original.
+
 ## Laws
 
 See AGENTS.md for the non-negotiables (reconstruction is ground truth, data over hard-coding where

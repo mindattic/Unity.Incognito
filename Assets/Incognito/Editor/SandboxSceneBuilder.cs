@@ -29,7 +29,6 @@ namespace Incognito.EditorTools
         private const string SceneDir = "Assets/Incognito/Scenes";
         private const string ScenePath = SceneDir + "/PlayerSandbox.unity";
         private const string ArtDir = "Assets/Incognito/Art/Placeholder";
-        private const string OriginalArtDir = "Assets/Incognito/Art/Original";
 
         // Street backdrop sits behind everything, including the bullet (obj_bullet depth 5). Its
         // own sorting layer (ProjectSettings/TagManager.asset) keeps it behind gameplay sprites
@@ -47,9 +46,10 @@ namespace Incognito.EditorTools
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
             var groundSprite = CreateSolidSpriteAsset(ArtDir + "/placeholder_ground.png", new Color(0.35f, 0.35f, 0.35f));
-            // The original character art at its GameMaker origins (xorig/yorigin from each .sprite.gmx).
-            var playerSprite = ImportOriginal("spr_player", 256, 168);
-            var npcSprite = ImportOriginal("spr_npc_ia", 256, 440);
+            // The original character art at its GameMaker origins (xorig/yorigin from each .sprite.gmx),
+            // imported through game-content.json's Art catalog (OriginalArt, U.INC-T29).
+            var playerSprite = OriginalArt.Import("spr_player");
+            var npcSprite = OriginalArt.Import("spr_npc_ia");
 
             // Room sized like the original street00 (11520x1080 px) at the placeholder
             // 1px = 1/32 unit scale: 360 units wide, ground top at y = 0.
@@ -94,13 +94,13 @@ namespace Incognito.EditorTools
             // obj_arm x2 (U.INC-T9): arm1 (support) in front of the body (depth -1), arm2 (gun)
             // behind it (depth 1, also behind the eye stack), on the original sprites at their GM
             // origins so the pivots and muzzle line up.
-            var armRest = ImportOriginal("spr_arm", 100, 60);
-            var supportRaise = ImportOriginal("spr_arm_left_aim1", 320, 142);
-            var supportHold = ImportOriginal("spr_arm_left_aim2", 500, 86);
-            var gunDrawing = ImportOriginal("spr_arm_right_drawing", 320, 142);
-            var gunAim = ImportOriginal("spr_arm_right_aim", 500, 100);
-            var gunFire = ImportOriginal("spr_arm_right_fire", 500, 100);
-            var bulletSprite = ImportOriginal("spr_bullet", 6, 6);
+            var armRest = OriginalArt.Import("spr_arm");
+            var supportRaise = OriginalArt.Import("spr_arm_left_aim1");
+            var supportHold = OriginalArt.Import("spr_arm_left_aim2");
+            var gunDrawing = OriginalArt.Import("spr_arm_right_drawing");
+            var gunAim = OriginalArt.Import("spr_arm_right_aim");
+            var gunFire = OriginalArt.Import("spr_arm_right_fire");
+            var bulletSprite = OriginalArt.Import("spr_bullet");
 
             var supportArm = CreateArm("Support Arm (arm1)", player.transform, armRest, 1);
             var gunArm = CreateArm("Gun Arm (arm2)", player.transform, armRest, -4);
@@ -173,20 +173,20 @@ namespace Incognito.EditorTools
             eye.Player = locomotion;
             eye.ViewCamera = cam;
             var eyeSo = new SerializedObject(eye);
-            eyeSo.FindProperty("eyeWhite").objectReferenceValue = ImportOriginal("spr_eyewhite", 0, 0);
-            eyeSo.FindProperty("pupil").objectReferenceValue = ImportOriginal("spr_eye_ball", 5, 5);
-            eyeSo.FindProperty("eyelidLeft").objectReferenceValue = ImportOriginal("spr_eyelid_left", 0, 0);
-            eyeSo.FindProperty("eyelidRight").objectReferenceValue = ImportOriginal("spr_eyelid_right", 0, 0);
+            eyeSo.FindProperty("eyeWhite").objectReferenceValue = OriginalArt.Import("spr_eyewhite");
+            eyeSo.FindProperty("pupil").objectReferenceValue = OriginalArt.Import("spr_eye_ball");
+            eyeSo.FindProperty("eyelidLeft").objectReferenceValue = OriginalArt.Import("spr_eyelid_left");
+            eyeSo.FindProperty("eyelidRight").objectReferenceValue = OriginalArt.Import("spr_eyelid_right");
             eyeSo.ApplyModifiedPropertiesWithoutUndo();
 
             var cursor = new GameObject("EyeCursor", typeof(SpriteRenderer)).AddComponent<EyeCursor>();
             cursor.ViewCamera = cam;
             cursor.Player = locomotion; // the reticle follows this player's aim, read from the world
             var cursorSo = new SerializedObject(cursor);
-            cursorSo.FindProperty("eyeSprite").objectReferenceValue = ImportOriginal("spr_cursor_eye", 16, 16);
-            cursorSo.FindProperty("talkSprite").objectReferenceValue = ImportOriginal("spr_cursor_talk", 16, 16);
-            cursorSo.FindProperty("pointerSprite").objectReferenceValue = ImportOriginal("spr_cursor_pointer", 0, 0);
-            cursorSo.FindProperty("reticleSprite").objectReferenceValue = ImportOriginal("spr_cursor_reticle", 16, 16);
+            cursorSo.FindProperty("eyeSprite").objectReferenceValue = OriginalArt.Import("spr_cursor_eye");
+            cursorSo.FindProperty("talkSprite").objectReferenceValue = OriginalArt.Import("spr_cursor_talk");
+            cursorSo.FindProperty("pointerSprite").objectReferenceValue = OriginalArt.Import("spr_cursor_pointer");
+            cursorSo.FindProperty("reticleSprite").objectReferenceValue = OriginalArt.Import("spr_cursor_reticle");
             cursorSo.ApplyModifiedPropertiesWithoutUndo();
 
             // Look/talk clicks on the NPC (U.INC-T6): the wheel cycles the cursor; a look click
@@ -196,7 +196,7 @@ namespace Incognito.EditorTools
             interaction.Description = npcDef.Description;
             var interactionSo = new SerializedObject(interaction);
             interactionSo.FindProperty("viewCamera").objectReferenceValue = cam;
-            interactionSo.FindProperty("descriptionBorder").objectReferenceValue = ImportOriginal("spr_desc_border", 0, 0).texture;
+            interactionSo.FindProperty("descriptionBorder").objectReferenceValue = OriginalArt.ImportTexture("spr_desc_border");
             interactionSo.ApplyModifiedPropertiesWithoutUndo();
 
             // Weapon (U.INC-T9): Z draws/holsters, hold right button to aim, left button fires.
@@ -224,7 +224,7 @@ namespace Incognito.EditorTools
             prompt.Origin = player.transform;
             prompt.Player = locomotion;
             var promptSo = new SerializedObject(prompt);
-            promptSo.FindProperty("panelArt").objectReferenceValue = ImportOriginal("spr_console_selected", 0, 0).texture;
+            promptSo.FindProperty("panelArt").objectReferenceValue = OriginalArt.ImportTexture("spr_console_selected");
             promptSo.ApplyModifiedPropertiesWithoutUndo();
 
             // Hacking overlay (U.INC-T7): Q toggles the console view (pointer cursor, circuit
@@ -235,9 +235,9 @@ namespace Incognito.EditorTools
             hacking.Prompt = prompt;
             hacking.ViewCamera = framing;
             var hackingSo = new SerializedObject(hacking);
-            hackingSo.FindProperty("backdrop").objectReferenceValue = ImportOriginal("spr_circuitwall1", 0, 0).texture;
-            hackingSo.FindProperty("programIcon").objectReferenceValue = ImportOriginal("spr_program", 0, 0).texture;
-            hackingSo.FindProperty("programIconActive").objectReferenceValue = ImportOriginal("spr_program_active", 0, 0).texture;
+            hackingSo.FindProperty("backdrop").objectReferenceValue = OriginalArt.ImportTexture("spr_circuitwall1");
+            hackingSo.FindProperty("programIcon").objectReferenceValue = OriginalArt.ImportTexture("spr_program");
+            hackingSo.FindProperty("programIconActive").objectReferenceValue = OriginalArt.ImportTexture("spr_program_active");
             hackingSo.ApplyModifiedPropertiesWithoutUndo();
 
             var targets = new GameObject("Console Targets");
@@ -253,38 +253,6 @@ namespace Incognito.EditorTools
 
             EditorSceneManager.SaveScene(scene, ScenePath);
             AssetDatabase.SaveAssets();
-        }
-
-        /// <summary>
-        /// Sets the import of one of the original sprites copied verbatim into Art/Original (eye
-        /// stack, cursors, characters, arms and bullet) so its pivot is GameMaker's origin (xorig/yorigin from its
-        /// .sprite.gmx, measured from the top-left), at 1 original px = 1/32 unit, point-filtered.
-        /// </summary>
-        private static Sprite ImportOriginal(string name, int originX, int originY)
-        {
-            return ImportPixelSprite($"{OriginalArtDir}/{name}.png", originX, originY);
-        }
-
-        private static Sprite ImportPixelSprite(string path, int originX, int originY)
-        {
-            AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
-            var importer = (TextureImporter)AssetImporter.GetAtPath(path);
-            importer.GetSourceTextureWidthAndHeight(out int width, out int height);
-
-            var settings = new TextureImporterSettings();
-            importer.ReadTextureSettings(settings);
-            settings.textureType = TextureImporterType.Sprite;
-            settings.spriteMode = (int)SpriteImportMode.Single;
-            settings.spriteAlignment = (int)SpriteAlignment.Custom;
-            settings.spritePivot = new Vector2((float)originX / width, 1f - (float)originY / height);
-            settings.spritePixelsPerUnit = 1f / PlayerLocomotion.WorldUnitsPerOriginalPixel;
-            settings.filterMode = FilterMode.Point;
-            settings.mipmapEnabled = false;
-            importer.SetTextureSettings(settings);
-            importer.textureCompression = TextureImporterCompression.Uncompressed;
-            importer.SaveAndReimport();
-
-            return AssetDatabase.LoadAssetAtPath<Sprite>(path);
         }
 
         private static void AddConsoleTarget(Transform parent, Sprite sprite, ConsoleObjectType type, string id, float x, GameSession session)

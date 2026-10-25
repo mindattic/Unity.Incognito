@@ -394,7 +394,8 @@ ticket order U.INC-T19 to T35 (T19 first).
 | Original | Gap | Ticket |
 |---|---|---|
 | `sfx_flick`, `whispers` sounds | not imported (flick is played on HUD/console clicks; whispers is referenced only in a commented line). Done in T28: both imported and catalogued; flick plays on a program-icon click (obj_command_prompt's flick call is inside a `/* */` block, so obj_mouse_gui is its only live player), whispers stays unwired | T28 |
-| `spr_icon_pistol`, `_selected`, `spr_exit_side`, `spr_barrier`, `spr_command_prompt`(+selected), `spr_console`, `spr_linewall` | sprites not in Art/Original | T29 |
+| `spr_icon_pistol`, `_selected`, `spr_exit_side`, `spr_barrier`, `spr_command_prompt`(+selected), `spr_console`, `spr_linewall` | sprites not in Art/Original. Done in T29: all imported at their GM origins and catalogued in game-content.json's `Art`; the sweep also found `spr_brain_select` (obj_npc draws it over the NPC while `inverted`), `spr_cursor_arrow` (obj_mouse_gui's GUI cursor while `over_gui`), `spr_stealthwall` (obj_gui_menu, live: start_game creates it and it fades in while the mouse is over the bottom `sprite_get_height(spr_program)` px, not aiming and the console off; only its "scanning" branch is dead), `spr_black` (obj_fade) and `bg_black` (street00's base background). command_prompt and linewall belong to never-created objects (catalogued `Live: false`); spr_musicnote/spr_rainemitter are markers drawn at x -96, outside the room | T29 |
+| brain-select overlay, GUI arrow cursor, obj_gui_menu dashboard hover fade | imported (T29) but not drawn | T39 |
 | `obj_icon_pistol` + `obj_mouse_gui` | HUD pistol icon and GUI-layer click handling (toggle_gun, sfx_flick, console select) absent | T30 |
 | `fnt_basic/large/system`, `draw_text_outline*`, `show_float_text`, `obj_float_text` | IMGUI default font and a single outline helper; no floating text | T31 |
 | `obj_startup` | screen-ratio setup, fullscreen start, letterboxing | T32 |

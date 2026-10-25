@@ -40,8 +40,6 @@ namespace Incognito.EditorTools
     {
         private const string SandboxPath = "Assets/Incognito/Scenes/PlayerSandbox.unity";
         private const string RoomsDir = "Assets/Incognito/Scenes/Rooms";
-        private const string ArtDir = "Assets/Incognito/Art/Original";
-        private const string BackgroundDir = ArtDir + "/Backgrounds";
         private const string AudioDir = "Assets/Incognito/Audio/Original";
 
         private const float Px = PlayerLocomotion.WorldUnitsPerOriginalPixel;
@@ -72,6 +70,7 @@ namespace Incognito.EditorTools
         {
             if (!File.Exists(SandboxPath)) SandboxSceneBuilder.Build();
             Directory.CreateDirectory(roomsDir);
+            OriginalArt.ImportAll();
             ImportAudio();
 
             var scenes = new List<string> { BuildTitle(roomsDir) };
@@ -114,7 +113,7 @@ namespace Incognito.EditorTools
             // titlescreen.room.gmx: bg_city_black tiled, hspeed -2, under bg_titlescreen.
             var city = new GameObject("bg_city_black (scrolling)", typeof(SpriteRenderer));
             var citySr = city.GetComponent<SpriteRenderer>();
-            citySr.sprite = ImportSprite($"{BackgroundDir}/bg_city_black.png", 0, 0, tiled: true);
+            citySr.sprite = OriginalArt.Import("bg_city_black");
             citySr.drawMode = SpriteDrawMode.Tiled;
             citySr.size = new Vector2(ViewWidth * 3f * Px, ViewHeight * Px);
             citySr.sortingLayerName = BackgroundLayer;
@@ -124,7 +123,7 @@ namespace Incognito.EditorTools
 
             var title = new GameObject("bg_titlescreen", typeof(SpriteRenderer));
             var titleSr = title.GetComponent<SpriteRenderer>();
-            titleSr.sprite = ImportSprite($"{BackgroundDir}/bg_titlescreen.png", 0, 0);
+            titleSr.sprite = OriginalArt.Import("bg_titlescreen");
             titleSr.sortingLayerName = BackgroundLayer;
             titleSr.sortingOrder = BackgroundOrder + 1;
             title.transform.position = new Vector3(0f, ViewHeight * Px, 0f);
@@ -161,13 +160,13 @@ namespace Incognito.EditorTools
 
             var assets = new RoomRuntimeAssets
             {
-                BackgroundSlices = spec.BackgroundSlices.Select(name => ImportSprite($"{BackgroundDir}/{name}.png", 0, 0)).ToArray(),
-                LamppostSprite = ImportSprite($"{ArtDir}/spr_lamppost.png", 64, 0),
-                LamplightSprite = ImportSprite($"{ArtDir}/spr_lamplight01.png", 800, 800),
-                MailboxSprite = ImportSprite($"{ArtDir}/spr_mailbox.png", 0, 0),
-                RainSprite = ImportSprite($"{ArtDir}/spr_rain.png", 0, 0),
-                ExitIconSprite = ImportSprite($"{ArtDir}/spr_icon_exit.png", 32, 32),
-                DescriptionBorder = AssetDatabase.LoadAssetAtPath<Texture2D>($"{ArtDir}/spr_desc_border.png"),
+                BackgroundSlices = spec.BackgroundSlices.Select(OriginalArt.Import).ToArray(),
+                LamppostSprite = OriginalArt.Import("spr_lamppost"),
+                LamplightSprite = OriginalArt.Import("spr_lamplight01"),
+                MailboxSprite = OriginalArt.Import("spr_mailbox"),
+                RainSprite = OriginalArt.Import("spr_rain"),
+                ExitIconSprite = OriginalArt.Import("spr_icon_exit"),
+                DescriptionBorder = OriginalArt.ImportTexture("spr_desc_border"),
                 Music = string.IsNullOrEmpty(spec.Music) ? null : LoadSound(spec.Music),
                 Footsteps = Enumerable.Range(1, 16).Select(i => LoadSound($"sfx_step_concrete{i:00}")).ToArray(),
                 Whoosh = LoadSound("sfx_whoosh"),
@@ -201,36 +200,6 @@ namespace Incognito.EditorTools
         }
 
         // ---------------------------------------------------------------- assets
-
-        /// <summary>
-        /// Imports one of the original images copied verbatim into Art/Original with its pivot at
-        /// GameMaker's origin (from the top-left), 1 original px = 1/32 unit, point-filtered.
-        /// Compressed: the painted 1920x1080 street slices would be 8MB each uncompressed.
-        /// </summary>
-        private static Sprite ImportSprite(string path, int originX, int originY, bool tiled = false)
-        {
-            AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
-            var importer = (TextureImporter)AssetImporter.GetAtPath(path);
-            importer.GetSourceTextureWidthAndHeight(out int width, out int height);
-
-            var settings = new TextureImporterSettings();
-            importer.ReadTextureSettings(settings);
-            settings.textureType = TextureImporterType.Sprite;
-            settings.spriteMode = (int)SpriteImportMode.Single;
-            settings.spriteAlignment = (int)SpriteAlignment.Custom;
-            settings.spritePivot = new Vector2((float)originX / width, 1f - (float)originY / height);
-            settings.spritePixelsPerUnit = 1f / Px;
-            settings.filterMode = FilterMode.Point;
-            settings.mipmapEnabled = false;
-            settings.spriteMeshType = SpriteMeshType.FullRect;
-            settings.wrapMode = tiled ? TextureWrapMode.Repeat : TextureWrapMode.Clamp;
-            importer.SetTextureSettings(settings);
-            importer.maxTextureSize = 2048;
-            importer.textureCompression = TextureImporterCompression.CompressedHQ;
-            importer.SaveAndReimport();
-
-            return AssetDatabase.LoadAssetAtPath<Sprite>(path);
-        }
 
         /// <summary>Applies every catalogued sound's import (game-content.json's Sounds, U.INC-T28):
         /// what the original streamed (music, the whispers ambient) streams (Vorbis); short effects

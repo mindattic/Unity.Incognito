@@ -4,6 +4,7 @@ using Incognito.EditorTools;
 using Incognito.Settings;
 using Incognito.Terminal;
 using NUnit.Framework;
+using UnityEngine;
 
 namespace Incognito.Tests
 {
@@ -63,6 +64,26 @@ namespace Incognito.Tests
                 var importer = (UnityEditor.AudioImporter)UnityEditor.AssetImporter.GetAtPath(RoomSceneBuilder.SoundPath(sound));
                 var expected = sound.Streamed ? UnityEngine.AudioClipLoadType.Streaming : UnityEngine.AudioClipLoadType.DecompressOnLoad;
                 Assert.AreEqual(expected, importer.defaultSampleSettings.loadType, $"{sound.Id}'s load type");
+            }
+        }
+
+        /// <summary>U.INC-T29: every catalogued image (including the sweep's new spr_icon_pistol(_selected),
+        /// spr_exit_side, spr_barrier, spr_console, spr_command_prompt(_selected), spr_linewall,
+        /// spr_brain_select, spr_cursor_arrow, spr_stealthwall, spr_black and bg_black) imports as one
+        /// point-filtered sprite whose pivot is its GameMaker origin.</summary>
+        [Test]
+        public void Every_catalogued_image_imports_as_a_sprite_at_its_GameMaker_origin()
+        {
+            foreach (ArtDefinition art in GameSettings.Content.Art)
+            {
+                var sprite = OriginalArt.Import(art.Id);
+                Assert.IsNotNull(sprite, art.Id);
+                Assert.AreEqual(new Vector2(art.Width, art.Height), sprite.rect.size, $"{art.Id}'s size");
+                // Sprite.pivot is in pixels from the bottom-left; GameMaker's origin is from the top-left.
+                Assert.AreEqual(art.OriginX, sprite.pivot.x, 0.01f, $"{art.Id}'s x origin");
+                Assert.AreEqual(art.Height - art.OriginY, sprite.pivot.y, 0.01f, $"{art.Id}'s y origin");
+                Assert.AreEqual(32f, sprite.pixelsPerUnit, 0.001f, $"{art.Id}'s scale");
+                Assert.AreEqual(FilterMode.Point, sprite.texture.filterMode, $"{art.Id}'s filter");
             }
         }
 
