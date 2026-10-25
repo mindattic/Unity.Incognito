@@ -403,7 +403,8 @@ ticket order U.INC-T19 to T35 (T19 first).
 
 ### Original content verified dead (decided not ported, T33 records it in the BIBLE)
 
-`obj_jukebox` (placed by `obj_room_street00` but its events hold no behaviour), `obj_fade_stealth`,
+`obj_jukebox` (placed only in the unused `gamescreen` room, and even there its one Step event
+just calls the fully commented-out `play_random_music`, §8), `obj_fade_stealth`,
 `obj_flash_text`, `obj_text`/`show_text`, `obj_ipaddressbox`, `obj_wall`, `object5`, `object8`,
 `obj_typewriter_characterselect`, `obj_cloud1..4`, `obj_lamplight01`, `obj_prop_back/_front`,
 `obj_stealth`, `spr_arm_left_support`, `sprite_desaturate`, rooms `gamescreen`, `room2` (not

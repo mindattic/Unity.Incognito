@@ -327,6 +327,82 @@ of the usual wide adventure-game establishing shot — the game's whole premise 
   showing it would be false; the rebuild boots straight to the title, which repeats obj_startup's
   display setup anyway.
 
+- **Original content verified dead, decided not ported (U.INC-T33).** RECONSTRUCTION §10's full
+  inventory audit (U.INC-T17) found these genuinely unreachable in the original — never placed in a
+  room, never `instance_create`d, never called — so nothing of them is ported, and each reason below
+  is checkable against the 09-05-13 source directly:
+  - `obj_jukebox`, `spr_jukebox`, `spr_musicnote`: `obj_jukebox` sits only in the unused `gamescreen`
+    room (not street00), and even there its one Step event just calls `play_random_music`, which is
+    entirely commented out (RECONSTRUCTION §8/U.INC-T11), so it has no effect where it sits; its own
+    sprite `spr_jukebox` is never drawn. `spr_musicnote` belongs to a different, live object —
+    `obj_music`, the real per-room `current_track` setter (U.INC-T11) — but every room places
+    `obj_music` at `x = -96`, off the 1920px-wide view, so that sprite is never seen either. Neither
+    sprite is in game-content.json's `Art` catalog.
+  - `obj_fade_stealth`: a second fade object (`spr_linewall`, depth -10000) with a
+    `fadeout`/`fadehalf`/`fadein`/`off` state machine keyed on mouse height. Never created anywhere;
+    `obj_fade` (`spr_black`) is the one the original actually creates and the one the rebuild ported
+    (`spr_linewall` is catalogued `Live: false` in the Art catalog, U.INC-T29).
+  - `obj_flash_text`: a floating, colour-cycling (white/red/yellow/blue) text object that fades and
+    rises. No sprite, never instance-created by any script or room — an earlier, unused take on
+    floating text; `show_float_text`/`obj_float_text` (U.INC-T31) is the one actually wired, and
+    that's the one the rebuild ported as `FloatText`.
+  - `obj_text`/`show_text`: `show_text(x, y, text)` instance-creates `obj_text`, which draws `text`
+    in fnt_large with an outline 200px above its spawn point. `show_text` itself is never called
+    anywhere in the project, so the object is unreachable.
+  - `obj_ipaddressbox`: a full typed-input widget — an IP-address-style text box with an i-beam
+    caret, tab-to-next-field, backspace and `sfx_type` per keystroke. Never placed in a room, never
+    instance-created; reads like a discarded earlier take on the console UI, superseded by the typed
+    command console actually wired (RECONSTRUCTION §6, U.INC-T10).
+  - `obj_wall`: a plain collision rectangle (`spr_street00_01`, no events). Never placed in any room.
+  - `object5`/`object8`: GameMaker's own default-named placeholders, never renamed from the editor's
+    auto-generated "object5"/"object8". `object8` has no sprite and no events at all. `object5` has
+    one Step event pinning itself to `obj_walker.x, obj_walker.y + 200` with `spr_arm` — an abandoned
+    arm-position experiment, superseded by the real arm sprites and state machine the weapon system
+    uses (RECONSTRUCTION §1, U.INC-T9). Neither is placed in any room.
+  - `obj_typewriter_characterselect`: a second, unused typewriter object that types a `copystring`
+    onto the HUD's bottom-left. Never placed or created; `obj_typewriter`/`type_text.gml` is the one
+    actually used for the look/description teletype (RECONSTRUCTION §4/§6) and the one the rebuild
+    ported as `DescriptionTypewriter`.
+  - `spr_arm_left_support`: not referenced by any object's sprite or any `draw_sprite` call — a
+    discarded arm pose; `spr_arm_left_aim1`/`spr_arm_left_aim2` are the ones actually used
+    (RECONSTRUCTION §1).
+  - `sprite_desaturate`: a stock GMLscripts.com grayscale-conversion utility pasted into the project
+    but never called by any object or script.
+  - Rooms `gamescreen` and `room2`: unused copies of the real rooms (RECONSTRUCTION §7) — no
+    `next_room`/exit code ever names them, and neither is the project's start room. (`startup` is
+    **not** in this group — see the U.INC-T32 entry above: it is the original's actual first room, a
+    GameMaker-development-only controller warning the Unity build can't reproduce, so the rebuild
+    boots straight to the title instead.)
+  - The `_new` art and audio variants: live scripts and rooms reference only the legacy sprite/sound
+    names; of the many `_new`-suffixed resources GameMaker's project tree implies, almost none
+    survive as files on disk (only `music_gagool_new`, `sfx_flick_new`, `whispers_new` — RECONSTRUCTION
+    §8), and even those are never the ones a live object plays, so the port uses the legacy files
+    throughout (U.INC-T11, U.INC-T28).
+  - `snd_step1`..`snd_step6` and `sound23`: each has its own `.sound.gmx` resource and ships audio
+    files, but `play_footstep.gml` — the only footstep player — only ever `choose()`s among
+    `sfx_step_concrete01`..`16`; nothing in any script, object or room references these seven sounds.
+  - Music that never plays: of the project's ten `music_*` tracks, only `music_oppressivegloom`
+    (street00, street01, and the titlescreen's global default) and `music_dubferal` (shop) are ever
+    assigned to a room's `current_track` (U.INC-T11). `music_constancy2`, `music_constancy3`,
+    `music_darknessiscoming`, `music_gagool`, `music_interloper`, `music_mta`, `music_tearoots` and
+    `music_theme` are never selected by anything live — the only code that could have picked one at
+    random, `play_random_music.gml`, is entirely commented out — and none of the eight are in
+    game-content.json's `Sounds` catalog.
+  - `obj_cloud1`..`obj_cloud4`, `obj_lamplight01`, `obj_prop_back`/`obj_prop_front`: already recorded
+    as unused in the Rooms, props and audio decision above (U.INC-T11) — the clouds have no sprite
+    and no room placement, the lamplight marker is never placed (each lamppost draws its own light
+    sprite instead), and the back/front props are unplaced duplicates of the lamppost/mailbox the
+    rooms actually use.
+  - `obj_stealth`: the "scanning" dashboard object referenced only by other objects' dead branches,
+    never created by anything live; already recorded in the Hacking overlay decision above
+    (U.INC-T7) and catalogued `Live: false` in the Art catalog (U.INC-T29).
+  - The Android, iOS, WinPhone, Windows8, Tizen, Mac, Linux and html5 export configs
+    (`Configs/Default/{Android,ios,WinPhone,Windows8,Tizen,Mac,Linux,html5}`): GameMaker: Studio's
+    own auto-generated per-platform scaffolding (splash images, `option_android_*`/etc. fields baked
+    into the one `Default.config.gmx`), created for every new project regardless of intent. The
+    project only ever shipped a Windows build (RECONSTRUCTION §9's `Install\Incognito.exe`), so these
+    carry no evidence of multi-platform intent and no gameplay to port.
+
 ## Laws
 
 See AGENTS.md for the non-negotiables (reconstruction is ground truth, data over hard-coding where
