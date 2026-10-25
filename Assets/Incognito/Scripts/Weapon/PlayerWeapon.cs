@@ -44,6 +44,13 @@ namespace Incognito.Weapon
         [Tooltip("World-space room rectangle; bullets leaving it are removed.")]
         [SerializeField] private Rect room = new Rect(0f, 0f, 360f, 33.75f);
 
+        [Header("Muzzle smoke")]
+        [SerializeField] private string muzzleSmokeSortingLayer = "Default";
+        [Tooltip("effect_create_below drew ef_smoke below every instance in the room, not just the " +
+                 "player: fixed well below the body (0), both arms (-4..1) and the bullet (-2), " +
+                 "rather than relative to any one of them.")]
+        [SerializeField] private int muzzleSmokeSortingOrder = -50;
+
         [Header("Audio (optional until U.INC-T11 imports the original sounds)")]
         [SerializeField] private AudioSource audioSource;
         [SerializeField] private AudioClip reloadClip;
@@ -162,12 +169,10 @@ namespace Incognito.Weapon
             sr.sortingOrder = bulletSortingOrder;
             go.AddComponent<Bullet>().Launch(muzzle, spawn.Direction, bulletSpeed * px, room, locomotion.Id);
 
-            // shoot_bullet.gml: effect_create_below(ef_smoke, originX, originY, 1, c_black) — drawn
-            // one sorting step behind the gun arm, the same "below every instance" depth the
-            // original's effect_create_below gave it (U.INC-T41).
-            string layer = gunArm != null ? gunArm.sortingLayerName : "Default";
-            int order = (gunArm != null ? gunArm.sortingOrder : 0) - 1;
-            MuzzleSmoke.Puff(new Vector3(muzzle.x, muzzle.y, 0f), layer, order);
+            // shoot_bullet.gml: effect_create_below(ef_smoke, originX, originY, 1, c_black) — a
+            // fixed sorting order below every actor sprite (body, arms, NPCs, the bullet), the same
+            // "below every instance" depth the original's effect_create_below gave it (U.INC-T41).
+            MuzzleSmoke.Puff(new Vector3(muzzle.x, muzzle.y, 0f), muzzleSmokeSortingLayer, muzzleSmokeSortingOrder);
         }
 
         private void PlaySound(PlayerWeaponState.WeaponSound sound)

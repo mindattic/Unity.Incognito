@@ -77,7 +77,7 @@ namespace Incognito.Tests
         }
 
         [Test]
-        public void Puffs_with_different_lifetimes_expire_independently()
+        public void Multiple_puffs_all_expire_together_since_they_share_one_lifetime()
         {
             var tuning = new WeaponTuning { MuzzleSmokeParticles = 3, MuzzleSmokeLifeSteps = 6 };
             var state = new MuzzleSmokeState(tuning: tuning);

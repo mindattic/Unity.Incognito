@@ -9,9 +9,10 @@ namespace Incognito.Weapon
     /// <summary>
     /// Draws <see cref="MuzzleSmokeState"/>: a code-built puff of small black particles (no
     /// original asset exists for GameMaker's built-in ef_smoke) spawned at the muzzle on every shot
-    /// by <see cref="PlayerWeapon.Fire"/>, drawn one sorting step behind whatever it is given (the
-    /// gun arm, so "below the player" the same way <c>effect_create_below</c> drew behind every
-    /// instance), that drifts and fades on its own and then destroys itself (U.INC-T41).
+    /// by <see cref="PlayerWeapon.Fire"/>, drawn at whatever sorting layer/order it is given — the
+    /// caller fixes that below every actor sprite, the same "below every instance" depth
+    /// <c>effect_create_below</c> drew it at — that drifts and fades on its own and then destroys
+    /// itself (U.INC-T41).
     /// </summary>
     public sealed class MuzzleSmoke : MonoBehaviour
     {
@@ -24,8 +25,8 @@ namespace Incognito.Weapon
         private string sortingLayer = "Default";
         private int sortingOrder;
 
-        /// <summary>Spawns one puff at <paramref name="worldPosition"/>, drawn one sorting step
-        /// behind <paramref name="sortingLayer"/>/<paramref name="sortingOrder"/>.</summary>
+        /// <summary>Spawns one puff at <paramref name="worldPosition"/>, every particle drawn at
+        /// <paramref name="sortingLayer"/>/<paramref name="sortingOrder"/>.</summary>
         public static MuzzleSmoke Puff(Vector3 worldPosition, string sortingLayer, int sortingOrder)
         {
             var go = new GameObject("Muzzle Smoke");
