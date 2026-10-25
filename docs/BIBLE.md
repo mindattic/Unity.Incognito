@@ -144,7 +144,7 @@ of the usual wide adventure-game establishing shot — the game's whole premise 
   fresh player rig per scene carries only its facing across a room change (the original's one
   persistent player also kept the gun state). Clouds and the unplaced `obj_lamplight01` /
   `obj_prop_back|front` are not ported (no art, never placed). Text is IMGUI, outlined, at
-  fnt_large's size. See `Assets/Incognito/Scripts/World/` and `Scripts/Audio/`.
+  fnt_large's size (since U.INC-T26/T31: UI Toolkit, in each original font's own size). See `Assets/Incognito/Scripts/World/` and `Scripts/Audio/`.
 
 - **URP behind a pipeline-agnostic layer (U.INC-T24).** `com.unity.render-pipelines.universal`
   17.4.0 (the version Unity.SpaceGod and Unity.Hare also pin), set up as a 2D project: a
@@ -263,6 +263,35 @@ of the usual wide adventure-game establishing shot — the game's whole premise 
   the rebuild's one-console HUD gives its input line the keyboard focus back. A click on the
   pistol icon counts as GUI, so it never also looks at or hacks an NPC behind it; firing was never
   GUI-gated in the original, so a click on it while aiming still fires, then holsters.
+
+- **The original's fonts, outlined text and floating text (U.INC-T31).** game-content.json's
+  `Fonts` catalogues the original's three fonts by their `.font.gmx` face and point size —
+  fnt_basic (Arial 12pt), fnt_large (High Tower Text 16pt), fnt_system (Lucida Console 8pt) — and
+  every HUD label takes its size from it (`GameFontDefinition`, `GameFonts`). GameMaker baked each
+  font into a glyph atlas on the author's 120 DPI (125%) desktop, so the sizes the player actually
+  saw are 20, 26.7 and 13.3 reference pixels, not the 96 DPI 16/21.3/10.7:
+  `OriginalFontParityTests` proves the 120 DPI from the atlases themselves (fnt_basic's 23px Arial
+  line, fnt_system's 8px Lucida Console advance) and diffs the catalog against `fonts/*.font.gmx`.
+  **Deviation:** all three draw as Arial (the HUD panel's built-in LegacyRuntime.ttf); High Tower
+  Text and Lucida Console are Microsoft-licensed system fonts the rebuild can't ship. Size,
+  colour, outline and placement are the original's. `OutlinedText` (`Scripts/UI`) is the
+  original's four draw calls as UI Toolkit styles: `Plain` (draw_text: obj_console's readout,
+  output and input, fnt_system, unoutlined; its output keeps spaces, so the help text's indent no
+  longer collapses), `Outline` (draw_text_outline, white over black: obj_room's name and obj_npc's
+  "NN%" in fnt_large at 1px, obj_debug's F12 readout in fnt_basic at 2px, at obj_debug's 100,80),
+  `OutlineAlpha` (draw_text_outline_alpha: obj_exit's door label and obj_typewriter's
+  descriptions, fnt_large, 1px, faded as a whole) and `OutlineColor` (draw_text_outline_color).
+  The NPC's suspicion label is now a UI Toolkit label like the rest (it was the last world-space
+  `TextMesh`), centred (fa_center) with its top 200px above the NPC's origin. GM8's text
+  conventions are `GmText` (Core): `#` is a line break, `##` a blank line, `\#` a literal hash
+  (command_list.gml's `"SHP\#"`). game-content.json's display strings (room names, door labels,
+  prop and NPC descriptions, the opening poem, the console's copy) are written in that original
+  form and expanded once, when the content loads, so nothing downstream ever sees a GM `#`.
+  show_float_text/show_float_text_color and obj_float_text are `FloatText` (`Scripts/UI`) over
+  `FloatTextState` (Core): fnt_basic, centred, 1px outline, drawn 10px above its point, rising 1px
+  and fading 0.007 a 60Hz step, destroyed on the step after its alpha runs out (144 steps). No
+  live original object calls either script, so, as in the original, nothing shows one yet; the
+  API is ported for the game's own use, not wired to an invented trigger.
 
 ## Laws
 

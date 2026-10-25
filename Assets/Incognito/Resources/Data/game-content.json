@@ -7,14 +7,14 @@
       "BackgroundSlices": ["bg_street00_00", "bg_street00_01", "bg_street00_02", "bg_street00_03", "bg_street00_04", "bg_street00_05"],
       "PlayerStartX": 11008.0,
       "Lampposts": [
-        { "X": 1632.0, "Description": "It's a lamp post.\nNothing sinister about that..." },
-        { "X": 4032.0, "Description": "It's a lamp post.\nNothing sinister about that..." },
-        { "X": 6496.0, "Description": "It's a lamp post.\nNothing sinister about that..." },
-        { "X": 8928.0, "Description": "It's a lamp post.\nNothing sinister about that..." }
+        { "X": 1632.0, "Description": "It's a lamp post.#Nothing sinister about that..." },
+        { "X": 4032.0, "Description": "It's a lamp post.#Nothing sinister about that..." },
+        { "X": 6496.0, "Description": "It's a lamp post.#Nothing sinister about that..." },
+        { "X": 8928.0, "Description": "It's a lamp post.#Nothing sinister about that..." }
       ],
       "Mailboxes": [
-        { "X": 672.0, "Description": "It's just a mailbox.\n...or is it?" },
-        { "X": 7104.0, "Description": "It's just a mailbox.\n...or is it?" }
+        { "X": 672.0, "Description": "It's just a mailbox.#...or is it?" },
+        { "X": 7104.0, "Description": "It's just a mailbox.#...or is it?" }
       ],
       "SideExits": [
         { "X": -32.0, "To": "Street01", "Enter": 1, "EnterX": 0.0 },
@@ -27,7 +27,7 @@
       "Rain": true,
       "KeepNpc": true,
       "Music": "music_oppressivegloom",
-      "OpeningText": "In a strange city lying alone\nFar down within the dim West,\nWhere the good and the bad and the worst and the best\nHave gone to their eternal rest.\nThere shrines and palaces and towers\n(Time-eaten towers that tremble not!)\nResemble nothing that is ours.\nAround, by lifting winds forgot,\nResignedly beneath the sky\nThe melancholy waters lie.",
+      "OpeningText": "In a strange city lying alone#Far down within the dim West,#Where the good and the bad and the worst and the best#Have gone to their eternal rest.#There shrines and palaces and towers#(Time-eaten towers that tremble not!)#Resemble nothing that is ours.#Around, by lifting winds forgot,#Resignedly beneath the sky#The melancholy waters lie.",
       "OpeningTextX": 10870.0,
       "OpeningTextY": 100.0
     },
@@ -78,7 +78,7 @@
       "Id": "0097",
       "SheepId": "0097",
       "RoomId": "Street00",
-      "Description": "A young woman with tell tale red eyes and a meandering gait.\nBless the young and stoned.",
+      "Description": "A young woman with tell tale red eyes and a meandering gait.#Bless the young and stoned.",
       "SpawnX": 2400.0,
       "Waypoints": [9000.0, 2400.0],
       "WalkSpeed": 5.0,
@@ -86,8 +86,8 @@
     }
   ],
   "Console": {
-    "HelpText": "help\n\n   list: List objects in vicinity\n   reboot: Reboots an object\n   overwrite: Overwrite command level function",
-    "ListUsageText": "list\n\n   Usage:\n   list all: List all objects in vicinity\n   list [type]: List all objects of a certain type.\n   [sheep, camera, computer].",
+    "HelpText": "help##   list: List objects in vicinity#   reboot: Reboots an object#   overwrite: Overwrite command level function",
+    "ListUsageText": "list##   Usage:#   list all: List all objects in vicinity#   list [type]: List all objects of a certain type.#   [sheep, camera, computer].",
     "SheepHeader": "Detected civilians:",
     "CameraHeader": "Detected cameras:",
     "ComputerHeader": "Detected computers:",
@@ -188,6 +188,11 @@
     { "Id": "bg_shop_00", "File": "Backgrounds/bg_shop_00.png", "Width": 1920, "Height": 1080, "OriginX": 0, "OriginY": 0, "Compressed": true, "Tiled": false, "UsedBy": "shop.room.gmx tile slice 0", "Live": true },
     { "Id": "bg_shop_01", "File": "Backgrounds/bg_shop_01.png", "Width": 1920, "Height": 1080, "OriginX": 0, "OriginY": 0, "Compressed": true, "Tiled": false, "UsedBy": "shop.room.gmx tile slice 1", "Live": true },
     { "Id": "bg_shop_02", "File": "Backgrounds/bg_shop_02.png", "Width": 1920, "Height": 1080, "OriginX": 0, "OriginY": 0, "Compressed": true, "Tiled": false, "UsedBy": "shop.room.gmx tile slice 2", "Live": true }
+  ],
+  "Fonts": [
+    { "Id": "fnt_basic", "Face": "Arial", "PointSize": 12, "Bold": false, "Italic": false, "UsedBy": "obj_float_text (show_float_text/_color), obj_debug, obj_game, obj_startup draw" },
+    { "Id": "fnt_large", "Face": "High Tower Text", "PointSize": 16, "Bold": false, "Italic": false, "UsedBy": "obj_room name, obj_exit label, obj_typewriter, obj_npc suspicion draw" },
+    { "Id": "fnt_system", "Face": "Lucida Console", "PointSize": 8, "Bold": false, "Italic": false, "UsedBy": "obj_console, obj_program, obj_icon_pistol draw" }
   ],
   "TitleScreen": { "Music": "music_oppressivegloom", "UnwiredTrack": "whispers" }
 }

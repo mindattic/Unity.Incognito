@@ -32,6 +32,10 @@ namespace Incognito.Content
         /// GameMaker origin, looked up by id.</summary>
         public ArtDefinition[] Art = Array.Empty<ArtDefinition>();
 
+        /// <summary>The original's three fonts (U.INC-T31): every text element's size comes from
+        /// here, looked up by id (<see cref="GameFonts"/>).</summary>
+        public GameFontDefinition[] Fonts = Array.Empty<GameFontDefinition>();
+
         public RoomDefinition FindRoom(string id)
         {
             foreach (RoomDefinition room in Rooms)
@@ -56,6 +60,14 @@ namespace Incognito.Content
             return null;
         }
 
+        public GameFontDefinition FindFont(string id)
+        {
+            foreach (GameFontDefinition font in Fonts)
+                if (string.Equals(font.Id, id, StringComparison.OrdinalIgnoreCase))
+                    return font;
+            return null;
+        }
+
         public NpcDefinition FindNpc(string id)
         {
             foreach (NpcDefinition npc in Npcs)
@@ -65,7 +77,7 @@ namespace Incognito.Content
         }
 
         /// <summary>
-        /// Validates every room, NPC, sound and art entry, then the cross-references between them (a side exit
+        /// Validates every room, NPC, sound, art and font entry, then the cross-references between them (a side exit
         /// or door naming a room that exists, an NPC's RoomId existing and its SpawnX inside that
         /// room, a room's or the title's track naming a catalogued sound, a room's background slice naming catalogued art). Throws <see cref="SettingsValidationException"/> on the first problem found.
         /// </summary>
@@ -159,6 +171,22 @@ namespace Incognito.Content
                         if (!artIds.Contains(slice))
                             throw new SettingsValidationException("Room '" + room.Id + "'s background slice '" + slice + "' is not in Art.");
             }
+
+            // Fonts (U.INC-T31): unique ids, and a catalog that has any fonts has all three the HUD
+            // draws with. A content with none (a hand-built test fixture) skips the check.
+            if (Fonts == null)
+                throw new SettingsValidationException("GameContent.Fonts must not be null.");
+            var fontIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (GameFontDefinition font in Fonts)
+            {
+                font.Validate();
+                if (!fontIds.Add(font.Id))
+                    throw new SettingsValidationException("Two fonts share the id '" + font.Id + "'.");
+            }
+            if (Fonts.Length > 0)
+                foreach (string id in GameFonts.All)
+                    if (!fontIds.Contains(id))
+                        throw new SettingsValidationException("Fonts has no '" + id + "', which the HUD draws with.");
         }
 
         private static void CheckSound(HashSet<string> soundIds, string what, string id)
@@ -195,6 +223,7 @@ namespace Incognito.Content
                 Sounds = root.GetObjectArray(nameof(Sounds), SoundDefinition.FromJson),
                 TitleScreen = TitleScreenSpec.FromJson(root.GetObject(nameof(TitleScreen))),
                 Art = root.GetObjectArray(nameof(Art), ArtDefinition.FromJson),
+                Fonts = root.GetObjectArray(nameof(Fonts), GameFontDefinition.FromJson),
             };
         }
     }

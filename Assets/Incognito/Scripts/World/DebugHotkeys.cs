@@ -1,3 +1,4 @@
+using Incognito.Content;
 using Incognito.Controls;
 using Incognito.Player;
 using Incognito.Terminal;
@@ -40,10 +41,10 @@ namespace Incognito.World
             HudRoot.EnsureInstalled();
             readoutLabel = new Label { pickingMode = PickingMode.Ignore };
             readoutLabel.style.position = Position.Absolute;
-            readoutLabel.style.left = 8f;
-            readoutLabel.style.top = 8f;
-            readoutLabel.style.color = Color.white;
-            readoutLabel.style.whiteSpace = WhiteSpace.Pre;
+            // obj_debug's draw-GUI: fnt_basic, draw_text_outline(100, 80, 2, ...) (U.INC-T31).
+            readoutLabel.style.left = 100f;
+            readoutLabel.style.top = 80f;
+            OutlinedText.Outline(readoutLabel, GameFonts.Basic, 2);
             readoutLabel.style.display = DisplayStyle.None;
             HudRoot.RoomInfo.Add(readoutLabel);
         }

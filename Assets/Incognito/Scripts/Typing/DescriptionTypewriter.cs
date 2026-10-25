@@ -1,5 +1,5 @@
+using Incognito.Content;
 using Incognito.UI;
-using Incognito.World;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -18,7 +18,6 @@ namespace Incognito.Typing
         private const float BoxPadLeft = 40f;   // draw_sprite_ext(spr_desc_border, 0, x - 40, ...)
         private const float BoxPadTop = 20f;    // ..., y - 20, ...)
         private const float BoxAlpha = 0.5f;
-        private const int FontSize = 24;        // fnt_large: High Tower Text 16pt
 
         public TypewriterState State { get; private set; }
 
@@ -59,7 +58,8 @@ namespace Incognito.Typing
             HudRoot.WorldLabels.Add(box);
 
             textLabel = new Label(text) { pickingMode = PickingMode.Ignore };
-            OutlinedText.Style(textLabel, FontSize);
+            // obj_typewriter's draw: fa_left, c_white, fnt_large, draw_text_outline_alpha(x, y, 1, copystring, alpha).
+            OutlinedText.OutlineAlpha(textLabel, GameFonts.Large, 1, Color.white);
             textLabel.style.position = Position.Absolute;
             textLabel.style.visibility = Visibility.Hidden;
             HudRoot.WorldLabels.Add(textLabel);
@@ -107,15 +107,12 @@ namespace Incognito.Typing
         private void ApplyPosition()
         {
             var cam = viewCamera != null ? viewCamera : Camera.main;
-            if (cam == null || box.panel == null)
+            if (!HudRoot.TryWorldToPanel(cam, transform.position, out Vector2 panelPos))
             {
                 box.style.visibility = Visibility.Hidden;
                 textLabel.style.visibility = Visibility.Hidden;
                 return;
             }
-
-            Vector3 screen = cam.WorldToScreenPoint(transform.position);
-            Vector2 panelPos = RuntimePanelUtils.ScreenToPanel(box.panel, new Vector2(screen.x, Screen.height - screen.y));
 
             box.style.left = panelPos.x - BoxPadLeft;
             box.style.top = panelPos.y - BoxPadTop;
@@ -124,7 +121,7 @@ namespace Incognito.Typing
 
             textLabel.style.left = panelPos.x;
             textLabel.style.top = panelPos.y;
-            textLabel.style.opacity = State.Alpha;
+            OutlinedText.SetAlpha(textLabel, State.Alpha);
             textLabel.style.visibility = Visibility.Visible;
         }
     }

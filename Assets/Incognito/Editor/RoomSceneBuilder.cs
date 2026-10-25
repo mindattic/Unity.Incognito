@@ -148,11 +148,7 @@ namespace Incognito.EditorTools
 
             // Strip the sandbox-only stand-ins.
             var remove = new HashSet<string> { "Ground", "Markers", "Console Targets" };
-            if (!spec.KeepNpc)
-            {
-                remove.Add("NPC");
-                remove.Add("NPC Suspicion Label");
-            }
+            if (!spec.KeepNpc) remove.Add("NPC");
             foreach (var root in scene.GetRootGameObjects())
             {
                 if (remove.Contains(root.name)) Object.DestroyImmediate(root);

@@ -35,10 +35,6 @@ namespace Incognito.EditorTools
         // regardless of sortingOrder, the same depth trick RECONSTRUCTION.md §7 calls for (U.INC-T24).
         private const int BackdropOrder = -10;
         private const string BackPropLayer = "BackProps";
-        // Dev-only overlay (not part of the original): the frontmost sorting layer, so rain and
-        // front props drawing on their own layers now (U.INC-T24) can't cover it as they could
-        // when everything shared Default and only sortingOrder told them apart.
-        private const string OverlayLayer = "Cursor";
 
         [MenuItem("Incognito/Build Player Sandbox Scene")]
         public static void Build()
@@ -126,19 +122,7 @@ namespace Incognito.EditorTools
             var npcController = npc.AddComponent<NpcController>();
             npcController.Player = locomotion;
 
-            var label = new GameObject("NPC Suspicion Label", typeof(TextMesh));
-            var text = label.GetComponent<TextMesh>();
-            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            label.GetComponent<MeshRenderer>().sharedMaterial = text.font.material;
-            label.GetComponent<MeshRenderer>().sortingLayerName = OverlayLayer;
-            label.GetComponent<MeshRenderer>().sortingOrder = 10;
-            text.text = "0%";
-            text.fontSize = 48;
-            text.characterSize = 0.3f;
-            text.anchor = TextAnchor.MiddleCenter;
-            text.alignment = TextAlignment.Center;
-            text.color = Color.white;
-            label.transform.position = new Vector3(npc.transform.position.x, npc.transform.position.y + 200f * px, -1f);
+            // Its "NN%" suspicion label is a UI Toolkit label NpcController builds itself (U.INC-T31).
 
             var npcSo = new SerializedObject(npcController);
             var route = npcSo.FindProperty("waypoints");
@@ -146,7 +130,6 @@ namespace Incognito.EditorTools
             for (int i = 0; i < npcDef.Waypoints.Length; i++) route.GetArrayElementAtIndex(i).floatValue = npcDef.Waypoints[i];
             npcSo.FindProperty("walkSpeed").floatValue = npcDef.WalkSpeed;
             npcSo.FindProperty("arriveRange").floatValue = npcDef.ArriveRange;
-            npcSo.FindProperty("suspicionLabel").objectReferenceValue = text;
             npcSo.ApplyModifiedPropertiesWithoutUndo();
 
             // Orthographic view matching the original 1920x1080 window, resting with the

@@ -1,3 +1,4 @@
+using Incognito.Content;
 using Incognito.Controls;
 using Incognito.Player;
 using Incognito.Terminal;
@@ -40,8 +41,6 @@ namespace Incognito.World
         private bool taken;
         private Label labelElement;
 
-        private const float LabelWidth = 1200f; // fa_center over a 1200px-wide box, as the original's rect was
-
         public float Alpha => alpha;
 
         public void Configure(Vector2 position, string label, string nextRoom, RoomEntrance entrance, float enterX,
@@ -66,9 +65,9 @@ namespace Incognito.World
             HudRoot.EnsureInstalled();
             labelElement = new Label { pickingMode = PickingMode.Ignore };
             labelElement.style.position = Position.Absolute;
-            labelElement.style.width = LabelWidth;
-            labelElement.style.unityTextAlign = TextAnchor.UpperCenter;
-            OutlinedText.Style(labelElement);
+            // obj_exit's draw: fa_center, c_white, fnt_large, draw_text_outline_alpha(x, y - 100, 1, text, image_alpha).
+            OutlinedText.OutlineAlpha(labelElement, GameFonts.Large, 1, Color.white);
+            OutlinedText.CenterHorizontally(labelElement);
             HudRoot.WorldLabels.Add(labelElement);
 
             Apply();
@@ -135,22 +134,18 @@ namespace Incognito.World
 
         private void UpdateLabel()
         {
+            const float px = PlayerLocomotion.WorldUnitsPerOriginalPixel;
             var cam = viewCamera != null ? viewCamera : Camera.main;
-            if (cam == null || labelElement.panel == null || alpha <= 0f)
+            if (alpha <= 0f || !HudRoot.TryWorldToPanel(cam, transform.position + new Vector3(0f, LabelRise * px, 0f), out Vector2 panelPos))
             {
                 labelElement.style.display = DisplayStyle.None;
                 return;
             }
 
-            const float px = PlayerLocomotion.WorldUnitsPerOriginalPixel;
-            Vector3 screen = cam.WorldToScreenPoint(transform.position + new Vector3(0f, LabelRise * px, 0f));
-            // Original GUI space (top-left origin), like the OS screen point every other HUD element uses.
-            Vector2 panelPos = RuntimePanelUtils.ScreenToPanel(labelElement.panel, new Vector2(screen.x, Screen.height - screen.y));
-
             labelElement.text = label;
-            labelElement.style.opacity = alpha;
+            OutlinedText.SetAlpha(labelElement, alpha);
             labelElement.style.display = DisplayStyle.Flex;
-            labelElement.style.left = panelPos.x - LabelWidth * 0.5f; // fa_center
+            labelElement.style.left = panelPos.x; // fa_center: centred on x by CenterHorizontally
             labelElement.style.top = panelPos.y;
         }
     }

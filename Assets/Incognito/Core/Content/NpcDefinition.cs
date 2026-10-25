@@ -1,5 +1,6 @@
 using System;
 using Incognito.Settings;
+using Incognito.Text;
 using Unity.Shared.Core.Json;
 
 namespace Incognito.Content
@@ -21,7 +22,8 @@ namespace Incognito.Content
         /// <summary>The <see cref="RoomDefinition.Id"/> this NPC spawns in.</summary>
         public string RoomId = string.Empty;
 
-        /// <summary>Typed at a look-mode click (obj_npc's description; '#' became a newline).</summary>
+        /// <summary>Typed at a look-mode click (obj_npc's description). Authored in the original's
+        /// GM8 form and expanded on load (<see cref="GmText.Expand"/>: '#' is a newline).</summary>
         public string Description = string.Empty;
 
         /// <summary>Original px, within its room.</summary>
@@ -61,7 +63,7 @@ namespace Incognito.Content
             npc.Id = json.GetString(nameof(Id), npc.Id);
             npc.SheepId = json.GetString(nameof(SheepId), npc.SheepId);
             npc.RoomId = json.GetString(nameof(RoomId), npc.RoomId);
-            npc.Description = json.GetString(nameof(Description), npc.Description);
+            npc.Description = GmText.Expand(json.GetString(nameof(Description), npc.Description));
             npc.SpawnX = json.GetFloat(nameof(SpawnX), npc.SpawnX);
             npc.Waypoints = json.GetFloatArray(nameof(Waypoints));
             npc.WalkSpeed = json.GetFloat(nameof(WalkSpeed), npc.WalkSpeed);

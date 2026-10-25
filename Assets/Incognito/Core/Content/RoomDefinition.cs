@@ -1,5 +1,6 @@
 using System;
 using Incognito.Settings;
+using Incognito.Text;
 using Unity.Shared.Core.Json;
 
 namespace Incognito.Content
@@ -23,7 +24,7 @@ namespace Incognito.Content
             var spot = new PropSpot();
             if (json == null) return spot;
             spot.X = json.GetFloat(nameof(X), spot.X);
-            spot.Description = json.GetString(nameof(Description), spot.Description);
+            spot.Description = GmText.Expand(json.GetString(nameof(Description), spot.Description));
             return spot;
         }
     }
@@ -91,7 +92,7 @@ namespace Incognito.Content
             if (json == null) return door;
             door.X = json.GetFloat(nameof(X), door.X);
             door.Y = json.GetFloat(nameof(Y), door.Y);
-            door.Label = json.GetString(nameof(Label), door.Label);
+            door.Label = GmText.Expand(json.GetString(nameof(Label), door.Label));
             door.To = json.GetString(nameof(To), door.To);
             door.Enter = (RoomEntranceKind)json.GetInt(nameof(Enter), (int)door.Enter);
             door.EnterX = json.GetFloat(nameof(EnterX), door.EnterX);
@@ -185,13 +186,15 @@ namespace Incognito.Content
                 throw new SettingsValidationException(roomLabel + ": " + what + " at x=" + x + " is far outside the room (width " + width + ").");
         }
 
-        /// <summary>U.INC-T25: parsed with Unity.Shared.Core's engine-free <see cref="JsonObject"/> reader.</summary>
+        /// <summary>U.INC-T25: parsed with Unity.Shared.Core's engine-free <see cref="JsonObject"/> reader.
+        /// Display strings (the name, door labels, prop descriptions, opening text) are authored in
+        /// the original's GM8 form and expanded with <see cref="GmText.Expand"/> (U.INC-T31).</summary>
         public static RoomDefinition FromJson(JsonObject json)
         {
             var room = new RoomDefinition();
             if (json == null) return room;
             room.Id = json.GetString(nameof(Id), room.Id);
-            room.DisplayName = json.GetString(nameof(DisplayName), room.DisplayName);
+            room.DisplayName = GmText.Expand(json.GetString(nameof(DisplayName), room.DisplayName));
             room.Width = json.GetFloat(nameof(Width), room.Width);
             room.BackgroundSlices = json.GetStringArray(nameof(BackgroundSlices));
             room.PlayerStartX = json.GetFloat(nameof(PlayerStartX), room.PlayerStartX);
@@ -203,7 +206,7 @@ namespace Incognito.Content
             room.Rain = json.GetBool(nameof(Rain), room.Rain);
             room.KeepNpc = json.GetBool(nameof(KeepNpc), room.KeepNpc);
             room.Music = json.GetString(nameof(Music), room.Music);
-            room.OpeningText = json.GetString(nameof(OpeningText), room.OpeningText);
+            room.OpeningText = GmText.Expand(json.GetString(nameof(OpeningText), room.OpeningText));
             room.OpeningTextX = json.GetFloat(nameof(OpeningTextX), room.OpeningTextX);
             room.OpeningTextY = json.GetFloat(nameof(OpeningTextY), room.OpeningTextY);
             return room;

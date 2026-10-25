@@ -8,7 +8,8 @@ namespace Incognito.UI
     /// <see cref="World.Room"/>'s name, <see cref="World.DoorExit"/>'s label,
     /// <see cref="Typing.DescriptionTypewriter"/>, <see cref="Terminal.CommandPrompt"/>,
     /// <see cref="Hacking.HackingOverlay"/>, <see cref="World.RoomFade"/> and
-    /// <see cref="World.DebugHotkeys"/>'s readout. Nothing else in the project needs its own
+    /// <see cref="World.DebugHotkeys"/>'s readout, plus (U.INC-T31) <see cref="Npc.NpcController"/>'s
+    /// suspicion and <see cref="FloatText"/>, all styled by <see cref="OutlinedText"/>. Nothing else in the project needs its own
     /// PanelSettings asset or UIDocument — no Inspector wiring, just this one code-built panel.
     ///
     /// The panel's reference resolution is the original's 1920x1080 view, matched purely by screen
@@ -64,7 +65,9 @@ namespace Incognito.UI
             // No themeStyleSheet is assigned (there is no committed theme asset to point at), so
             // every element needs its own explicit font: UI Toolkit's runtime panel otherwise has
             // none to fall back on and text silently fails to render. Font is an inherited style,
-            // so setting it once here covers every label this file's consumers create.
+            // so setting it once here covers every label this file's consumers create. It is the
+            // one face for all three original fonts; each label sets its own size
+            // (OutlinedText.SetFont, U.INC-T31).
             root.style.unityFontDefinition = FontDefinition.FromFont(Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"));
 
             HackingBackdrop = AddLayer(root, "hacking-backdrop");
@@ -73,6 +76,25 @@ namespace Incognito.UI
             RoomInfo = AddLayer(root, "room-info");
             Fade = AddLayer(root, "fade");
             HudIcons = AddLayer(root, "hud-icons");
+        }
+
+        /// <summary>
+        /// Where <paramref name="world"/> is on the panel, in reference pixels from its top-left (the
+        /// original's GUI space): for labels anchored to something in the room (a door's name, a
+        /// typed description, an NPC's suspicion, floating text). False when there is no camera or
+        /// no panel yet.
+        /// </summary>
+        public static bool TryWorldToPanel(Camera camera, Vector3 world, out Vector2 panelPosition)
+        {
+            panelPosition = default;
+            if (camera == null || document == null) return false;
+            IPanel panel = document.rootVisualElement.panel;
+            if (panel == null) return false;
+
+            Vector3 screen = camera.WorldToScreenPoint(world);
+            // Top-left origin, like the OS screen point every other HUD element's hit-testing uses.
+            panelPosition = RuntimePanelUtils.ScreenToPanel(panel, new Vector2(screen.x, Screen.height - screen.y));
+            return true;
         }
 
         private static VisualElement AddLayer(VisualElement root, string name)

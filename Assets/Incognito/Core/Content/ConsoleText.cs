@@ -1,5 +1,6 @@
 using System;
 using Incognito.Settings;
+using Incognito.Text;
 using Unity.Shared.Core.Json;
 
 namespace Incognito.Content
@@ -10,23 +11,25 @@ namespace Incognito.Content
     /// literals embedded in <see cref="Incognito.Terminal.CommandInterpreter"/>'s methods, so the
     /// console's copy can be authored without touching code. Defaults below are the original's
     /// text, so <see cref="Incognito.Terminal.CommandInterpreter"/> behaves identically when no
-    /// data file overrides them (as in its own unit tests).
+    /// data file overrides them (as in its own unit tests). Like the data, the two multi-line
+    /// defaults are written in the original's GM8 form (<c>#</c> a line break, <c>##</c> a blank
+    /// line) and every string is expanded to display text (<see cref="GmText.Expand"/>, U.INC-T31).
     /// </summary>
     [Serializable]
     public sealed class ConsoleText
     {
-        public string HelpText =
-            "help\n\n" +
-            "   list: List objects in vicinity\n" +
-            "   reboot: Reboots an object\n" +
-            "   overwrite: Overwrite command level function";
+        public string HelpText = GmText.Expand(
+            "help##" +
+            "   list: List objects in vicinity#" +
+            "   reboot: Reboots an object#" +
+            "   overwrite: Overwrite command level function");
 
-        public string ListUsageText =
-            "list\n\n" +
-            "   Usage:\n" +
-            "   list all: List all objects in vicinity\n" +
-            "   list [type]: List all objects of a certain type.\n" +
-            "   [sheep, camera, computer].";
+        public string ListUsageText = GmText.Expand(
+            "list##" +
+            "   Usage:#" +
+            "   list all: List all objects in vicinity#" +
+            "   list [type]: List all objects of a certain type.#" +
+            "   [sheep, camera, computer].");
 
         public string SheepHeader = "Detected civilians:";
         public string CameraHeader = "Detected cameras:";
@@ -70,19 +73,19 @@ namespace Incognito.Content
         {
             var text = new ConsoleText();
             if (json == null) return text;
-            text.HelpText = json.GetString(nameof(HelpText), text.HelpText);
-            text.ListUsageText = json.GetString(nameof(ListUsageText), text.ListUsageText);
-            text.SheepHeader = json.GetString(nameof(SheepHeader), text.SheepHeader);
-            text.CameraHeader = json.GetString(nameof(CameraHeader), text.CameraHeader);
-            text.ComputerHeader = json.GetString(nameof(ComputerHeader), text.ComputerHeader);
-            text.NoneLabel = json.GetString(nameof(NoneLabel), text.NoneLabel);
-            text.NoObjectsDetectedText = json.GetString(nameof(NoObjectsDetectedText), text.NoObjectsDetectedText);
-            text.NotRecognizedText = json.GetString(nameof(NotRecognizedText), text.NotRecognizedText);
-            text.ObjectNotFoundPrefix = json.GetString(nameof(ObjectNotFoundPrefix), text.ObjectNotFoundPrefix);
-            text.RebootSummary = json.GetString(nameof(RebootSummary), text.RebootSummary);
-            text.RebootProgressive = json.GetString(nameof(RebootProgressive), text.RebootProgressive);
-            text.OverwriteSummary = json.GetString(nameof(OverwriteSummary), text.OverwriteSummary);
-            text.OverwriteProgressive = json.GetString(nameof(OverwriteProgressive), text.OverwriteProgressive);
+            text.HelpText = GmText.Expand(json.GetString(nameof(HelpText), text.HelpText));
+            text.ListUsageText = GmText.Expand(json.GetString(nameof(ListUsageText), text.ListUsageText));
+            text.SheepHeader = GmText.Expand(json.GetString(nameof(SheepHeader), text.SheepHeader));
+            text.CameraHeader = GmText.Expand(json.GetString(nameof(CameraHeader), text.CameraHeader));
+            text.ComputerHeader = GmText.Expand(json.GetString(nameof(ComputerHeader), text.ComputerHeader));
+            text.NoneLabel = GmText.Expand(json.GetString(nameof(NoneLabel), text.NoneLabel));
+            text.NoObjectsDetectedText = GmText.Expand(json.GetString(nameof(NoObjectsDetectedText), text.NoObjectsDetectedText));
+            text.NotRecognizedText = GmText.Expand(json.GetString(nameof(NotRecognizedText), text.NotRecognizedText));
+            text.ObjectNotFoundPrefix = GmText.Expand(json.GetString(nameof(ObjectNotFoundPrefix), text.ObjectNotFoundPrefix));
+            text.RebootSummary = GmText.Expand(json.GetString(nameof(RebootSummary), text.RebootSummary));
+            text.RebootProgressive = GmText.Expand(json.GetString(nameof(RebootProgressive), text.RebootProgressive));
+            text.OverwriteSummary = GmText.Expand(json.GetString(nameof(OverwriteSummary), text.OverwriteSummary));
+            text.OverwriteProgressive = GmText.Expand(json.GetString(nameof(OverwriteProgressive), text.OverwriteProgressive));
             return text;
         }
     }

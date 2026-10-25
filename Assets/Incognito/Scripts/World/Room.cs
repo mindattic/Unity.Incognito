@@ -1,4 +1,5 @@
 using Incognito.Audio;
+using Incognito.Content;
 using Incognito.Player;
 using Incognito.Typing;
 using Incognito.UI;
@@ -72,7 +73,8 @@ namespace Incognito.World
             nameLabel.style.position = Position.Absolute;
             nameLabel.style.left = NameInset;
             nameLabel.style.top = NameInset;
-            OutlinedText.Style(nameLabel);
+            // obj_room's draw-GUI: fnt_large, draw_text_outline(20, 20, 1, name).
+            OutlinedText.Outline(nameLabel, GameFonts.Large, 1);
             HudRoot.RoomInfo.Add(nameLabel);
         }
 

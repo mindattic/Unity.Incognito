@@ -1,7 +1,10 @@
+using Incognito.Content;
 using Incognito.Player;
 using Incognito.Settings;
+using Incognito.UI;
 using Incognito.World;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Incognito.Npc
 {
@@ -9,8 +12,9 @@ namespace Incognito.Npc
     /// An NPC's view: it seats the NPC in the world (<see cref="NpcPatrolState"/> and
     /// <see cref="SuspicionMeter"/> live there, stepped by the session) and applies that state to the
     /// transform, sprite and the "NN%" suspicion label the original drew over the NPC's head
-    /// (draw_text_outline at y - 200). It changes the NPC only by sending commands. See
-    /// docs/RECONSTRUCTION.md §4. Talk mode (U.INC-T6) is driven from <see cref="NpcInteraction"/>;
+    /// (obj_npc's draw: fa_center, fnt_large, draw_text_outline(x, y - 200, 1, ...)), a UI Toolkit
+    /// label on <see cref="HudRoot.WorldLabels"/> (U.INC-T31; was a world-space TextMesh). It
+    /// changes the NPC only by sending commands. See docs/RECONSTRUCTION.md §4. Talk mode (U.INC-T6) is driven from <see cref="NpcInteraction"/>;
     /// pointer mode is U.INC-T7.
     /// </summary>
     [RequireComponent(typeof(SpriteRenderer))]
@@ -25,10 +29,8 @@ namespace Incognito.Npc
         [SerializeField] private float walkSpeed = 5f;
         [SerializeField] private float arriveRange = 20f;
 
-        [Header("Suspicion")]
-        [SerializeField] private TextMesh suspicionLabel;
-        [Tooltip("Label height above the NPC's origin, in original pixels.")]
-        [SerializeField] private float labelHeight = 200f;
+        // draw_text_outline(x, y - 200, ...): the label's top is 200px above the NPC's origin.
+        private const float LabelHeight = 200f;
 
         /// <summary>This NPC in the world; read it, never write it.</summary>
         public NpcEntity Entity { get; private set; }
@@ -47,11 +49,23 @@ namespace Incognito.Npc
         private SpriteRenderer spriteRenderer;
         private GameSession session;
         private float baseY;
+        private Label suspicionLabel;
+
+        /// <summary>The suspicion label's text as drawn ("NN%"), for tests.</summary>
+        public string SuspicionText => suspicionLabel != null ? suspicionLabel.text : string.Empty;
 
         private void Awake()
         {
             spriteRenderer = GetComponent<SpriteRenderer>();
             baseY = transform.position.y;
+
+            HudRoot.EnsureInstalled();
+            suspicionLabel = new Label { pickingMode = PickingMode.Ignore };
+            suspicionLabel.style.position = Position.Absolute;
+            OutlinedText.Outline(suspicionLabel, GameFonts.Large, 1);
+            OutlinedText.CenterHorizontally(suspicionLabel);
+            suspicionLabel.style.display = DisplayStyle.None;
+            HudRoot.WorldLabels.Add(suspicionLabel);
         }
 
         // Start, not Awake: the player's seat (and so the session) is set in its Awake.
@@ -84,6 +98,7 @@ namespace Incognito.Npc
 
         private void OnDestroy()
         {
+            suspicionLabel?.RemoveFromHierarchy();
             var target = GetComponent<Incognito.Weapon.BulletTarget>();
             if (target != null) target.Struck -= OnStruck;
             if (session != null && Entity != null) session.World.RemoveNpc(Entity.Id);
@@ -114,13 +129,16 @@ namespace Incognito.Npc
                 transform.position.z);
             spriteRenderer.flipX = patrol.Facing == PlayerLocomotionState.FacingDirection.Right;
 
-            if (suspicionLabel != null)
+            if (HudRoot.TryWorldToPanel(Camera.main, transform.position + new Vector3(0f, LabelHeight * Px, 0f), out Vector2 at))
             {
                 suspicionLabel.text = Entity.Suspicion.DisplayPercent + "%";
-                suspicionLabel.transform.position = new Vector3(
-                    transform.position.x,
-                    transform.position.y + labelHeight * Px,
-                    suspicionLabel.transform.position.z);
+                suspicionLabel.style.left = at.x;
+                suspicionLabel.style.top = at.y;
+                suspicionLabel.style.display = DisplayStyle.Flex;
+            }
+            else
+            {
+                suspicionLabel.style.display = DisplayStyle.None;
             }
         }
     }

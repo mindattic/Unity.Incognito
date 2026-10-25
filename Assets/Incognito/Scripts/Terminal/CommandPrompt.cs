@@ -1,3 +1,4 @@
+using Incognito.Content;
 using Incognito.Controls;
 using Incognito.Player;
 using Incognito.UI;
@@ -49,7 +50,6 @@ namespace Incognito.Terminal
         private const float InputTop = 170f;         // console[0].inputY = y + 170
         private const float CpuTop = 8f;             // draw_text(inputX + 450, y + 8, "CPU: ...")
         private const float CpuRight = 450f;
-        private const float FontSize = 18f;
 
         private static CommandPrompt openPrompt;
 
@@ -226,7 +226,8 @@ namespace Incognito.Terminal
 
             outputLabel = new Label { pickingMode = PickingMode.Ignore };
             StyleText(outputLabel);
-            outputLabel.style.whiteSpace = WhiteSpace.Normal;
+            // Spaces kept (the help text's indent), wrapping only at the panel's edge as a safety net.
+            outputLabel.style.whiteSpace = WhiteSpace.PreWrap;
             outputLabel.style.position = Position.Absolute;
             outputLabel.style.left = InputInset;
             outputLabel.style.top = OutputTop;
@@ -278,10 +279,10 @@ namespace Incognito.Terminal
             cpuLabel.text = CpuText;
         }
 
+        // obj_console's draw: c_white, fnt_system, plain draw_text (no outline).
         private static void StyleText(Label label)
         {
-            label.style.color = Color.white;
-            label.style.fontSize = FontSize;
+            OutlinedText.Plain(label, GameFonts.System, Color.white);
         }
 
         /// <summary>Strips the TextField's default box chrome so only its text shows, like the
@@ -313,7 +314,7 @@ namespace Incognito.Terminal
             input.style.paddingLeft = 0;
             input.style.paddingTop = 0;
             input.style.color = Color.white;
-            input.style.fontSize = FontSize;
+            OutlinedText.SetFont(input, GameFonts.System);
         }
     }
 }
