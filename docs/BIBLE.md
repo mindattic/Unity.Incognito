@@ -35,22 +35,41 @@ of the usual wide adventure-game establishing shot — the game's whole premise 
 
 ## Systems (status tracked per-story in docs/USER_STORIES.md)
 
-| System | Reconstruction ref | Ticket |
-|---|---|---|
-| Player locomotion (walk bob, sprint, facing) | §1 | U.INC-T3 |
-| Close-framing camera | §2 | U.INC-T4 |
-| Eye-tracking cursor (pupil parallax + blink + mode sprites) | §3 | U.INC-T5 |
-| Cursor mode cycling (look/talk) | §3 | U.INC-T6 |
-| Hacking/console overlay (pointer-mode click) | §5 | U.INC-T7 |
-| NPC patrol + suspicion meter | §4 | U.INC-T8 |
-| Weapon equip/aim/fire | §1 | U.INC-T9 |
-| Typed command console | §6 | U.INC-T10 |
-| Rooms, parallax props, audio | §7, §8 | U.INC-T11 |
+Every system below is built. Core is `Assets/Incognito/Core` (engine-free), Runtime is
+`Assets/Incognito/Scripts`, and the proving tests are in `Tests/Core.Tests` (dotnet test) and
+`Assets/Incognito/Tests/{EditMode,PlayMode}`.
+
+| System | Reconstruction ref | Code (Core / Runtime) | Ticket | Story | Proved by |
+|---|---|---|---|---|---|
+| Player locomotion (walk bob, sprint, facing) | §1 | `Player/PlayerLocomotionState`, `Motion/TriangleWaveBob` / `Player/PlayerLocomotion` | U.INC-T3 | US-A1 | `PlayerLocomotionStateTests` |
+| Close-framing camera | §2 | `CameraRig/CloseFramingCameraState` / `CameraRig/CloseFramingCamera` | U.INC-T4 | US-A2 | `CloseFramingCameraStateTests` |
+| Eyeball and eye cursor (parallax, blink, mode sprites) | §3 | `Eye/EyeballState` / `Eye/PlayerEyeball`, `Eye/EyeCursor` | U.INC-T5 | US-A3 | `EyeballStateTests` |
+| Cursor mode cycling (look/talk) and descriptions | §3, §4 | `Typing/TypewriterState` / `Npc/NpcInteraction`, `Typing/DescriptionTypewriter` | U.INC-T6 | US-A4 | `CursorModeCyclingTests`, `TypewriterStateTests` |
+| Hacking overlay (console view, pointer-click hack) | §5 | / `Hacking/HackingOverlay`, `Hacking/HackingSession` | U.INC-T7 | US-A5 | `HackingOverlayTests` |
+| NPC patrol and suspicion meter | §4 | `Npc/NpcPatrolState`, `Npc/SuspicionMeter` / `Npc/NpcController` | U.INC-T8 | US-A6 | `NpcPatrolStateTests`, `SuspicionMeterTests` |
+| Weapon equip/aim/fire and bullet | §1 | `Weapon/PlayerWeaponState`, `ArmSwingState`, `BulletState` / `Weapon/PlayerWeapon`, `Bullet` | U.INC-T9 | US-A7 | `PlayerWeaponStateTests`, `BulletStateTests`, `BulletTests` |
+| Typed command console | §6 | `Terminal/CommandInterpreter`, `Vicinity` / `Terminal/CommandPrompt` | U.INC-T10 | US-A8 | `CommandInterpreterTests`, `TerminalRuntimeTests` |
+| Rooms, props, exits, rain, music and sound | §7, §8 | `World/GameWorld`, `RoomExitRules`, `RoomFadeState`, `RainState` / `World/RoomBootstrap`, `RoomComposer`, `Audio/` | U.INC-T11, T26 | US-A9 | `RoomTraversalPlayTests`, `RoomSceneBuilderTests`, `RoomRuleTests` |
+| Debug keys (Escape, F1, F12) | §9 | / `World/DebugHotkeys` | U.INC-T15 | — | `DebugHotkeysTests` |
+| Commands and events, multiplayer seams | — | `World/GameWorld`, `GameCommand`, `GameEvent`, `Ids` | U.INC-T21 | — | `GameWorldTests` |
+| Content and tuning as validated data | — | `Settings/SettingsRegistry`, `Content/GameContent` / `Settings/GameSettings` | U.INC-T22, T25 | — | `SettingsRegistryTests`, `GameContentTests`, `JsonParsingTests`, `FieldCoverageTests`, `GameSettingsTests` |
+| Input System | — | `Controls/InputSnapshot` / `Controls/GameInput` | U.INC-T23 | — | `GameWorldTests` (Core reads controls as plain data); `GameInput` itself has no test |
+| HUD pistol icon and GUI-layer clicks | §10 | / `Weapon/HudPistolIcon`, `Hacking/HackingSession` (`MouseGui`) | U.INC-T30 | US-A10 | `HudPistolIconPlayTests`, `HackingOverlayTests` |
+| Sound catalog | §8, §10 | `Content/SoundDefinition` | U.INC-T28 | US-A11 | `OriginalAudioParityTests` |
+| Fonts, outlined text, floating text | §10 | `Text/GmText`, `Text/FloatTextState`, `Content/GameFontDefinition` / `UI/OutlinedText`, `UI/FloatText`, `UI/HudRoot` | U.INC-T31 | US-A12 | `OriginalFontParityTests`, `GmTextTests`, `OriginalTextPlayTests` |
+| Screen ratio, letterbox, fullscreen | §10 | `Display/ScreenRatio` / `Display/GameDisplay` | U.INC-T32 | US-A13 | `ScreenRatioTests`, `GameDisplayTests` |
+| Art catalog | §10 | `Content/ArtDefinition` / Editor `OriginalArt` | U.INC-T29 | US-A14 | `OriginalArtParityTests` |
+| End-to-end parity run | all | — | U.INC-T35 (open) | US-A15 | — |
+
+Still open: U.INC-T35 (the final scripted parity run with screenshots, US-A15), U.INC-T39
+(drawing the imported but unwired spr_brain_select, spr_cursor_arrow and spr_stealthwall) and
+U.INC-T41 (the muzzle smoke, see the Weapon decision).
 
 ## Decisions beyond the original (not yet made — flag when a ticket hits these)
 
 - What happens at 100% suspicion (the original never wired a consequence — RECONSTRUCTION, Open
-  questions).
+  questions). The rebuild clamps the meter at 100% and does nothing more, as the original did
+  nothing.
 
 ## Decisions made
 
@@ -60,7 +79,7 @@ of the usual wide adventure-game establishing shot — the game's whole premise 
   letterboxed, so that is always 1920). The original's `y = mouse_y` was a no-op
   (its room was exactly view-height), so the rebuild makes it a direct, instant, bounded pan: mouse
   height on screen maps linearly onto ±135 original px (one eighth of the view height) around the
-  camera's resting height. See `Assets/Incognito/Scripts/CameraRig/CloseFramingCameraState.cs`.
+  camera's resting height. See `Assets/Incognito/Core/CameraRig/CloseFramingCameraState.cs`.
 - **Eyeball and eye cursor (U.INC-T5).** Two systems, as in the original: `PlayerEyeball` (obj_eye)
   and `EyeCursor` (obj_mouse), both under `Assets/Incognito/Scripts/Eye/`. The eye keeps obj_eye's
   numbers verbatim (socket -108/+93 px by facing, pupil `7 + dx/160`, `-3 + mouse_y/160`, aim snap
@@ -88,8 +107,8 @@ of the usual wide adventure-game establishing shot — the game's whole premise 
   if the player is idle and not aiming); it resumes its route 200 steps after the player's last
   walking step whichever way they walk (the original used 100 when walking left); the description
   box fades with its text and is sized to the text rather than `string_width * 3`. See
-  `Assets/Incognito/Scripts/Npc/NpcInteraction.cs`, `NpcPatrolState.cs` and
-  `Assets/Incognito/Scripts/Typing/`.
+  `Assets/Incognito/Scripts/Npc/NpcInteraction.cs`, `Assets/Incognito/Core/Npc/NpcPatrolState.cs`
+  and `Assets/Incognito/{Core,Scripts}/Typing/`.
 - **Typed console stubs (U.INC-T10).** `help`, `list`, `list sheep`, `clear` and "Command not
   recognized" are ported verbatim (`#` line breaks become `\n`). The original's stubs get small,
   consequence-free implementations: `list camera`/`list computer` follow `list sheep`'s pattern
@@ -104,14 +123,14 @@ of the usual wide adventure-game establishing shot — the game's whole premise 
   arrival. The rebuild gives each NPC a data route of X waypoints walked in order and looped,
   turning on arrival (`a_near_b` ±20px); a one-waypoint route walks there and coasts to a stop
   through the original's otherwise-unreached `"stopping"` friction. Speed (5px/step), arrive range
-  and the 2-step start alarm are as the original. See `Assets/Incognito/Scripts/Npc/NpcPatrolState.cs`.
+  and the 2-step start alarm are as the original. See `Assets/Incognito/Core/Npc/NpcPatrolState.cs`.
 - **Suspicion meter (U.INC-T8).** Rates, ranges and the accelerating out-of-range decay are the
-  original's, as serialized `SuspicionTuning` data. Three cleanups: suspicion is clamped to
+  original's, as `SuspicionTuning` data (since U.INC-T22, `Suspicion` in game-tuning.json). Three cleanups: suspicion is clamped to
   0–100% (the original went negative and past 100); "facing each other" needs each to face toward
   the other (the original also counted back to back); "looking down" is the cursor in the lower
   half of the screen (the original's `mouse_y > room_height/2`, which equalled the screen since
   room and view were the same height). The range bands use the live view width. What 100% *does*
-  is still open (below). See `Assets/Incognito/Scripts/Npc/SuspicionMeter.cs`.
+  is still open (above). See `Assets/Incognito/Core/Npc/SuspicionMeter.cs`.
 - **Weapon (U.INC-T9).** Ported as the original had it: Z draws/holsters, holding the right button
   aims (walking locked), the left button fires a bullet that travels and shoves an NPC 100px on a
   hit (`BulletTarget`). GM quirks cleaned up rather than ported: releasing aim within the 5-step
@@ -119,8 +138,10 @@ of the usual wide adventure-game establishing shot — the game's whole premise 
   swing (6°/0.24) applies walking either direction, not only left; the idle relax lands exactly on 0
   instead of jittering. The 10px arm "recoil" in `shoot_bullet.gml` was a no-op and is not ported.
   Aim angle stays screen-relative (cursor height in the view), as the original's was. Bullets are
-  swept per frame (linecast) so the 60px/step shot can't skip a thin target. Sounds and the muzzle
-  smoke are optional fields until U.INC-T11 imports the assets. `PlayerWeapon` sets the T5
+  swept per frame (linecast) so the 60px/step shot can't skip a thin target. The weapon sounds
+  are the original assets, wired since U.INC-T11. The muzzle smoke (shoot_bullet.gml's
+  `effect_create_below(ef_smoke, ..., 1, c_black)`, a GameMaker built-in effect with no asset) is
+  still an unassigned `muzzleEffect` hook on `PlayerWeapon`: a known gap, U.INC-T41. `PlayerWeapon` sets the T5
   `Aiming` flag on `EyeCursor` (reticle) and `PlayerEyeball` (fixed gaze) every frame. The sandbox
   NPC carries a `BulletTarget`, and `NpcController` routes the shove into its patrol position. The
   arm and bullet placeholders carry the original sprites' sizes and origins, so pivots and the
@@ -402,6 +423,36 @@ of the usual wide adventure-game establishing shot — the game's whole premise 
     into the one `Default.config.gmx`), created for every new project regardless of intent. The
     project only ever shipped a Windows build (RECONSTRUCTION §9's `Install\Incognito.exe`), so these
     carry no evidence of multi-platform intent and no gameplay to port.
+
+- **Architecture to the rebuild standard (U.INC-T19 to T23, T25, T27).** The code was rebuilt to
+  AGENTS.md's rebuild standard after the mechanics were ported; none of it changes gameplay.
+  - *Assemblies (T19).* `Incognito.Core` (`Assets/Incognito/Core`, `noEngineReferences`, its own
+    `Vec2`/`CoreMath` in place of `Vector2`/`Mathf`) holds every rule; `Incognito.Runtime`
+    (`Scripts`) references Core; `Incognito.Editor` and the EditMode/PlayMode test assemblies sit
+    on top. References are one-way and every asmdef is explicit.
+  - *Core tests outside Unity (T20).* `Tests/Core.Tests` compiles the Core sources into a plain
+    .NET test project run by `dotnet test` (`run-core-tests.ps1`); EditMode keeps the
+    MonoBehaviour-layer tests and PlayMode the traversal, HUD and text tests.
+  - *Commands and events (T21).* `GameWorld` is the one authority: presentation calls
+    `Submit(GameCommand)`, every command carries a `PlayerId`, `Step` advances it, and what happened
+    comes back as `GameEvent`s for presentation to play. MonoBehaviours no longer read each other's
+    state, and obj_walker is no longer a global: there is no current-player singleton.
+  - *Data (T22, T25).* Tuning (`Suspicion`, `Locomotion`, `Camera`, `Weapon`, `Rain`, `Display`)
+    is `Resources/Data/game-tuning.json` behind `SettingsRegistry`; content (`Rooms`, `Npcs`,
+    `Console`, `Sounds`, `Art`, `Fonts`, `TitleScreen`) is `game-content.json` behind `GameContent`.
+    Both are parsed by Unity.Shared.Core's engine-free JSON reader and validated on load
+    (`SettingsValidationException`), so `dotnet test` covers the parsing; `FieldCoverageTests`
+    proves no field is silently dropped. `GameSettings` (Runtime) loads them once.
+  - *Input System (T23).* `com.unity.inputsystem` is the only input handler. `GameInput` reads the
+    keyboard and mouse into an engine-free `InputSnapshot` each frame; nothing calls
+    `UnityEngine.Input`. Bindings are the original's keys (A/D or arrows, Shift, Z, Q, W, Escape,
+    F1, F12, the mouse buttons and wheel), built in code rather than an `.inputactions` asset.
+  - *Shared packages (T25).* `com.mindattic.unity.shared` and `com.mindattic.capture` are local
+    `file:` packages from the sibling Unity.Shared and MindAttic.Capture clones.
+  - *Project hygiene (T27).* Company MindAttic, product Incognito, application id
+    `com.MindAttic.Incognito`, no Unity splash; the manifest carries only the modules the game and
+    its shared packages use; `tools/{unity,build,test}.ps1` are the batch build and test entry
+    points (the Editor must be closed).
 
 ## Laws
 
