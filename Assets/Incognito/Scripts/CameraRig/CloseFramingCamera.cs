@@ -1,4 +1,4 @@
-using Incognito.Controls;
+using Incognito.Display;
 using Incognito.Player;
 using Incognito.Settings;
 using UnityEngine;
@@ -138,9 +138,11 @@ namespace Incognito.CameraRig
         private FollowMode followMode = FollowMode.Player;
         private Transform followTarget;
 
+        // U.INC-T32: the pointer's place on the letterboxed view, not the raw screen, so the bars
+        // read as the view's nearest edge.
         private static float MouseViewportX()
         {
-            return Screen.width > 0 ? Mathf.Clamp01(GameInput.Current.PointerScreenPosition.x / Screen.width) : 0.5f;
+            return Screen.width > 0 ? Mathf.Clamp01(GameDisplay.PointerInView.x / GameDisplay.ReferenceSize.x) : 0.5f;
         }
 
         private void SyncViewWidth()
@@ -159,7 +161,8 @@ namespace Incognito.CameraRig
 
         private static float MouseViewportY()
         {
-            return Screen.height > 0 ? GameInput.Current.PointerScreenPosition.y / Screen.height : 0.5f;
+            // Bottom-up, as before: 0 at the view's bottom edge, 1 at its top.
+            return Screen.height > 0 ? 1f - GameDisplay.PointerInView.y / GameDisplay.ReferenceSize.y : 0.5f;
         }
     }
 }

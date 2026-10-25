@@ -1,3 +1,5 @@
+using Incognito.Display;
+using Incognito.Settings;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -12,10 +14,11 @@ namespace Incognito.UI
     /// suspicion and <see cref="FloatText"/>, all styled by <see cref="OutlinedText"/>. Nothing else in the project needs its own
     /// PanelSettings asset or UIDocument — no Inspector wiring, just this one code-built panel.
     ///
-    /// The panel's reference resolution is the original's 1920x1080 view, matched purely by screen
-    /// height (match = 1): the same <c>Screen.height / 1080f</c> scale every IMGUI class used to
-    /// compute by hand, so every element below can be laid out directly in original GameMaker pixels
-    /// and the panel does the scaling.
+    /// The panel's reference resolution is the original's 1920x1080 view, fitted to the screen
+    /// keeping its aspect (U.INC-T32, obj_startup's screen ratio: Shrink, the same fit
+    /// <see cref="GameDisplay"/> letterboxes the camera with), and every layer sits in a 1920x1080
+    /// stage centred on the picture, so every element below can be laid out directly in original
+    /// GameMaker view pixels and the panel does the scaling and the bars.
     ///
     /// Layers are fixed child containers, added back to front, mirroring the original's GUI.depth
     /// ordering (a lower depth drew on top): the hacking backdrop (obj_gui_console, depth 10) is
@@ -52,16 +55,39 @@ namespace Incognito.UI
 
             var panelSettings = ScriptableObject.CreateInstance<PanelSettings>();
             panelSettings.scaleMode = PanelScaleMode.ScaleWithScreenSize;
-            panelSettings.referenceResolution = new Vector2Int(1920, 1080);
-            panelSettings.screenMatchMode = PanelScreenMatchMode.MatchWidthOrHeight;
-            panelSettings.match = 1f; // height-only match, as every OnGUI class's Screen.height/1080f scale did
+            panelSettings.referenceResolution = new Vector2Int(Mathf.RoundToInt(ReferenceWidth), Mathf.RoundToInt(ReferenceHeight));
+            // U.INC-T32: Shrink is "keep aspect ratio" — the largest scale at which the whole
+            // 1920x1080 reference fits — the same fit Display.ScreenRatio gives the letterboxed
+            // camera viewport, so the stage below lands exactly on the picture.
+            panelSettings.screenMatchMode = PanelScreenMatchMode.Shrink;
             panelSettings.sortingOrder = 100f;
 
             document = host.AddComponent<UIDocument>();
             document.panelSettings = panelSettings;
 
-            VisualElement root = document.rootVisualElement;
-            root.pickingMode = PickingMode.Ignore;
+            VisualElement panelRoot = document.rootVisualElement;
+            panelRoot.pickingMode = PickingMode.Ignore;
+            // Fill the panel explicitly: the stage below is absolute, so it gives the document root
+            // no height of its own, and its 50% top would otherwise resolve against zero.
+            panelRoot.style.position = Position.Absolute;
+            panelRoot.style.left = 0f;
+            panelRoot.style.top = 0f;
+            panelRoot.style.right = 0f;
+            panelRoot.style.bottom = 0f;
+
+            // The stage: exactly the reference view, centred in the panel (whose leftover axis is
+            // the letterbox or pillarbox bars) and clipped to it, so every layer is laid out in
+            // original view pixels from the view's own top-left, never the screen's.
+            var root = new VisualElement { name = "view", pickingMode = PickingMode.Ignore };
+            root.style.position = Position.Absolute;
+            root.style.width = ReferenceWidth;
+            root.style.height = ReferenceHeight;
+            root.style.left = Length.Percent(50f);
+            root.style.top = Length.Percent(50f);
+            root.style.marginLeft = -ReferenceWidth / 2f;
+            root.style.marginTop = -ReferenceHeight / 2f;
+            root.style.overflow = Overflow.Hidden;
+            panelRoot.Add(root);
             // No themeStyleSheet is assigned (there is no committed theme asset to point at), so
             // every element needs its own explicit font: UI Toolkit's runtime panel otherwise has
             // none to fall back on and text silently fails to render. Font is an inherited style,
@@ -91,11 +117,18 @@ namespace Incognito.UI
             IPanel panel = document.rootVisualElement.panel;
             if (panel == null) return false;
 
+            // WorldToScreenPoint honours the camera's letterboxed viewport; GameDisplay maps that
+            // screen point into view pixels, which is the stage's own space (U.INC-T32).
             Vector3 screen = camera.WorldToScreenPoint(world);
-            // Top-left origin, like the OS screen point every other HUD element's hit-testing uses.
-            panelPosition = RuntimePanelUtils.ScreenToPanel(panel, new Vector2(screen.x, Screen.height - screen.y));
+            RenderTexture target = camera.targetTexture;
+            panelPosition = target != null
+                ? GameDisplay.ScreenToView(new Vector2(screen.x, screen.y), target.width, target.height)
+                : GameDisplay.ScreenToView(new Vector2(screen.x, screen.y));
             return true;
         }
+
+        private static float ReferenceWidth => GameSettings.Tuning.Display.ReferenceWidth;
+        private static float ReferenceHeight => GameSettings.Tuning.Display.ReferenceHeight;
 
         private static VisualElement AddLayer(VisualElement root, string name)
         {

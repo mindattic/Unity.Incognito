@@ -1,4 +1,5 @@
 using Incognito.Controls;
+using Incognito.Display;
 using Incognito.Player;
 using UnityEngine;
 
@@ -73,8 +74,9 @@ namespace Incognito.Eye
             Vector3 mouseWorld = cam.ScreenToWorldPoint(mouseScreen);
 
             float mouseOffsetX = (mouseWorld.x - playerPos.x) / px;
+            // mouse_y on the view, read through the letterboxed viewport (U.INC-T32).
             float mouseY = Screen.height > 0
-                ? (1f - mouseScreen.y / Screen.height) * ReferenceViewHeight
+                ? GameDisplay.PointerInView.y / GameDisplay.ReferenceSize.y * ReferenceViewHeight
                 : ReferenceViewHeight * 0.5f;
 
             var facing = player.State.Facing;

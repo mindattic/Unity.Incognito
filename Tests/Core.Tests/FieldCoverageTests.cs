@@ -161,6 +161,13 @@ namespace Incognito.Tests
         }
 
         [Test]
+        public void DisplayTuning_every_field_round_trips()
+        {
+            JsonObject json = FieldCoverage.Build(typeof(DisplayTuning), out Action<object> verify);
+            verify(DisplayTuning.FromJson(json));
+        }
+
+        [Test]
         public void SettingsRegistry_every_field_round_trips()
         {
             JsonObject json = FieldCoverage.Build(typeof(SettingsRegistry), out Action<object> verify);

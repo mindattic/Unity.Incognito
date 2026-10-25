@@ -1,4 +1,5 @@
 using Incognito.Controls;
+using Incognito.Display;
 using Incognito.Hacking;
 using Incognito.Player;
 using Incognito.UI;
@@ -119,20 +120,17 @@ namespace Incognito.Weapon
             if (player != null && player.Session != null) player.Send(new ToggleGun(player.Id));
         }
 
-        /// <summary>The icon's screen rect in GUI coordinates (top-left origin): anchored 40px in
-        /// from the right edge, at the slide's y, scaled like the HUD panel (height-matched).</summary>
-        public Rect ScreenRect
-        {
-            get
-            {
-                float scale = Screen.height / 1080f;
-                return new Rect(Screen.width - (RightMargin + IconSize) * scale, Slide.Y * scale, IconSize * scale, IconSize * scale);
-            }
-        }
+        /// <summary>The icon's rect in view pixels: 40px in from the right edge of the 1920px view,
+        /// at the slide's y.</summary>
+        public Rect ViewRect => new Rect(GameDisplay.ReferenceSize.x - RightMargin - IconSize, Slide.Y, IconSize, IconSize);
+
+        /// <summary>The icon's screen rect in GUI coordinates (top-left origin), through the
+        /// letterboxed view (U.INC-T32).</summary>
+        public Rect ScreenRect => GameDisplay.ViewToGuiRect(ViewRect);
 
         private bool Contains(Vector2 screenPoint)
         {
-            return Slide.Visible && ScreenRect.Contains(new Vector2(screenPoint.x, Screen.height - screenPoint.y));
+            return Slide.Visible && GameDisplay.ViewRectContains(ViewRect, screenPoint);
         }
 
         private void Apply()

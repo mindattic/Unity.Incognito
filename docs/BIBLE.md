@@ -56,8 +56,8 @@ of the usual wide adventure-game establishing shot — the game's whole premise 
 
 - **Close camera view size / vertical pan (U.INC-T4).** The reference view is the original
   1920x1080 (orthographic size = 540 original px at the placeholder 1px = 1/32 unit scale); the
-  horizontal framing reads the live view width from the camera, so other aspect ratios keep the
-  same lead-room rule instead of needing a fixed window. The original's `y = mouse_y` was a no-op
+  horizontal framing reads the live view width from the camera (since U.INC-T32 the view is
+  letterboxed, so that is always 1920). The original's `y = mouse_y` was a no-op
   (its room was exactly view-height), so the rebuild makes it a direct, instant, bounded pan: mouse
   height on screen maps linearly onto ±135 original px (one eighth of the view height) around the
   camera's resting height. See `Assets/Incognito/Scripts/CameraRig/CloseFramingCameraState.cs`.
@@ -199,15 +199,16 @@ of the usual wide adventure-game establishing shot — the game's whole premise 
   The 7 OnGUI (IMGUI) classes — `Room`, `DoorExit`, `DescriptionTypewriter`, `CommandPrompt`,
   `HackingOverlay`, `RoomFade`, `DebugHotkeys` — now draw through `HudRoot`
   (`Assets/Incognito/Scripts/UI/HudRoot.cs`), one code-built `UIDocument`/`PanelSettings` whose
-  reference resolution (1920x1080, matched by height) replaces every class's own
+  reference resolution (1920x1080, matched by height; since U.INC-T32 fitted keeping its aspect,
+  inside a 1920x1080 stage on the letterboxed picture) replaces every class's own
   `Screen.height / 1080f` scale math: elements are laid out in plain original pixels and the panel
   scales them. `OutlinedText` now styles a `Label`'s native `-unity-text-outline-*` instead of
   drawing eight offset copies by hand, and `CommandPrompt`'s input is a real `TextField` (native
   focus, caret and backspace) instead of `CommandPrompt` parsing `Event.current` itself — a
   deliberate cleanup, since the original's hand-rolled i-beam was exactly this kind of incidental
   GM-era implementation detail. World-anchored labels (`DoorExit`, `DescriptionTypewriter`) convert
-  a world position to panel space with `RuntimePanelUtils.ScreenToPanel`, the same top-left-origin
-  screen point every other HUD element's hit-testing already used.
+  a world position to panel space through the camera's screen point (since U.INC-T32,
+  `GameDisplay.ScreenToView`, the same mapping every HUD element's hit-testing uses).
 
 - **Every original sound, as a data catalog (U.INC-T28).** game-content.json's `Sounds` lists
   every sound the rebuild imports — id (the `.sound.gmx` name), file in `Audio/Original`, the
@@ -292,6 +293,39 @@ of the usual wide adventure-game establishing shot — the game's whole premise 
   and fading 0.007 a 60Hz step, destroyed on the step after its alpha runs out (144 steps). No
   live original object calls either script, so, as in the original, nothing shows one yet; the
   API is ported for the game's own use, not wired to an invented trigger.
+
+- **Screen ratio, letterboxing and fullscreen (U.INC-T32).** obj_startup's (and obj_titlescreen's)
+  "Setup Screen Ratio" sizes view 0's port to the window (`view_wport/hport =
+  window_get_width/height()`) while the view stays 1920x1080, and the config's `option_scale = -1`
+  ("keep aspect ratio") draws that port at the largest uniform scale that fits, centred, with
+  black bars on the leftover axis. `ScreenRatio` (Core, `Assets/Incognito/Core/Display/`) is that
+  maths, engine-free and tested in `Tests/Core.Tests/ScreenRatioTests.cs`: the fitted view rect in
+  whole screen pixels, the camera viewport it makes, and screen-to-view (and back) point and rect
+  mapping. `GameDisplay` (`Assets/Incognito/Scripts/Display/GameDisplay.cs`, installed before the
+  first scene and kept across rooms) gives every screen camera that viewport each frame (a camera
+  rendering into a texture keeps the whole texture), clears the bars to black with a camera that
+  draws nothing, and is the one place screen points become view pixels: the HUD panel
+  (`HudRoot`, now Shrink-fitted with every layer inside a centred, clipped 1920x1080 stage), the HUD
+  click rects (program icon, console, pistol icon, which is now 40px in from the *view's* right
+  edge, not the screen's, as start_game.gml placed it), and the pointer readings the eye, the gun's
+  aim, "looking down" and the camera's vertical pan take — so on a 16:10, 4:3 or 21:9 screen the
+  game shows exactly the 1920x1080 picture the original did, never more or less of the street. The
+  reference size and the start-fullscreen flag are `Display` in game-tuning.json. Fullscreen:
+  both objects' Create runs `window_set_fullscreen(true)` (the config's own `option_fullscreen` is
+  False), so the title calls `GameDisplay.EnterFullscreen` and the player is set to start as a
+  borderless fullscreen window at the display's resolution; F1 — on the title, in obj_game and in
+  obj_debug alike, all `window_set_fullscreen(!window_get_fullscreen())` — is
+  `GameDisplay.ToggleFullscreen`, between that and a window of the rooms' 1920x1080 port size
+  (`option_sizeable` False, so not resizable), shrunk keeping 16:9 only on a display too small to
+  hold it. Neither does anything in the Editor, whose Game view letterboxes the same way. Not
+  ported: `option_interpolate` (GM's linear filter when stretching its application surface; the
+  rebuild renders straight at the screen's resolution, so nothing is stretched), and **obj_startup's
+  own screen** — RECONSTRUCTION §10 listed `startup` as unused, but it is first in the room order,
+  so the original booted into it: bg_black and a red-outlined note that a plugged-in but switched-off
+  wireless Xbox 360 controller slows "the development software" (GameMaker's runner), dismissed by
+  any key or the left mouse. That note describes a GameMaker defect the Unity build cannot have, so
+  showing it would be false; the rebuild boots straight to the title, which repeats obj_startup's
+  display setup anyway.
 
 ## Laws
 

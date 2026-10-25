@@ -1,4 +1,5 @@
 using Incognito.Controls;
+using Incognito.Display;
 using Incognito.Settings;
 using Incognito.Terminal;
 using Incognito.World;
@@ -100,19 +101,19 @@ namespace Incognito.Player
         }
 
         /// <summary>Cursor distance below the view's middle, in original px (GM: mouse_y - room_height/2).
-        /// The original room was exactly one view tall, so this is screen-relative.</summary>
+        /// The original room was exactly one view tall, so this is view-relative: read through the
+        /// letterboxed view (U.INC-T32), so the bars don't shift it.</summary>
         private float MouseBelowCentre()
         {
             if (Screen.height <= 0) return 0f;
-            float fromTop = 1f - GameInput.Current.PointerScreenPosition.y / Screen.height;
+            float fromTop = GameDisplay.PointerInView.y / GameDisplay.ReferenceSize.y;
             return (fromTop - 0.5f) * Entity.Weapon.ViewHeight;
         }
 
-        // Original: mouse_y > room_height/2 — the cursor in the lower half of the screen (GM's
-        // y grows downward; Unity's screen y grows upward).
+        // Original: mouse_y > room_height/2 — the cursor in the lower half of the view.
         private static bool PlayerLookingDown()
         {
-            return Screen.height > 0 && GameInput.Current.PointerScreenPosition.y < Screen.height * 0.5f;
+            return Screen.height > 0 && GameDisplay.PointerInView.y > GameDisplay.ReferenceSize.y * 0.5f;
         }
 
         private const float FallbackViewWidth = 1920f;

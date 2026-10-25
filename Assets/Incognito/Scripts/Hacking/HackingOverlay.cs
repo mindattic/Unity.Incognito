@@ -1,5 +1,6 @@
 using Incognito.CameraRig;
 using Incognito.Controls;
+using Incognito.Display;
 using Incognito.Eye;
 using Incognito.Npc;
 using Incognito.Terminal;
@@ -217,16 +218,16 @@ namespace Incognito.Hacking
             else viewCamera.FollowCursor();
         }
 
-        private Rect ProgramIconRect()
+        /// <summary>The program icon's rect in view pixels (U.INC-T32: hit-tested through the
+        /// letterboxed view, not the raw screen).</summary>
+        private Rect ProgramIconViewRect()
         {
-            float scale = Screen.height / 1080f;
-            return new Rect(ProgramX * scale, Session.Program.Y * scale, ProgramWidth * scale,
-                HackingSession<NpcInteraction>.ProgramIconHeight * scale);
+            return new Rect(ProgramX, Session.Program.Y, ProgramWidth, HackingSession<NpcInteraction>.ProgramIconHeight);
         }
 
         private bool ProgramIconContains(Vector2 screenPoint)
         {
-            return ProgramIconRect().Contains(new Vector2(screenPoint.x, Screen.height - screenPoint.y));
+            return GameDisplay.ViewRectContains(ProgramIconViewRect(), screenPoint);
         }
 
         private void ApplyOverlay()

@@ -1,5 +1,6 @@
 using Incognito.Content;
 using Incognito.Controls;
+using Incognito.Display;
 using Incognito.Player;
 using Incognito.UI;
 using Incognito.World;
@@ -60,15 +61,12 @@ namespace Incognito.Terminal
         public bool IsShowing =>
             Slide.Current == CommandPromptSlide.Mode.Onscreen || Slide.Current == CommandPromptSlide.Mode.Idle;
 
-        /// <summary>The panel's screen rect in GUI coordinates (top-left origin).</summary>
-        public Rect PanelScreenRect
-        {
-            get
-            {
-                float scale = Screen.height / 1080f;
-                return new Rect(Slide.X * scale, PanelTop * scale, PanelWidth * scale, PanelHeight * scale);
-            }
-        }
+        /// <summary>The panel's rect in view pixels.</summary>
+        public Rect PanelViewRect => new Rect(Slide.X, PanelTop, PanelWidth, PanelHeight);
+
+        /// <summary>The panel's screen rect in GUI coordinates (top-left origin), through the
+        /// letterboxed view (U.INC-T32).</summary>
+        public Rect PanelScreenRect => GameDisplay.ViewToGuiRect(PanelViewRect);
 
         /// <summary>Whether <paramref name="screenPoint"/> (the pointer's screen position,
         /// bottom-left origin) is over the visible panel, so the click is the panel's, not the
@@ -76,7 +74,7 @@ namespace Incognito.Terminal
         public bool ContainsScreenPoint(Vector2 screenPoint)
         {
             if (!Slide.IsOpen) return false;
-            return PanelScreenRect.Contains(new Vector2(screenPoint.x, Screen.height - screenPoint.y));
+            return GameDisplay.ViewRectContains(PanelViewRect, screenPoint);
         }
 
         /// <summary>obj_console's CPU readout: one console open is one active CPU.</summary>

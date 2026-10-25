@@ -1,5 +1,6 @@
 using Incognito.Audio;
 using Incognito.Controls;
+using Incognito.Display;
 using Incognito.Player;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -29,6 +30,9 @@ namespace Incognito.World
 
         private void Start()
         {
+            // obj_titlescreen's Create (and obj_startup's before it): "Setup Screen Ratio", then
+            // window_set_fullscreen(true) — the letterboxing itself is GameDisplay's, every frame.
+            GameDisplay.EnterFullscreen();
             MusicPlayer.Play(music, musicVolume);
         }
 

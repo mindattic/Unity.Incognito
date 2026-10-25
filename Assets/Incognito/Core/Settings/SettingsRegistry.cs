@@ -21,6 +21,7 @@ namespace Incognito.Settings
         public CameraTuning Camera = new CameraTuning();
         public WeaponTuning Weapon = new WeaponTuning();
         public RainTuning Rain = new RainTuning();
+        public DisplayTuning Display = new DisplayTuning();
 
         /// <summary>The original's values, for callers that need a registry without loading one.</summary>
         public static SettingsRegistry Default => new SettingsRegistry();
@@ -33,12 +34,14 @@ namespace Incognito.Settings
             if (Camera == null) throw new SettingsValidationException("SettingsRegistry.Camera is required.");
             if (Weapon == null) throw new SettingsValidationException("SettingsRegistry.Weapon is required.");
             if (Rain == null) throw new SettingsValidationException("SettingsRegistry.Rain is required.");
+            if (Display == null) throw new SettingsValidationException("SettingsRegistry.Display is required.");
 
             Suspicion.Validate();
             Locomotion.Validate();
             Camera.Validate();
             Weapon.Validate();
             Rain.Validate();
+            Display.Validate();
         }
 
         /// <summary>
@@ -57,6 +60,7 @@ namespace Incognito.Settings
                 Camera = CameraTuning.FromJson(root.GetObject(nameof(Camera))),
                 Weapon = WeaponTuning.FromJson(root.GetObject(nameof(Weapon))),
                 Rain = RainTuning.FromJson(root.GetObject(nameof(Rain))),
+                Display = DisplayTuning.FromJson(root.GetObject(nameof(Display))),
             };
         }
     }

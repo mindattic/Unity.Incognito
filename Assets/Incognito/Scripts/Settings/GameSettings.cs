@@ -21,7 +21,7 @@ namespace Incognito.Settings
         private static SettingsRegistry tuning;
         private static GameContent content;
 
-        /// <summary>The validated scalar tuning (suspicion, locomotion, camera, weapon, rain).</summary>
+        /// <summary>The validated scalar tuning (suspicion, locomotion, camera, weapon, rain, display).</summary>
         public static SettingsRegistry Tuning => tuning ?? (tuning = Load(TuningPath, SettingsRegistry.FromJson));
 
         /// <summary>The validated room/NPC/console content catalog.</summary>

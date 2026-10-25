@@ -334,8 +334,9 @@ Corrections from re-reading the rooms for U.INC-T11:
   and Loan" (5760 wide, blockout art, an `obj_barrier` at x 800, a right-edge exit back to
   street00 at x 9500). `obj_exit_side` sets `next_room`/`enter_from`, puts the player on
   `autowalk` and fades; `obj_room` places the player at `room_width - player_width` ("right"),
-  `player_width` ("left") or `enter_x` ("x") and draws the room's name at 20,20. `startup`,
-  `gamescreen` and `room2` are unused copies.
+  `player_width` ("left") or `enter_x` ("x") and draws the room's name at 20,20. `gamescreen` and
+  `room2` are unused copies. (Correction, U.INC-T32: `startup` is not; it is first in the room
+  order and runs obj_startup before the title — §10.)
 
 ## 8. Audio inventory — `sound/*.sound.gmx`
 
@@ -398,14 +399,15 @@ ticket order U.INC-T19 to T35 (T19 first).
 | brain-select overlay, GUI arrow cursor, obj_gui_menu dashboard hover fade | imported (T29) but not drawn | T39 |
 | `obj_icon_pistol` + `obj_mouse_gui` | HUD pistol icon and GUI-layer click handling (toggle_gun, sfx_flick, console select) absent. Done in T30: `HudPistolIcon` rises to 984 at x = 1784 (40px from the right), shows the selected sprite while the gun is out, a click sends ToggleGun; obj_mouse_gui's program/console/pistol chain is `MouseGui`, console clicks flick and select. The original never raised the icon (only dead "scanning" branches set it onscreen), so the rebuild raising it at play start is a fixed defect | T30 |
 | `fnt_basic/large/system`, `draw_text_outline*`, `show_float_text`, `obj_float_text` | IMGUI default font and a single outline helper; no floating text. Done in T31: fnt_basic is Arial 12pt, fnt_large High Tower Text 16pt, fnt_system Lucida Console 8pt, their atlases rendered at 120 DPI (so 20, 26.7 and 13.3px on the 1080p view); catalogued in game-content.json's `Fonts`, drawn as Arial (the other two faces can't ship) at those sizes; draw_text_outline/_alpha/_color are `OutlinedText`'s styles; `#`/`##`/`\#` are `GmText`, content authored in that form; obj_float_text is `FloatText` (no live object calls show_float_text, so nothing shows one) | T31 |
-| `obj_startup` | screen-ratio setup, fullscreen start, letterboxing | T32 |
+| `obj_startup` | screen-ratio setup, fullscreen start, letterboxing. Done in T32: `ScreenRatio` (Core) fits the 1920x1080 view keeping its aspect (`option_scale = -1`), `GameDisplay` letterboxes every camera and the HUD with it and maps every screen reading through it, the title enters fullscreen and F1 toggles fullscreen/window as obj_titlescreen, obj_game and obj_debug do. Correction: the `startup` room is not unused — it is first in `Incognito.project.gmx`'s room order, so obj_startup's Create (screen ratio, `window_set_fullscreen(true)`) ran first and its screen showed, on bg_black, a red-outlined note (fnt_basic, centred at `room_height - 60`) that a switched-off wireless Xbox 360 controller slows "the development software", until any key or the left mouse went to `titlescreen`. That note is about the GameMaker runner, so the rebuild doesn't show it (BIBLE) | T32 |
 
 ### Original content verified dead (decided not ported, T33 records it in the BIBLE)
 
 `obj_jukebox` (placed by `obj_room_street00` but its events hold no behaviour), `obj_fade_stealth`,
 `obj_flash_text`, `obj_text`/`show_text`, `obj_ipaddressbox`, `obj_wall`, `object5`, `object8`,
 `obj_typewriter_characterselect`, `obj_cloud1..4`, `obj_lamplight01`, `obj_prop_back/_front`,
-`obj_stealth`, `spr_arm_left_support`, `sprite_desaturate`, rooms `startup`, `gamescreen`, `room2`,
+`obj_stealth`, `spr_arm_left_support`, `sprite_desaturate`, rooms `gamescreen`, `room2` (not
+`startup`: it is the first room the original boots into, see the `obj_startup` row above),
 the `_new` art/audio variants, `snd_step1..6`, `sound23`, music that never plays, and the
 Android, iOS, WinPhone, Windows8, Tizen, Mac, Linux and html5 export configs.
 

@@ -1,5 +1,6 @@
 using Incognito.Content;
 using Incognito.Controls;
+using Incognito.Display;
 using Incognito.Player;
 using Incognito.Terminal;
 using Incognito.UI;
@@ -57,7 +58,9 @@ namespace Incognito.World
         private void Update()
         {
             if (GameInput.Current.EscapePressed && !CommandPrompt.CapturesKeyboard) Application.Quit();
-            if (GameInput.Current.DebugFullscreenTogglePressed) Screen.fullScreen = !Screen.fullScreen;
+            // F1 on the title, obj_game and obj_debug alike: window_set_fullscreen(!window_get_fullscreen()),
+            // between the display-sized fullscreen and the 1920x1080 window (U.INC-T32).
+            if (GameInput.Current.DebugFullscreenTogglePressed) GameDisplay.ToggleFullscreen();
             if (GameInput.Current.DebugReadoutTogglePressed) showReadout = !showReadout;
 
             readoutLabel.style.display = showReadout ? DisplayStyle.Flex : DisplayStyle.None;

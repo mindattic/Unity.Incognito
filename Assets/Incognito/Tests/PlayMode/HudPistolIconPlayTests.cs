@@ -1,4 +1,5 @@
 using System.Collections;
+using Incognito.Display;
 using Incognito.Hacking;
 using Incognito.Weapon;
 using NUnit.Framework;
@@ -32,8 +33,10 @@ namespace Incognito.Tests
             for (int i = 0; i < 120 && icon.Slide.Current != ProgramIconSlide.Mode.Idle; i++) yield return null;
             Assert.AreEqual(1080f - 96f, icon.Slide.Y, "risen to endY = room_height - sprite_height");
 
-            float scale = Screen.height / 1080f;
-            Assert.AreEqual(Screen.width - (40f + 96f) * scale, icon.ScreenRect.x, 0.01f, "40px in from the right edge");
+            // 40px in from the right edge of the letterboxed 1920px view (U.INC-T32), not the screen's.
+            var ratio = GameDisplay.Current;
+            Assert.AreEqual(1784f, icon.ViewRect.x, "40px in from the right edge of the view");
+            Assert.AreEqual(ratio.ViewLeft + 1784f * ratio.Scale, icon.ScreenRect.x, 0.01f);
             Vector2 centre = new Vector2(icon.ScreenRect.center.x, Screen.height - icon.ScreenRect.center.y);
             Assert.IsTrue(HudPistolIcon.IsOverIcon(centre));
             Assert.IsTrue(HackingOverlay.IsOverGui(centre), "a click on the icon is GUI, not the world behind it");

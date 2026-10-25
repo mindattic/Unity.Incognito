@@ -49,5 +49,10 @@
     "FallMin": 40,
     "FallMax": 50,
     "Alpha": 0.75
+  },
+  "Display": {
+    "ReferenceWidth": 1920.0,
+    "ReferenceHeight": 1080.0,
+    "StartFullscreen": true
   }
 }
