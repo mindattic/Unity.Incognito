@@ -59,9 +59,9 @@ Every system below is built. Core is `Assets/Incognito/Core` (engine-free), Runt
 | Fonts, outlined text, floating text | §10 | `Text/GmText`, `Text/FloatTextState`, `Content/GameFontDefinition` / `UI/OutlinedText`, `UI/FloatText`, `UI/HudRoot` | U.INC-T31 | US-A12 | `OriginalFontParityTests`, `GmTextTests`, `OriginalTextPlayTests` |
 | Screen ratio, letterbox, fullscreen | §10 | `Display/ScreenRatio` / `Display/GameDisplay` | U.INC-T32 | US-A13 | `ScreenRatioTests`, `GameDisplayTests` |
 | Art catalog | §10 | `Content/ArtDefinition` / Editor `OriginalArt` | U.INC-T29 | US-A14 | `OriginalArtParityTests` |
-| End-to-end parity run | all | — | U.INC-T35 (open) | US-A15 | — |
+| End-to-end parity run | all | — | `ParityTourPlayTests` + RECONSTRUCTION section 11 | US-A15 | `ParityChecklistTests` |
 
-Still open: U.INC-T35 (the final scripted parity run with screenshots, US-A15) and U.INC-T39
+Still open: U.INC-T39
 (drawing the imported but unwired spr_brain_select, spr_cursor_arrow and spr_stealthwall).
 
 ## Decisions beyond the original (not yet made — flag when a ticket hits these)

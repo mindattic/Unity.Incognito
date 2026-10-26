@@ -37,7 +37,11 @@ namespace Incognito.Tests
     /// and <c>ParityChecklistTests</c> (Core.Tests) fails if a row is unticked or names an id this
     /// file no longer has. Screenshots are taken at the key moments through MindAttic.Capture
     /// (<see cref="CaptureUnity.TakeScreenshot"/>, on when tools/verify-parity.ps1 enables it) and are
-    /// also written as PNGs to Logs/parity-tour when the run has a graphics device.
+    /// also written as PNGs to Logs/parity-tour when the run has a graphics device. Walking, aiming,
+    /// firing, the cursor, clicks on NPCs, props, the pistol icon and the exits, and the Q, Z, W and
+    /// Escape keys all go through that input path; the console's typed commands call the prompt's
+    /// Submit (what Enter calls) and its GUI click calls GuiClicked, since a UI Toolkit text field
+    /// can't be typed into by queued key events in batch mode.
     /// </summary>
     public class ParityTourPlayTests
     {
@@ -800,6 +804,10 @@ namespace Incognito.Tests
         /// </summary>
         private sealed class TourInput : IDisposable
         {
+            private readonly InputSettings.BackgroundBehavior previousBackground;
+#if UNITY_EDITOR
+            private readonly InputSettings.EditorInputBehaviorInPlayMode previousEditorBehavior;
+#endif
             private readonly Keyboard keyboard;
             private readonly Mouse mouse;
             private readonly HashSet<Key> held = new HashSet<Key>();
@@ -809,7 +817,9 @@ namespace Incognito.Tests
 
             public TourInput()
             {
+                previousBackground = InputSystem.settings.backgroundBehavior;
 #if UNITY_EDITOR
+                previousEditorBehavior = InputSystem.settings.editorInputBehaviorInPlayMode;
                 // A batch-mode Editor never has the Game view focused; the tour's input is the game's input.
                 InputSystem.settings.editorInputBehaviorInPlayMode =
                     InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
@@ -828,6 +838,11 @@ namespace Incognito.Tests
                 Flush();
                 InputSystem.RemoveDevice(keyboard);
                 InputSystem.RemoveDevice(mouse);
+                // The settings are the project's own object: leave them as found for every later test.
+                InputSystem.settings.backgroundBehavior = previousBackground;
+#if UNITY_EDITOR
+                InputSystem.settings.editorInputBehaviorInPlayMode = previousEditorBehavior;
+#endif
             }
 
             private void Flush(float wheel = 0f)

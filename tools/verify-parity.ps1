@@ -26,6 +26,7 @@ $root = Split-Path -Parent $PSScriptRoot
 $results = Join-Path $root 'TestResults-ParityTour.xml'
 Remove-Item -LiteralPath $results -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath (Join-Path $root 'Logs/parity-tour') -Recurse -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath (Join-Path $root 'Logs/parity-tour.txt') -ErrorAction SilentlyContinue
 
 $previousMute = $env:MINDATTIC_CLI_MUTED
 $previousCapture = $env:MINDATTIC_CAPTURE_EDITOR

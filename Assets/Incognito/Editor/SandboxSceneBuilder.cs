@@ -120,7 +120,8 @@ namespace Incognito.EditorTools
             npc.AddComponent<BoxCollider2D>(); // after the sprite, so it fits the sprite's bounds
             npc.AddComponent<BulletTarget>();  // U.INC-T9: a shot shoves the NPC 100px
             // The console's `list sheep` lists every obj_npc by its sheep_id: the NPC itself is the console object (U.INC-T35;
-            // it was a separate placeholder in the sandbox only, so no built room ever listed its NPC).
+            // it was a separate placeholder in the sandbox only, so no built room ever listed its NPC). ConsoleTarget finds the
+            // scene's GameSession itself when none is assigned, as the tour's `list sheep` row proves.
             npc.AddComponent<ConsoleTarget>().Configure(ConsoleObjectType.Sheep, npcDef.SheepId);
             var npcController = npc.AddComponent<NpcController>();
             npcController.Player = locomotion;
