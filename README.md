@@ -127,10 +127,8 @@ Feature complete, and a **complete proof of concept** of the original: the final
 (`ParityTourPlayTests`, run by `tools/verify-parity.ps1`, muted) plays the title, Bleecher Street,
 2nd Avenue and the shop through a virtual keyboard and mouse, every row of the parity checklist in
 [`docs/RECONSTRUCTION.md`](docs/RECONSTRUCTION.md) section 11 is ticked, and `ParityChecklistTests`
-keeps it honest. Still open as polish, not parity:
-
-- U.INC-T39: draw three imported but unwired pieces of original art (the brain-select overlay,
-  the GUI arrow cursor, the dashboard hover backdrop).
+keeps it honest. Every live piece of original art is drawn, down to the console view's
+brain-select overlay, the GUI arrow cursor and the dashboard hover backdrop (U.INC-T39).
 
 ## Limitations
 

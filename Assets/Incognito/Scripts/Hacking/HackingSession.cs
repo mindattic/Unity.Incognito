@@ -192,6 +192,16 @@ namespace Incognito.Hacking
         /// <summary>The cursor mode to restore when the console view goes down.</summary>
         public EyeCursorMode ModeBeforeInverted { get; private set; } = EyeCursorMode.Look;
 
+        /// <summary>
+        /// The original's global <c>over_gui</c> (globals.gml, starts false), which picks the cursor:
+        /// obj_mouse_gui draws spr_cursor_arrow in the GUI layer while it is set and obj_mouse's eye
+        /// cursor draws only while it is not (<see cref="GuiCursor"/>). Despite the name it is not a
+        /// hover test: the console toggle sets it (on: true, off: false), and every left press goes
+        /// through obj_mouse_gui's chain, where a console click sets it, a program or pistol icon
+        /// click leaves it, and a press on anything else clears it (<see cref="GuiPressed"/>, U.INC-T39).
+        /// </summary>
+        public bool OverGui { get; private set; }
+
         public OverlayFade Backdrop { get; }
         public ProgramIconSlide Program { get; }
 
@@ -202,6 +212,7 @@ namespace Incognito.Hacking
         public EyeCursorMode ToggleInverted(EyeCursorMode currentMode)
         {
             Inverted = !Inverted;
+            OverGui = Inverted;
             if (Inverted)
             {
                 ModeBeforeInverted = currentMode == EyeCursorMode.Pointer ? EyeCursorMode.Look : currentMode;
@@ -251,11 +262,80 @@ namespace Incognito.Hacking
             return Target;
         }
 
+        /// <summary>
+        /// obj_mouse_gui's global left press, as far as <see cref="OverGui"/> goes: the console branch
+        /// sets <c>over_gui = true</c>, the program and pistol branches leave it, and the final
+        /// <c>else</c> (a press on nothing of the GUI's) sets it false.
+        /// </summary>
+        public void GuiPressed(GuiClick hit)
+        {
+            if (hit == GuiClick.Console) OverGui = true;
+            else if (hit == GuiClick.None) OverGui = false;
+        }
+
         public void Step(float deltaTime)
         {
             Backdrop.Step(deltaTime);
             Program.Step(deltaTime);
         }
+    }
+
+    /// <summary>
+    /// Which cursor is drawn (U.INC-T39): obj_mouse_gui's Draw GUI draws spr_cursor_arrow
+    /// <c>if (over_gui &amp;&amp; player.aimmode != "aiming")</c>, and obj_mouse's draw shows the eye
+    /// cursor <c>if (!over_gui)</c>.
+    ///
+    /// Fixed defect: together those leave no cursor at all while aiming with <c>over_gui</c> set
+    /// (the arrow steps aside for the aim, but the reticle it steps aside for is hidden too), so the
+    /// rebuild keeps the eye cursor (the reticle) up while aiming.
+    /// </summary>
+    public static class GuiCursor
+    {
+        public static bool ShowsArrow(bool overGui, bool aiming) => overGui && !aiming;
+
+        public static bool ShowsEyeCursor(bool overGui, bool aiming) => !overGui || aiming;
+    }
+
+    /// <summary>
+    /// Pure port of obj_gui_menu (created by start_game.gml, depth -100, U.INC-T39): spr_stealthwall,
+    /// a full-view black gradient (alpha 90 at the top to 150 at the bottom), drawn in the GUI layer
+    /// at (0, 0) with its own <c>image_alpha</c>. Each step, only while the gun is holstered
+    /// (<c>player.aimmode == "off"</c>) and the console backdrop is fully gone
+    /// (<c>gui_console.mode == "off"</c>), the mouse picks the mode: below
+    /// <c>room_height - dashboard_height</c> (<c>dashboard_height = sprite_get_height(spr_program)</c>,
+    /// 86px) it fades in, anywhere above it fades out; otherwise the mode is left as it was. The fade
+    /// itself is obj_gui_console's (<see cref="OverlayFade"/>, 0.025 per step); the "scanning" branch
+    /// is dead (nothing sets it), as RECONSTRUCTION.md section 5 records.
+    /// </summary>
+    public sealed class DashboardMenu
+    {
+        /// <summary>sprite_get_height(spr_program).</summary>
+        public const float DashboardHeight = 86f;
+
+        public DashboardMenu(float screenHeight = 1080f)
+        {
+            ScreenHeight = screenHeight;
+        }
+
+        public float ScreenHeight { get; }
+
+        public OverlayFade Fade { get; } = new OverlayFade();
+
+        public float Alpha => Fade.Alpha;
+
+        /// <summary>The mouse is over the bottom dashboard strip (<paramref name="pointerY"/> in view
+        /// pixels from the top: GM's <c>mouse_y</c> on the 1080px room the view never scrolls).</summary>
+        public bool InStrip(float pointerY) => pointerY > ScreenHeight - DashboardHeight;
+
+        /// <summary>One Step event's mode choice.</summary>
+        public void Watch(bool gunOff, bool consoleOff, float pointerY)
+        {
+            if (!gunOff || !consoleOff) return;
+            if (InStrip(pointerY)) Fade.FadeIn();
+            else Fade.FadeOut();
+        }
+
+        public void Step(float deltaTime) => Fade.Step(deltaTime);
     }
 
     /// <summary>What a left click on the GUI layer hit (obj_mouse_gui, RECONSTRUCTION.md §5).</summary>

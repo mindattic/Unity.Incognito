@@ -23,8 +23,10 @@ namespace Incognito.UI
     /// Layers are fixed child containers, added back to front, mirroring the original's GUI.depth
     /// ordering (a lower depth drew on top): the hacking backdrop (obj_gui_console, depth 10) is
     /// behind everything; then the room's floating world labels and the console panel (undepthed,
-    /// depth 0); then the room name and debug readout; then the fade (obj_fade, depth -100) on top
-    /// of all of it but the HUD pistol icon (obj_icon_pistol, depth -101, U.INC-T30). <see cref="EnsureInstalled"/> is safe to call from every consumer's own
+    /// depth 0); then the room name and debug readout; then obj_gui_menu's dashboard backdrop and the
+    /// fade (both depth -100, the fade on top) over all of it but the HUD pistol icon
+    /// (obj_icon_pistol, depth -101, U.INC-T30) and, frontmost, obj_mouse_gui's arrow cursor
+    /// (depth -5000, U.INC-T39). <see cref="EnsureInstalled"/> is safe to call from every consumer's own
     /// Awake/OnEnable — whichever runs first builds the panel once.
     /// </summary>
     public static class HudRoot
@@ -40,10 +42,16 @@ namespace Incognito.UI
         public static VisualElement WorldLabels { get; private set; }
         public static VisualElement ConsolePanel { get; private set; }
         public static VisualElement RoomInfo { get; private set; }
+        /// <summary>obj_gui_menu's spr_stealthwall dashboard backdrop (depth -100, U.INC-T39): over the
+        /// room and console, under the room fade it shares a depth with.</summary>
+        public static VisualElement Dashboard { get; private set; }
         public static VisualElement Fade { get; private set; }
         /// <summary>The HUD pistol icon (obj_icon_pistol, depth -101): one depth above obj_fade, so
         /// it stays drawn over a room fade (U.INC-T30).</summary>
         public static VisualElement HudIcons { get; private set; }
+        /// <summary>obj_mouse_gui's spr_cursor_arrow (depth -5000, U.INC-T39): the GUI cursor, over
+        /// everything.</summary>
+        public static VisualElement GuiCursor { get; private set; }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void EnsureInstalled()
@@ -100,8 +108,10 @@ namespace Incognito.UI
             WorldLabels = AddLayer(root, "world-labels");
             ConsolePanel = AddLayer(root, "console-panel");
             RoomInfo = AddLayer(root, "room-info");
+            Dashboard = AddLayer(root, "dashboard");
             Fade = AddLayer(root, "fade");
             HudIcons = AddLayer(root, "hud-icons");
+            GuiCursor = AddLayer(root, "gui-cursor");
         }
 
         /// <summary>

@@ -35,6 +35,13 @@ namespace Incognito.Eye
 
         public EyeCursorMode Mode { get => mode; set => mode = value; }
 
+        /// <summary>obj_mouse's draw is <c>if (!over_gui) draw_self();</c>: the hacking overlay hides
+        /// this cursor while its GUI arrow is up (<see cref="Hacking.GuiCursor"/>, U.INC-T39).</summary>
+        public bool HiddenByGui { get; set; }
+
+        /// <summary>The eye cursor is drawn this frame.</summary>
+        public bool Visible => spriteRenderer != null && spriteRenderer.enabled;
+
         public PlayerLocomotion Player { get => player; set => player = value; }
 
         private PlayerWeaponState Weapon => player != null && player.Entity != null ? player.Entity.Weapon : null;
@@ -80,6 +87,7 @@ namespace Incognito.Eye
             Vector3 world = cam.ScreenToWorldPoint(GameInput.PointerScreenPosition);
             transform.position = new Vector3(world.x, world.y, transform.position.z);
             spriteRenderer.sprite = SpriteFor(CurrentSprite);
+            spriteRenderer.enabled = !HiddenByGui;
         }
 
         private Sprite SpriteFor(EyeCursorSprite sprite)

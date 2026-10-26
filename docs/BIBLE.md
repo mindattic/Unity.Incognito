@@ -59,10 +59,8 @@ Every system below is built. Core is `Assets/Incognito/Core` (engine-free), Runt
 | Fonts, outlined text, floating text | §10 | `Text/GmText`, `Text/FloatTextState`, `Content/GameFontDefinition` / `UI/OutlinedText`, `UI/FloatText`, `UI/HudRoot` | U.INC-T31 | US-A12 | `OriginalFontParityTests`, `GmTextTests`, `OriginalTextPlayTests` |
 | Screen ratio, letterbox, fullscreen | §10 | `Display/ScreenRatio` / `Display/GameDisplay` | U.INC-T32 | US-A13 | `ScreenRatioTests`, `GameDisplayTests` |
 | Art catalog | §10 | `Content/ArtDefinition` / Editor `OriginalArt` | U.INC-T29 | US-A14 | `OriginalArtParityTests` |
+| Console-view NPC overlay, GUI arrow cursor, dashboard backdrop | §5, §10 | / `Npc/NpcController`, `Hacking/HackingSession` (`GuiCursor`, `DashboardMenu`), `Hacking/HackingOverlay`, `Art/Shaders/InvertBlend` | U.INC-T39 | US-A14 | `HackingOverlayTests`, `ParityTourPlayTests` |
 | End-to-end parity run | all | — | `ParityTourPlayTests` + RECONSTRUCTION section 11 | US-A15 | `ParityChecklistTests` |
-
-Still open: U.INC-T39
-(drawing the imported but unwired spr_brain_select, spr_cursor_arrow and spr_stealthwall).
 
 ## Decisions beyond the original (not yet made — flag when a ticket hits these)
 
@@ -263,7 +261,7 @@ Still open: U.INC-T39
   clears to the same black). `spr_command_prompt`/`_selected` and `spr_linewall` are imported too
   but catalogued `Live: false`: obj_command_prompt, obj_stealth and obj_fade_stealth are never
   created. Importing is not wiring: the HUD pistol is U.INC-T30, and the brain-select overlay, GUI
-  arrow cursor and dashboard hover are U.INC-T39. `Tests/Core.Tests/OriginalArtParityTests.cs`
+  arrow cursor and dashboard hover are drawn by U.INC-T39 (below). `Tests/Core.Tests/OriginalArtParityTests.cs`
   proves every image a live original object or room uses is catalogued at its GM origin and size
   and on disk, and (where the original project is on the machine) that all 88 sprites and 21
   backgrounds are accounted for as live, imported or dead, with the transcription and the image
@@ -287,6 +285,30 @@ Still open: U.INC-T39
   the rebuild's one-console HUD gives its input line the keyboard focus back. A click on the
   pistol icon counts as GUI, so it never also looks at or hacks an NPC behind it; firing was never
   GUI-gated in the original, so a click on it while aiming still fires, then holsters.
+
+- **The console view's NPC overlay, the GUI arrow cursor and the dashboard backdrop (U.INC-T39).**
+  The three live pieces of art T29 imported are now drawn as the original drew them.
+  `NpcController` ports obj_npc's draw while `inverted` (the console view): after `draw_self()` it
+  draws itself again under `draw_set_blend_mode_ext(bm_inv_dest_color, bm_inv_src_color)` (a
+  child sprite on the `Incognito/InvertBlend` shader, `Blend OneMinusDstColor OneMinusSrcColor`,
+  premultiplied so transparent texels leave the scene alone), then `spr_brain_select` at its
+  origin, unflipped; both sit on the NPC's own sorting layer and order a hair nearer the camera, so
+  nothing sorts between them. The global `over_gui` is `HackingSession.OverGui`, ported as the
+  original ran it, which is not a hover test: Q on sets it and Q off clears it, and every left
+  press runs obj_mouse_gui's chain, where a console press sets it, a program or pistol icon press
+  leaves it and a press on anything else (the world, an NPC) clears it. While it is set and the
+  player is not aiming, `HackingOverlay` draws obj_mouse_gui's `spr_cursor_arrow` at the pointer
+  (origin 47,32) on HudRoot's new frontmost `GuiCursor` layer (depth -5000) and the eye cursor is
+  hidden (obj_mouse's `if (!over_gui) draw_self()`). **Fixed defect:** with `over_gui` set and the
+  player aiming, the original drew neither cursor, so the reticle vanished; the rebuild keeps the
+  eye cursor (the reticle) up while aiming (`GuiCursor`). obj_gui_menu is `DashboardMenu`:
+  `spr_stealthwall` (a black gradient, alpha 90 to 150) over the whole view on HudRoot's new
+  `Dashboard` layer (depth -100, under the room fade), fading by obj_gui_console's 0.025/step;
+  each step, only while the gun is holstered (`aimmode == "off"`) and the console backdrop is
+  fully off, the mouse below `room_height - sprite_get_height(spr_program)` (994) fades it in and
+  anywhere above fades it out; otherwise its mode is left as it was, as the original's was. The
+  mouse is read in view pixels, which is the original's `mouse_y` because its view never moved
+  vertically.
 
 - **The original's fonts, outlined text and floating text (U.INC-T31).** game-content.json's
   `Fonts` catalogues the original's three fonts by their `.font.gmx` face and point size —

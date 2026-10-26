@@ -468,12 +468,27 @@ namespace Incognito.Tests
             yield return Until(() => overlay.Session.Backdrop.Alpha > 0.1f, 5f, "the circuit backdrop fades in");
             Row("console.q-toggles-inverted");
 
+            // In the console view obj_npc draws an inverted-blend copy of itself and spr_brain_select
+            // over it, and over_gui swaps obj_mouse's eye cursor for obj_mouse_gui's GUI arrow.
+            Assert.IsTrue(npc.InvertedCopyShowing, "the NPC's inverted-blend copy is drawn");
+            Assert.IsTrue(npc.BrainSelectShowing, "spr_brain_select is drawn over the NPC");
+            Assert.AreEqual("spr_brain_select", npc.BrainSelectRenderer.sprite.name);
+            Row("console.brain-select-over-the-npc");
+            Assert.IsTrue(overlay.Session.OverGui, "Q set over_gui");
+            Assert.IsTrue(overlay.ArrowShowing, "the GUI arrow is drawn");
+            Assert.IsFalse(cursor.Visible, "and the eye cursor is not");
+            yield return Shot("console-view");
+
             // A pointer click on the NPC opens the program and the typed console on it.
             yield return ClickCollider(npc.GetComponent<Collider2D>());
             yield return Until(() => overlay.Session.Target == interaction, 5f, "the NPC is the hack target");
             yield return Until(() => overlay.Prompt.IsShowing && overlay.Prompt.Slide.Current == CommandPromptSlide.Mode.Idle, 5f, "the console slides in");
             Assert.IsTrue(overlay.Session.Program.Visible, "the program icon rose");
             Row("console.pointer-click-opens-the-hack");
+            // obj_mouse_gui's press chain: a press on no GUI element (the NPC) cleared over_gui.
+            Assert.IsFalse(overlay.Session.OverGui, "a press on the world cleared over_gui");
+            Assert.IsFalse(overlay.ArrowShowing, "so the arrow is gone");
+            Assert.IsTrue(cursor.Visible, "and the eye cursor is back");
             yield return Shot("console-open");
 
             // The typed commands.
@@ -497,6 +512,12 @@ namespace Incognito.Tests
             overlay.GuiClicked(GuiClick.Console);
             Assert.AreEqual(flicks + 1, overlay.FlickCount, "sfx_flick");
             Row("audio.flick");
+            yield return null; // the overlay's Update picks the cursor...
+            yield return null; // ...and the eye cursor's LateUpdate applies it
+            Assert.IsTrue(overlay.Session.OverGui, "a console press sets over_gui");
+            Assert.IsTrue(overlay.ArrowShowing, "and brings the arrow back");
+            Assert.IsFalse(cursor.Visible);
+            Row("cursor.gui-arrow-while-over-gui");
 
             // Escape closes the console and ends the hack; Q restores the cursor mode.
             yield return input.Tap(Key.Escape);
@@ -508,6 +529,22 @@ namespace Incognito.Tests
             Assert.IsFalse(overlay.Session.Inverted);
             Assert.AreEqual(EyeCursorMode.Look, cursor.Mode, "the cursor mode before the console came back");
             Row("console.q-restores-the-cursor-mode");
+            yield return null;
+            Assert.IsFalse(npc.BrainSelectShowing, "the brain overlay goes with the console view");
+            Assert.IsFalse(npc.InvertedCopyShowing);
+            Assert.IsFalse(overlay.ArrowShowing, "Q off cleared over_gui");
+            Assert.IsTrue(cursor.Visible);
+
+            // obj_gui_menu: once the console backdrop is gone, with the gun holstered, the mouse over
+            // the bottom 86px fades spr_stealthwall in, and moving it up fades it back out.
+            yield return Until(() => overlay.Session.Backdrop.Current == OverlayFade.Mode.Off, 5f, "the circuit backdrop fades out");
+            Assert.AreEqual(0f, overlay.Dashboard.Alpha, "no dashboard while the mouse is up");
+            input.MoveMouseTo(ViewportPoint(0.5f, 0.995f));
+            yield return Until(() => overlay.Dashboard.Alpha >= 1f, 5f, "the dashboard fades in over the bottom strip");
+            yield return Shot("dashboard");
+            input.MoveMouseTo(ViewportPoint(0.5f, 0.5f));
+            yield return Until(() => overlay.Dashboard.Fade.Current == OverlayFade.Mode.Off, 5f, "the dashboard fades back out");
+            Row("hud.dashboard-fades-over-the-bottom-strip");
         }
 
         [UnityTest]

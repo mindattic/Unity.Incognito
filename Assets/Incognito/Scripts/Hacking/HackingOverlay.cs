@@ -1,8 +1,10 @@
 using Incognito.CameraRig;
+using Incognito.Content;
 using Incognito.Controls;
 using Incognito.Display;
 using Incognito.Eye;
 using Incognito.Npc;
+using Incognito.Settings;
 using Incognito.Terminal;
 using Incognito.UI;
 using Incognito.Weapon;
@@ -31,6 +33,12 @@ namespace Incognito.Hacking
     /// and so does a click on the open console, which selects it (U.INC-T30). Clicks go through
     /// obj_mouse_gui's order (<see cref="MouseGui"/>): program icon, console, then the HUD pistol
     /// icon (<see cref="HudPistolIcon"/>).
+    ///
+    /// U.INC-T39 draws the rest of the original's GUI layer: obj_mouse_gui's spr_cursor_arrow at the
+    /// pointer while <c>over_gui</c> is set and the player is not aiming (hiding obj_mouse's eye
+    /// cursor, <see cref="GuiCursor"/>), and obj_gui_menu's spr_stealthwall dashboard backdrop
+    /// (<see cref="DashboardMenu"/>), which fades in while the mouse is over the bottom 86px with the
+    /// gun holstered and the console off.
     /// </summary>
     public sealed class HackingOverlay : MonoBehaviour
     {
@@ -45,6 +53,10 @@ namespace Incognito.Hacking
         [SerializeField] private Texture2D programIcon;
         [Tooltip("spr_program_active (113x86), the program icon during a hack.")]
         [SerializeField] private Texture2D programIconActive;
+        [Tooltip("spr_cursor_arrow (94x64, origin 47,32), obj_mouse_gui's GUI cursor (U.INC-T39).")]
+        [SerializeField] private Texture2D cursorArrow;
+        [Tooltip("spr_stealthwall (1920x1080), obj_gui_menu's dashboard backdrop (U.INC-T39).")]
+        [SerializeField] private Texture2D dashboard;
 
         [Header("Audio (sfx_flick, U.INC-T28)")]
         [SerializeField] private AudioSource audioSource;
@@ -57,6 +69,20 @@ namespace Incognito.Hacking
         private static HackingOverlay active;
 
         public HackingSession<NpcInteraction> Session { get; } = new HackingSession<NpcInteraction>();
+
+        /// <summary>obj_gui_menu's dashboard backdrop fade (U.INC-T39).</summary>
+        public DashboardMenu Dashboard { get; } = new DashboardMenu();
+
+        /// <summary>obj_walker's global <c>inverted</c> for whoever draws by it (obj_npc's
+        /// brain-select overlay, U.INC-T39): the console view is up in the active overlay.</summary>
+        public static bool ConsoleViewOn => active != null && active.Session.Inverted;
+
+        /// <summary>obj_mouse_gui's spr_cursor_arrow is drawn this frame.</summary>
+        public bool ArrowShowing { get; private set; }
+
+        /// <summary>Where the arrow's origin is drawn, in view pixels (the pointer: obj_mouse_gui's
+        /// <c>x = mouse_x - view_xview; y = mouse_y - view_yview</c>).</summary>
+        public Vector2 ArrowAt { get; private set; }
 
         public EyeCursor Cursor { get => cursor; set => cursor = value; }
         public CommandPrompt Prompt { get => prompt; set => prompt = value; }
@@ -91,6 +117,9 @@ namespace Incognito.Hacking
         private bool consoleWasShowing;
         private VisualElement backdropElement;
         private VisualElement iconElement;
+        private VisualElement dashboardElement;
+        private VisualElement arrowElement;
+        private Vector2 arrowOrigin;
 
         private void OnEnable()
         {
@@ -115,14 +144,45 @@ namespace Incognito.Hacking
             iconElement.style.backgroundSize = new BackgroundSize(Length.Percent(100f), Length.Percent(100f));
             iconElement.style.display = DisplayStyle.None;
             HudRoot.HackingBackdrop.Add(iconElement);
+
+            // obj_gui_menu: draw_self() at (0, 0) in the GUI layer, the whole view.
+            dashboardElement = FullView();
+            HudRoot.Dashboard.Add(dashboardElement);
+
+            // obj_mouse_gui: draw_self() at the pointer, spr_cursor_arrow at its GM origin.
+            ArtDefinition arrow = GameSettings.Content.FindArt("spr_cursor_arrow");
+            arrowOrigin = arrow != null ? new Vector2(arrow.OriginX, arrow.OriginY) : Vector2.zero;
+            arrowElement = new VisualElement { pickingMode = PickingMode.Ignore };
+            arrowElement.style.position = Position.Absolute;
+            arrowElement.style.width = arrow != null ? arrow.Width : 94f;
+            arrowElement.style.height = arrow != null ? arrow.Height : 64f;
+            arrowElement.style.backgroundSize = new BackgroundSize(Length.Percent(100f), Length.Percent(100f));
+            arrowElement.style.display = DisplayStyle.None;
+            HudRoot.GuiCursor.Add(arrowElement);
+        }
+
+        private static VisualElement FullView()
+        {
+            var element = new VisualElement { pickingMode = PickingMode.Ignore };
+            element.style.position = Position.Absolute;
+            element.style.left = 0f;
+            element.style.top = 0f;
+            element.style.right = 0f;
+            element.style.bottom = 0f;
+            element.style.backgroundSize = new BackgroundSize(Length.Percent(100f), Length.Percent(100f));
+            element.style.display = DisplayStyle.None;
+            return element;
         }
 
         private void OnDisable()
         {
             NpcInteraction.AnyPointerClicked -= OnNpcPointerClicked;
             if (active == this) active = null;
+            if (cursor != null) cursor.HiddenByGui = false;
             backdropElement?.RemoveFromHierarchy();
             iconElement?.RemoveFromHierarchy();
+            dashboardElement?.RemoveFromHierarchy();
+            arrowElement?.RemoveFromHierarchy();
         }
 
         private void Update()
@@ -147,7 +207,20 @@ namespace Incognito.Hacking
             }
             consoleWasShowing = showing;
 
+            // obj_gui_menu's step: the mouse over the bottom strip, the gun holstered and the
+            // console backdrop gone, fades the dashboard in; anywhere above it, out.
+            bool gunOff = cursor == null || !cursor.WeaponDrawn;
+            Dashboard.Watch(gunOff, Session.Backdrop.Current == OverlayFade.Mode.Off, GameDisplay.PointerInView.y);
+
             Session.Step(Time.deltaTime);
+            Dashboard.Step(Time.deltaTime);
+
+            // over_gui picks the cursor: obj_mouse_gui's arrow, or obj_mouse's eye.
+            bool aiming = cursor != null && cursor.Aiming;
+            ArrowShowing = GuiCursor.ShowsArrow(Session.OverGui, aiming);
+            ArrowAt = GameDisplay.ScreenToView(GameInput.PointerScreenPosition);
+            if (cursor != null) cursor.HiddenByGui = !GuiCursor.ShowsEyeCursor(Session.OverGui, aiming);
+
             ApplyOverlay();
         }
 
@@ -180,6 +253,8 @@ namespace Incognito.Hacking
         /// </summary>
         public void GuiClicked(GuiClick hit)
         {
+            Session.GuiPressed(hit);
+
             if (MouseGui.PlaysFlick(hit))
             {
                 FlickCount++;
@@ -255,6 +330,29 @@ namespace Incognito.Hacking
             else
             {
                 iconElement.style.display = DisplayStyle.None;
+            }
+
+            if (Dashboard.Alpha > 0f && dashboard != null)
+            {
+                dashboardElement.style.backgroundImage = new StyleBackground(dashboard);
+                dashboardElement.style.opacity = Dashboard.Alpha;
+                dashboardElement.style.display = DisplayStyle.Flex;
+            }
+            else
+            {
+                dashboardElement.style.display = DisplayStyle.None;
+            }
+
+            if (ArrowShowing && cursorArrow != null)
+            {
+                arrowElement.style.backgroundImage = new StyleBackground(cursorArrow);
+                arrowElement.style.left = ArrowAt.x - arrowOrigin.x;
+                arrowElement.style.top = ArrowAt.y - arrowOrigin.y;
+                arrowElement.style.display = DisplayStyle.Flex;
+            }
+            else
+            {
+                arrowElement.style.display = DisplayStyle.None;
             }
         }
     }

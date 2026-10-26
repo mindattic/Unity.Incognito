@@ -15,7 +15,8 @@ namespace Incognito.Npc
     /// (obj_npc's draw: fa_center, fnt_large, draw_text_outline(x, y - 200, 1, ...)), a UI Toolkit
     /// label on <see cref="HudRoot.WorldLabels"/> (U.INC-T31; was a world-space TextMesh). It
     /// changes the NPC only by sending commands. See docs/RECONSTRUCTION.md §4. Talk mode (U.INC-T6) is driven from <see cref="NpcInteraction"/>;
-    /// pointer mode is U.INC-T7.
+    /// pointer mode is U.INC-T7. While the console view is on (obj_walker's <c>inverted</c>) it draws
+    /// obj_npc's inverted-blend copy of itself and spr_brain_select over it (U.INC-T39).
     /// </summary>
     [RequireComponent(typeof(SpriteRenderer))]
     public sealed class NpcController : MonoBehaviour
@@ -28,6 +29,12 @@ namespace Incognito.Npc
         [SerializeField] private float[] waypoints = { 12000f };
         [SerializeField] private float walkSpeed = 5f;
         [SerializeField] private float arriveRange = 20f;
+
+        [Header("Console view (obj_npc's draw while inverted, U.INC-T39)")]
+        [Tooltip("spr_brain_select (200x115, origin 100,72), drawn at the NPC's origin.")]
+        [SerializeField] private Sprite brainSelect;
+        [Tooltip("Incognito/InvertBlend: bm_inv_dest_color, bm_inv_src_color.")]
+        [SerializeField] private Shader invertShader;
 
         // draw_text_outline(x, y - 200, ...): the label's top is 200px above the NPC's origin.
         private const float LabelHeight = 200f;
@@ -50,14 +57,45 @@ namespace Incognito.Npc
         private GameSession session;
         private float baseY;
         private Label suspicionLabel;
+        private SpriteRenderer invertedCopy;
+        private SpriteRenderer brainSelectRenderer;
 
         /// <summary>The suspicion label's text as drawn ("NN%"), for tests.</summary>
         public string SuspicionText => suspicionLabel != null ? suspicionLabel.text : string.Empty;
+
+        /// <summary>The inverted-blend copy of the NPC is drawn this frame (console view on).</summary>
+        public bool InvertedCopyShowing => invertedCopy != null && invertedCopy.enabled;
+
+        /// <summary>spr_brain_select is drawn over the NPC this frame (console view on).</summary>
+        public bool BrainSelectShowing => brainSelectRenderer != null && brainSelectRenderer.enabled;
+
+        /// <summary>The renderer drawing spr_brain_select, for tests (null when no art was wired).</summary>
+        public SpriteRenderer BrainSelectRenderer => brainSelectRenderer;
+
+        // Same sorting layer and order as the NPC, each a hair nearer the camera, so they draw right
+        // after it in GM's order (draw_self, the inverted copy, then the brain) and nothing else
+        // sorts between them.
+        private const float OverlayZStep = 0.001f;
 
         private void Awake()
         {
             spriteRenderer = GetComponent<SpriteRenderer>();
             baseY = transform.position.y;
+
+            // obj_npc's draw, if (inverted): draw_self() again under
+            // draw_set_blend_mode_ext(bm_inv_dest_color, bm_inv_src_color), then, back on
+            // bm_normal, draw_sprite(spr_brain_select, 0, x, y) (unflipped, at the NPC's origin).
+            if (invertShader != null)
+            {
+                invertedCopy = Overlay("Inverted Copy", 1);
+                invertedCopy.sharedMaterial = new Material(invertShader) { name = "NPC Inverted Copy" };
+            }
+
+            if (brainSelect != null)
+            {
+                brainSelectRenderer = Overlay("Brain Select", 2);
+                brainSelectRenderer.sprite = brainSelect;
+            }
 
             HudRoot.EnsureInstalled();
             suspicionLabel = new Label { pickingMode = PickingMode.Ignore };
@@ -96,8 +134,22 @@ namespace Incognito.Npc
             if (target != null) target.Struck += OnStruck;
         }
 
+        private SpriteRenderer Overlay(string name, int step)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(transform, false);
+            go.transform.localPosition = new Vector3(0f, 0f, -OverlayZStep * step);
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sharedMaterial = spriteRenderer.sharedMaterial;
+            sr.sortingLayerID = spriteRenderer.sortingLayerID;
+            sr.sortingOrder = spriteRenderer.sortingOrder;
+            sr.enabled = false;
+            return sr;
+        }
+
         private void OnDestroy()
         {
+            if (invertedCopy != null) Destroy(invertedCopy.sharedMaterial);
             suspicionLabel?.RemoveFromHierarchy();
             var target = GetComponent<Incognito.Weapon.BulletTarget>();
             if (target != null) target.Struck -= OnStruck;
@@ -128,6 +180,16 @@ namespace Incognito.Npc
                 baseY + patrol.BobOffset * Px,
                 transform.position.z);
             spriteRenderer.flipX = patrol.Facing == PlayerLocomotionState.FacingDirection.Right;
+
+            bool inverted = Hacking.HackingOverlay.ConsoleViewOn;
+            if (invertedCopy != null)
+            {
+                invertedCopy.sprite = spriteRenderer.sprite;
+                invertedCopy.flipX = spriteRenderer.flipX;
+                invertedCopy.enabled = inverted;
+            }
+
+            if (brainSelectRenderer != null) brainSelectRenderer.enabled = inverted;
 
             if (HudRoot.TryWorldToPanel(Camera.main, transform.position + new Vector3(0f, LabelHeight * Px, 0f), out Vector2 at))
             {

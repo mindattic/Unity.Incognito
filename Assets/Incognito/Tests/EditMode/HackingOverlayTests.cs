@@ -229,6 +229,135 @@ namespace Incognito.Tests
             Assert.IsFalse(MouseGui.PlaysFlick(GuiClick.None));
         }
 
+        // --- over_gui and the GUI arrow cursor (U.INC-T39) ---
+
+        [Test]
+        public void Over_gui_follows_the_console_toggle()
+        {
+            var session = new HackingSession<FakeNpc>();
+            Assert.IsFalse(session.OverGui, "globals.gml: over_gui = false");
+
+            session.ToggleInverted(EyeCursorMode.Look);
+            Assert.IsTrue(session.OverGui, "Q on: over_gui = true");
+
+            session.ToggleInverted(EyeCursorMode.Pointer);
+            Assert.IsFalse(session.OverGui, "Q off: over_gui = false");
+        }
+
+        [Test]
+        public void A_press_on_the_console_sets_over_gui_the_icons_leave_it_and_anything_else_clears_it()
+        {
+            var session = new HackingSession<FakeNpc>();
+            session.ToggleInverted(EyeCursorMode.Look);
+
+            session.GuiPressed(GuiClick.None);
+            Assert.IsFalse(session.OverGui, "a press on the world clears it");
+
+            session.GuiPressed(GuiClick.ProgramIcon);
+            Assert.IsFalse(session.OverGui, "the program branch leaves it");
+            session.GuiPressed(GuiClick.Console);
+            Assert.IsTrue(session.OverGui, "the console branch sets it");
+            session.GuiPressed(GuiClick.PistolIcon);
+            Assert.IsTrue(session.OverGui, "the pistol branch leaves it");
+            session.GuiPressed(GuiClick.ProgramIcon);
+            Assert.IsTrue(session.OverGui);
+        }
+
+        [Test]
+        public void The_arrow_shows_while_over_gui_and_not_aiming_and_the_eye_cursor_otherwise()
+        {
+            Assert.IsTrue(GuiCursor.ShowsArrow(overGui: true, aiming: false));
+            Assert.IsFalse(GuiCursor.ShowsEyeCursor(overGui: true, aiming: false));
+
+            Assert.IsFalse(GuiCursor.ShowsArrow(overGui: false, aiming: false));
+            Assert.IsTrue(GuiCursor.ShowsEyeCursor(overGui: false, aiming: false));
+
+            Assert.IsFalse(GuiCursor.ShowsArrow(overGui: false, aiming: true));
+            Assert.IsTrue(GuiCursor.ShowsEyeCursor(overGui: false, aiming: true));
+
+            // Fixed defect: the original drew neither here; the reticle stays up.
+            Assert.IsFalse(GuiCursor.ShowsArrow(overGui: true, aiming: true));
+            Assert.IsTrue(GuiCursor.ShowsEyeCursor(overGui: true, aiming: true));
+        }
+
+        // --- obj_gui_menu's dashboard backdrop (U.INC-T39) ---
+
+        [Test]
+        public void Dashboard_fades_in_at_0_025_per_step_while_the_mouse_is_in_the_bottom_86px()
+        {
+            var menu = new DashboardMenu();
+            Assert.IsFalse(menu.InStrip(1080f - 86f), "mouse_y > room_height - dashboard_height, strictly");
+            Assert.IsTrue(menu.InStrip(1080f - 85f));
+
+            menu.Watch(gunOff: true, consoleOff: true, pointerY: 1000f);
+            menu.Fade.StepOnce();
+            Assert.AreEqual(OverlayFade.Mode.FadeIn, menu.Fade.Current);
+            Assert.AreEqual(0.025f, menu.Alpha, 1e-5f);
+
+            for (int i = 0; i < 50; i++)
+            {
+                menu.Watch(true, true, 1000f);
+                menu.Fade.StepOnce();
+            }
+            Assert.AreEqual(1f, menu.Alpha);
+        }
+
+        [Test]
+        public void Dashboard_fades_out_to_off_once_the_mouse_leaves_the_strip()
+        {
+            var menu = new DashboardMenu();
+            for (int i = 0; i < 40; i++)
+            {
+                menu.Watch(true, true, 1070f);
+                menu.Fade.StepOnce();
+            }
+
+            for (int i = 0; i < 20; i++)
+            {
+                menu.Watch(true, true, 500f);
+                menu.Fade.StepOnce();
+            }
+            Assert.AreEqual(OverlayFade.Mode.FadeOut, menu.Fade.Current);
+            Assert.AreEqual(0.5f, menu.Alpha, 1e-3f);
+
+            for (int i = 0; i < 30; i++)
+            {
+                menu.Watch(true, true, 500f);
+                menu.Fade.StepOnce();
+            }
+            Assert.AreEqual(OverlayFade.Mode.Off, menu.Fade.Current);
+            Assert.AreEqual(0f, menu.Alpha);
+        }
+
+        [Test]
+        public void Dashboard_keeps_its_mode_while_the_gun_is_out_or_the_console_is_on()
+        {
+            var menu = new DashboardMenu();
+            menu.Watch(gunOff: false, consoleOff: true, pointerY: 1070f);
+            menu.Fade.StepOnce();
+            Assert.AreEqual(OverlayFade.Mode.Off, menu.Fade.Current, "the gun out: the strip does nothing");
+
+            menu.Watch(gunOff: true, consoleOff: false, pointerY: 1070f);
+            menu.Fade.StepOnce();
+            Assert.AreEqual(0f, menu.Alpha, "the console on: the strip does nothing");
+
+            for (int i = 0; i < 10; i++)
+            {
+                menu.Watch(true, true, 1070f);
+                menu.Fade.StepOnce();
+            }
+            float faded = menu.Alpha;
+
+            // Drawing the gun freezes the choice: still fading in although the mouse went up.
+            for (int i = 0; i < 4; i++)
+            {
+                menu.Watch(gunOff: false, consoleOff: true, pointerY: 100f);
+                menu.Fade.StepOnce();
+            }
+            Assert.AreEqual(OverlayFade.Mode.FadeIn, menu.Fade.Current);
+            Assert.AreEqual(faded + 4 * 0.025f, menu.Alpha, 1e-4f);
+        }
+
         // --- obj_console CPU readout ---
 
         [Test]

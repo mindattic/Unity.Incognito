@@ -29,6 +29,7 @@ namespace Incognito.EditorTools
         private const string SceneDir = "Assets/Incognito/Scenes";
         private const string ScenePath = SceneDir + "/PlayerSandbox.unity";
         private const string ArtDir = "Assets/Incognito/Art/Placeholder";
+        private const string InvertShaderPath = "Assets/Incognito/Art/Shaders/InvertBlend.shader";
 
         // Street backdrop sits behind everything, including the bullet (obj_bullet depth 5). Its
         // own sorting layer (ProjectSettings/TagManager.asset) keeps it behind gameplay sprites
@@ -134,6 +135,10 @@ namespace Incognito.EditorTools
             for (int i = 0; i < npcDef.Waypoints.Length; i++) route.GetArrayElementAtIndex(i).floatValue = npcDef.Waypoints[i];
             npcSo.FindProperty("walkSpeed").floatValue = npcDef.WalkSpeed;
             npcSo.FindProperty("arriveRange").floatValue = npcDef.ArriveRange;
+            // obj_npc's console-view draw (U.INC-T39): its inverted-blend self copy and spr_brain_select.
+            npcSo.FindProperty("brainSelect").objectReferenceValue = OriginalArt.Import("spr_brain_select");
+            npcSo.FindProperty("invertShader").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Shader>(InvertShaderPath)
+                ?? throw new System.InvalidOperationException($"{InvertShaderPath} is missing.");
             npcSo.ApplyModifiedPropertiesWithoutUndo();
 
             // Orthographic view matching the original 1920x1080 window, resting with the
@@ -225,6 +230,9 @@ namespace Incognito.EditorTools
             hackingSo.FindProperty("backdrop").objectReferenceValue = OriginalArt.ImportTexture("spr_circuitwall1");
             hackingSo.FindProperty("programIcon").objectReferenceValue = OriginalArt.ImportTexture("spr_program");
             hackingSo.FindProperty("programIconActive").objectReferenceValue = OriginalArt.ImportTexture("spr_program_active");
+            // U.INC-T39: obj_mouse_gui's GUI arrow cursor and obj_gui_menu's dashboard backdrop.
+            hackingSo.FindProperty("cursorArrow").objectReferenceValue = OriginalArt.ImportTexture("spr_cursor_arrow");
+            hackingSo.FindProperty("dashboard").objectReferenceValue = OriginalArt.ImportTexture("spr_stealthwall");
             hackingSo.ApplyModifiedPropertiesWithoutUndo();
 
             // HUD pistol icon (U.INC-T30, obj_icon_pistol): rises at the bottom-right, shows the
