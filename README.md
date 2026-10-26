@@ -69,6 +69,8 @@ the Core tests), and [Unity.Shared](https://github.com/mindattic/Unity.Shared) a
 - **Build:** `powershell -File tools/build.ps1` writes `Builds/Windows/Incognito.exe` in batch mode.
 - **Test:** `powershell -File tools/test.ps1` runs the Core, EditMode and PlayMode suites;
   `powershell -File run-core-tests.ps1` runs only the engine-free Core tests with `dotnet test`.
+- **Parity tour:** `powershell -File tools/verify-parity.ps1` (Editor closed) plays the whole game
+  with scripted input, muted, and writes screenshots to `Logs/parity-tour/`.
 - **Launch a playable build for development:** `powershell -File play.ps1` (builds it first if
   `Builds/Windows/Incognito.exe` is missing; `-Build` rebuilds, `-Wait` waits for it to exit, the log
   goes to `Logs/play.log`). This is not `tools/build.ps1`/`tools/test.ps1`'s `-batchmode` runs: it
@@ -121,14 +123,14 @@ audible and don't need it.
 
 ## Status
 
-Feature complete. All 15 stories in [`docs/USER_STORIES.md`](docs/USER_STORIES.md) except the
-last are done, each citing the test that proves it. Remaining:
+Feature complete, and a **complete proof of concept** of the original: the final parity tour
+(`ParityTourPlayTests`, run by `tools/verify-parity.ps1`, muted) plays the title, Bleecher Street,
+2nd Avenue and the shop through a virtual keyboard and mouse, every row of the parity checklist in
+[`docs/RECONSTRUCTION.md`](docs/RECONSTRUCTION.md) section 11 is ticked, and `ParityChecklistTests`
+keeps it honest. Still open as polish, not parity:
 
-- U.INC-T35: the final scripted parity run (PlayMode plus screenshots through every room and
-  mechanic), which closes US-A15 and declares the proof of concept complete.
 - U.INC-T39: draw three imported but unwired pieces of original art (the brain-select overlay,
   the GUI arrow cursor, the dashboard hover backdrop).
-- U.INC-T41: the original's small black smoke puff at the muzzle on every shot.
 
 ## Limitations
 

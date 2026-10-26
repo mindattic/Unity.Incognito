@@ -119,6 +119,9 @@ namespace Incognito.EditorTools
             npc.transform.position = new Vector3(npcDef.SpawnX * px, 512f * px, 0.5f);
             npc.AddComponent<BoxCollider2D>(); // after the sprite, so it fits the sprite's bounds
             npc.AddComponent<BulletTarget>();  // U.INC-T9: a shot shoves the NPC 100px
+            // The console's `list sheep` lists every obj_npc by its sheep_id: the NPC itself is the console object (U.INC-T35;
+            // it was a separate placeholder in the sandbox only, so no built room ever listed its NPC).
+            npc.AddComponent<ConsoleTarget>().Configure(ConsoleObjectType.Sheep, npcDef.SheepId);
             var npcController = npc.AddComponent<NpcController>();
             npcController.Player = locomotion;
 
@@ -233,7 +236,6 @@ namespace Incognito.EditorTools
             pistolSo.ApplyModifiedPropertiesWithoutUndo();
 
             var targets = new GameObject("Console Targets");
-            AddConsoleTarget(targets.transform, groundSprite, ConsoleObjectType.Sheep, "0097", roomWidth * 0.5f + 15f, session);
             AddConsoleTarget(targets.transform, groundSprite, ConsoleObjectType.Sheep, "0102", roomWidth * 0.5f - 25f, session);
             AddConsoleTarget(targets.transform, groundSprite, ConsoleObjectType.Camera, "07", roomWidth * 0.5f + 40f, session);
             AddConsoleTarget(targets.transform, groundSprite, ConsoleObjectType.Sheep, "0451", roomWidth * 0.5f + 120f, session);

@@ -3,7 +3,7 @@ codex: 1
 project: Unity.Incognito
 layer: research
 status: living
-updated: 2026-10-24
+updated: 2026-10-25
 ---
 
 # Incognito — reverse-engineering notes
@@ -433,7 +433,99 @@ Android, iOS, WinPhone, Windows8, Tizen, Mac, Linux and html5 export configs.
 | Project and package hygiene | `DefaultCompany`, splash on, every built-in module, no build script | T27 |
 | README, BIBLE, story status | README says implementation not started; US-A1/A2/A3/A5/A6/A9 shown planned | T34 |
 
-T35 is the final scripted verification that closes the parity checklist.
+T35 is the final scripted verification; its checklist is section 11.
+
+## 11. Parity checklist — U.INC-T35 (2026-10-25)
+
+The final verification. `Assets/Incognito/Tests/PlayMode/ParityTourPlayTests.cs` plays the built
+title, Bleecher Street, 2nd Avenue and shop through a virtual keyboard and mouse (the Input System
+reads them exactly as it reads hardware) and proves each `tour:` row below with a `Row("id")` call;
+`test:` rows are proven by the named existing test over the same built scenes, and `decided:` rows
+are original behaviour deliberately not ported, recorded in BIBLE.md. `tools/verify-parity.ps1` runs
+the tour muted (`-muted`, `MINDATTIC_CLI_MUTED=1`) and writes `Logs/parity-tour/NN-tag.png`
+screenshots plus `Logs/parity-tour.txt`, the rows the run proved. `ParityChecklistTests`
+(Core.Tests) fails on any unticked row, any `tour:` id the tour no longer proves, any `test:` class
+that does not exist and any `decided:` id BIBLE.md does not record, so the list cannot rot.
+
+The tour found one real gap, fixed here: the built rooms never listed the NPC as a console object,
+so `list sheep` said "none" (the console row below now proves it lists the NPC's `SHP#0097`).
+
+Screenshots: MindAttic.Capture's `TakeScreenshot` is called at each moment, but its grab waits for the
+end of a rendered frame, which a `-batchmode` Editor never reaches, so the batch run's record is the
+tour's own PNGs (`tools/verify-parity.ps1 -Capture` turns Capture on for a run that has a real frame).
+
+| Done | Row | Section | Mechanic proved |
+|---|---|---|---|
+| [x] | `tour:title.default-music` | 3 title | The title plays the global default track (music_oppressivegloom). |
+| [x] | `tour:title.any-key-starts-the-game` | 7 / 1 | Any key on the title runs start_game(): street00, entered from the right, facing left. |
+| [x] | `tour:room.arrival-and-name` | 7 | obj_room places the player by enter_from and draws the room's name. |
+| [x] | `tour:room.opening-poem` | 7 | street00's intro poem is typed at the room's right end. |
+| [x] | `tour:room.rain` | 7 | obj_rain_emitter's rain falls. |
+| [x] | `tour:room.props-and-lamps` | 7 | 4 lampposts (each with its own flickering lamplight) and 2 mailboxes. |
+| [x] | `tour:prop.click-types-description` | 7 | A left click on a prop types its description at the cursor. |
+| [x] | `tour:audio.room-music` | 8 | The room's own track plays (street00: oppressivegloom). |
+| [x] | `tour:audio.shop-music` | 8 | The shop plays music_dubferal. |
+| [x] | `tour:audio.flick` | 5 / 8 | A GUI console click plays sfx_flick (footstep, reload, whoosh, fire and holster sounds are asserted in the walk and weapon rows; door open is the DoorUsed event in world.door-enters-the-shop). |
+| [x] | `tour:walk.bob-and-footsteps` | 1 | Walking is a triangle-wave bob within walkAmount with a footstep at each peak. |
+| [x] | `tour:walk.speed` | 1 | Walking speed is walk_speed. |
+| [x] | `tour:walk.sprint` | 1 | Shift doubles the speed, ramped. |
+| [x] | `tour:walk.friction-stop` | 1 | Key-up goes walking to stopping (friction) to idle. |
+| [x] | `tour:walk.turn-flips-facing` | 1 / 2 | Walking the other way flips the facing and the camera's lead. |
+| [x] | `tour:arms.swing-in-opposition` | 1 | The two arms swing in opposition while walking. |
+| [x] | `tour:camera.leads-facing` | 2 | The camera pins the view ahead of the player, in their facing direction. |
+| [x] | `tour:camera.clamps-at-room-edges` | 2 | Near the room's edges the camera stops at the room. |
+| [x] | `tour:camera.vertical-pan-follows-mouse` | 2 | The vertical pan follows the mouse, bounded (a rebuild decision, BIBLE). |
+| [x] | `tour:eye.socket-follows-facing` | 3 | The eye socket flips with the facing. |
+| [x] | `tour:eye.pupil-parallax` | 3 | The pupil moves by mouse parallax (divisor 160), not 1:1. |
+| [x] | `tour:eye.blink` | 3 | The eyelid blinks at random. |
+| [x] | `tour:cursor.look-talk-cycle` | 3 | The eye cursor flips look/talk by right click (gun holstered) and wheel, with each mode's sprite. |
+| [x] | `tour:cursor.reticle-while-aiming` | 3 | The reticle replaces the cursor while aiming. |
+| [x] | `tour:weapon.draw-with-Z` | 1 | Z draws the gun: sfx_reload, drawing arm pose, HUD icon selected. |
+| [x] | `tour:weapon.aim-locks-movement` | 1 | While aiming the player can neither walk nor turn; sfx_whoosh sounded. |
+| [x] | `tour:weapon.fire-bullet-and-smoke` | 1 | Left click while aiming fires one bullet from the muzzle with a puff of smoke and sfx_fire_cannon. |
+| [x] | `tour:weapon.bullet-despawns` | 1 | The bullet is destroyed once it leaves the room. |
+| [x] | `tour:weapon.arm-follows-mouse-height` | 1 | The aim angle follows the mouse's height. |
+| [x] | `tour:weapon.aim-is-a-hold` | 1 | Releasing right drops back to the drawn gun. |
+| [x] | `tour:hud.pistol-icon-toggles-gun` | 5 | The HUD pistol icon draws and holsters the gun like Z (sfx_holster, selected sprite). |
+| [x] | `tour:weapon.shot-shoves-the-npc` | 1 / 4 | A bullet meeting the NPC shoves it 100px away from the shot. |
+| [x] | `tour:npc.patrols` | 4 | The NPC walks toward its waypoint. |
+| [x] | `tour:npc.suspicion-rises-near-and-facing` | 4 | Close, face to face and eyes up raises suspicion. |
+| [x] | `tour:npc.suspicion-label` | 4 | The % over the NPC's head shows the suspicion. |
+| [x] | `tour:npc.looking-down-stops-suspicion` | 4 | Looking down cancels the face-to-face growth. |
+| [x] | `tour:npc.far-bleeds-suspicion` | 4 | Far from the NPC, suspicion drains. |
+| [x] | `tour:npc.look-types-description` | 4 | Look mode: a click types the NPC's description. |
+| [x] | `tour:npc.talk-walks-to-the-player` | 4 | Talk mode: a click sets the NPC talking toward the player's far side. |
+| [x] | `tour:console.q-toggles-inverted` | 5 | Q toggles the console view: pointer mode, circuit backdrop fades in. |
+| [x] | `tour:console.pointer-click-opens-the-hack` | 5 | A pointer click on the NPC makes it the hack target, raises the program icon and slides the console in. |
+| [x] | `tour:console.help-list-clear-unknown` | 6 | help, list sheep (the NPC's SHP id), clear and an unknown command. |
+| [x] | `tour:console.escape-closes-the-hack` | 5 | Escape closes the console and ends the hack. |
+| [x] | `tour:console.q-restores-the-cursor-mode` | 5 | Q again restores the cursor mode from before. |
+| [x] | `tour:world.street00-right-exit-to-street01` | 7 | Bleecher Street's right edge leads to 2nd Avenue, entered from the left. |
+| [x] | `tour:world.street01-left-exit-to-street00` | 7 | 2nd Avenue's left edge leads back to Bleecher Street, entered from the right. |
+| [x] | `tour:world.door-enters-the-shop` | 7 | W within 300px of the door enters Simon's Pawn and Loan (not beyond it); it is dry indoors. |
+| [x] | `tour:world.shop-barrier-blocks` | 7 | The shop's obj_barrier at x 800 stops the player walking west. |
+| [x] | `tour:world.shop-exit-to-street00` | 7 | The shop's right edge leads out to Bleecher Street at x 9500. |
+| [x] | `tour:world.street00-left-exit-to-street01` | 7 | Bleecher Street's left edge leads to 2nd Avenue, entered from the right. |
+| [x] | `tour:world.street01-right-exit-to-street00` | 7 | 2nd Avenue's right edge leads back, entered from the left. |
+| [x] | `test:RoomTraversalPlayTests` | 9 | The T13 route over the built scenes (arrival x and facing for every exit). |
+| [x] | `test:OriginalTextPlayTests` | 10 (T31) | Room, NPC, console and floating text use the original fonts and outlines. |
+| [x] | `test:OriginalFontParityTests` | 10 (T31) | fnt_basic, fnt_large and fnt_system match the original's .font.gmx. |
+| [x] | `test:OriginalArtParityTests` | 10 (T29) | Every image a live original object or room uses is in the rebuild at its origin. |
+| [x] | `test:OriginalAudioParityTests` | 10 (T28) | Every sound a live original object plays is catalogued, wired and on disk (sfx_type, sfx_door_open; whispers unwired). |
+| [x] | `test:ScreenRatioTests` | 10 (T32) | The 1920x1080 view letterboxes on other aspects (obj_startup's screen ratio). |
+| [x] | `test:GameDisplayTests` | 10 (T32) | The fullscreen/window toggle and the HUD's mapping through the letterbox. |
+| [x] | `test:DebugHotkeysTests` | 9 | Escape quits, F1 toggles fullscreen, F12 shows the debug readout. |
+| [x] | `test:MuzzleSmokePlayTests` | 10 (T41) | The muzzle smoke sorts behind every actor sprite. |
+| [x] | `test:HudPistolIconPlayTests` | 10 (T30) | The pistol icon rises to room_height - 96 and obj_mouse_gui's console click selects and flicks. |
+| [x] | `test:SessionAudioTests` | muted launches | The CLI mute silences the AudioListener without touching settings.json. |
+| [x] | `decided:down-arrow-walkamount` | 9 | obj_walker's Down arrow (a dev tweak of walkAmount) is deliberately not ported; BIBLE records why. |
+
+**Verdict.** Every row above is ticked: the rebuild reproduces every mechanic sections 1-8 record
+that the original actually wired, plus the audit's assets, fonts and display (section 10), so the
+repository is a complete proof of concept of the original *Incognito*. What it leaves out is on
+purpose: the content section 10 verified dead, the Down-arrow tweak, the GameMaker-only startup note,
+and the open questions below (suspicion reaching 100% has no consequence in the original, so none is
+invented; `reboot`, `overwrite` and `list all` are stubs).
 
 ## Open questions the source doesn't answer
 

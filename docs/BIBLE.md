@@ -456,6 +456,17 @@ Still open: U.INC-T35 (the final scripted parity run with screenshots, US-A15) a
     its shared packages use; `tools/{unity,build,test}.ps1` are the batch build and test entry
     points (the Editor must be closed).
 
+- **Final parity verification (U.INC-T35).** `ParityTourPlayTests` (PlayMode) plays the built title,
+  Bleecher Street, 2nd Avenue and shop through a virtual keyboard and mouse and proves every row of
+  RECONSTRUCTION section 11's checklist; `tools/verify-parity.ps1` runs it muted with screenshots. It
+  found one real gap, fixed in the same ticket: the NPC was never a console object in a built room
+  (the sandbox's `list sheep` placeholders were stripped with the rest of the sandbox), so `list
+  sheep` answered "none" instead of the NPC's `SHP#0097`; the NPC now carries its own `ConsoleTarget`.
+  - `decided:down-arrow-walkamount`: obj_walker's Down arrow takes 0.1 off `walkAmount` per step
+    (RECONSTRUCTION section 9; its Up arrow is commented out). It is a development tweak that only
+    ever shrinks the bob until the game restarts, and nothing in the original treats it as a
+    mechanic, so it is not ported; the bob height is `Locomotion.BobAmplitude` in `game-tuning.json`.
+
 ## Laws
 
 See AGENTS.md for the non-negotiables (reconstruction is ground truth, data over hard-coding where
