@@ -3,7 +3,8 @@
     "rootNamespace": "Incognito",
     "references": [
         "Incognito.Core",
-        "Unity.InputSystem"
+        "Unity.InputSystem",
+        "Unity.Shared.Core"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

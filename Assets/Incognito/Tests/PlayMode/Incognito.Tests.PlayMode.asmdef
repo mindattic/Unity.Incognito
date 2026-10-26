@@ -4,6 +4,7 @@
     "references": [
         "Incognito.Core",
         "Incognito.Runtime",
+        "Unity.Shared.Core",
         "UnityEngine.TestRunner"
     ],
     "includePlatforms": [],

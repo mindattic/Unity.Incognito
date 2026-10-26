@@ -69,9 +69,33 @@ the Core tests), and [Unity.Shared](https://github.com/mindattic/Unity.Shared) a
 - **Build:** `powershell -File tools/build.ps1` writes `Builds/Windows/Incognito.exe` in batch mode.
 - **Test:** `powershell -File tools/test.ps1` runs the Core, EditMode and PlayMode suites;
   `powershell -File run-core-tests.ps1` runs only the engine-free Core tests with `dotnet test`.
+- **Launch a playable build for development:** `powershell -File play.ps1` (builds it first if
+  `Builds/Windows/Incognito.exe` is missing; `-Build` rebuilds, `-Wait` waits for it to exit, the log
+  goes to `Logs/play.log`). This is not `tools/build.ps1`/`tools/test.ps1`'s `-batchmode` runs: it
+  starts a real, on-screen player.
 
 The batch scripts (`tools/unity.ps1` underneath) need the Editor closed on this project, and keep
 each run's Unity log in `Logs/`.
+
+### Muted launches
+
+`play.ps1` launches muted: it sets `MINDATTIC_CLI_MUTED=1` and passes `-muted`, so a CLI or agent
+starting the game never blasts audio. Pass `-Sound` to launch with audio. Either switch works on its
+own when you start `Incognito.exe` (or the editor) yourself:
+
+```
+$env:MINDATTIC_CLI_MUTED = '1'; .\Builds\Windows\Incognito.exe
+.\Builds\Windows\Incognito.exe -muted
+```
+
+The mute is the shared `com.mindattic.unity.shared` session mute: read before the first scene loads,
+it makes the player profile's settings report music and sound effects muted at volume 0 for that run
+only, and `Incognito.Audio.SessionAudio` silences the `AudioListener`. The player's saved
+`settings.json` is never written, so the next normal launch has sound. Because Incognito has both
+music (`MusicPlayer`) and sound effects (footsteps, the HUD flick, the weapon), `SessionAudio` only
+silences the listener once *both* channels report muted, so muting just one of your own profile's
+channels never silences the other. `tools/build.ps1`/`tools/test.ps1`'s `-batchmode` runs play nothing
+audible and don't need it.
 
 ## How it works
 
