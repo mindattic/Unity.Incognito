@@ -329,6 +329,16 @@ Corrections from re-reading the rooms for U.INC-T11:
   `irandom_range(0,80) == 0` roll each step. `obj_prop_back`/`_front` are unplaced duplicates of
   the lamppost/mailbox; the rooms use `obj_prop_lamppost` (depth 10) and `obj_prop_mailbox`
   (depth -10), each typing its description on a left click.
+- **Room names** (U.INC-T42): `obj_room`'s create event sets `name = get_room_name(room)`, and
+  `get_room_name.gml` maps `street00` to "Bleecher Street", `street01` to "2nd Avenue" and `shop`
+  to "Simon's Pawn and Loan" (anything else to ""); obj_room's draw-GUI event draws it top-left.
+  Ported as each room's `Name` in game-content.json, drawn by `Room`.
+- **The per-room controllers that were never placed** (U.INC-T42): `obj_room_startup`,
+  `obj_room_street00` and `obj_room_street01` are earlier, per-room copies of `obj_room`'s create
+  event (entry placement by `enter_from`, the fade-out; street00's also types the poem and
+  creates the rain and `obj_jukebox`, street01's the rain), drawn with `spr_room_startup`. No room
+  places any of them and nothing instance-creates them; every room in play places the one generic
+  `obj_room` instead, which is what the rebuild ports.
 - **Rain**: `obj_rain_emitter` makes 6 `obj_raindrop`s per step at a random x across the view
   and a random y up to one room above; each falls 40–50px and drifts 3–6px left per step (spr_rain,
   1×4, alpha 0.75, depth -1) and is destroyed below the room.

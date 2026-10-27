@@ -441,6 +441,23 @@ Every system below is built. Core is `Assets/Incognito/Core` (engine-free), Runt
   - `obj_stealth`: the "scanning" dashboard object referenced only by other objects' dead branches,
     never created by anything live; already recorded in the Hacking overlay decision above
     (U.INC-T7) and catalogued `Live: false` in the Art catalog (U.INC-T29).
+  - `obj_background` (U.INC-T42): `spr_street00_full` at depth 20, its create event pinning it to
+    0,0. No room places it and nothing creates it; the rooms draw their numbered background slices
+    instead (RECONSTRUCTION §7).
+  - `obj_street00_00`..`obj_street00_05` (U.INC-T42): one object per `spr_street00_00`..`_05` slice,
+    depth 20, no events at all. None is placed in any room or created by anything; the street's
+    slices are room backgrounds (`bg_street00_*`), not objects, and `scenes.gml` (the only other
+    user of those sprites) is never called.
+  - `obj_room_startup`, `obj_room_street00`, `obj_room_street01` (U.INC-T42): earlier per-room
+    copies of `obj_room`'s create event, never placed or created; every room in play uses the one
+    generic `obj_room` (RECONSTRUCTION §7), which the rebuild ports. The street00 copy's poem and
+    rain match what `obj_room` does for street00, so nothing of theirs is lost.
+  - `obj_typewriter_gui` (U.INC-T42): a GUI-layer variant of `obj_typewriter` (type speed 2, fades
+    out once typed, `spr_desc_border` box, fnt_large). Never placed or created; `obj_typewriter` is
+    the one live typewriter, ported as `DescriptionTypewriter`.
+  - `user_input_step` (U.INC-T42): a stock keyboard_string helper (credited "Davve,
+    stuffbydavid.com") pasted into the project but never called by any object or script; the
+    console's typing is `obj_console`'s own keyboard handling (RECONSTRUCTION §6).
   - The Android, iOS, WinPhone, Windows8, Tizen, Mac, Linux and html5 export configs
     (`Configs/Default/{Android,ios,WinPhone,Windows8,Tizen,Mac,Linux,html5}`): GameMaker: Studio's
     own auto-generated per-platform scaffolding (splash images, `option_android_*`/etc. fields baked
