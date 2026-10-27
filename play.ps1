@@ -15,11 +15,14 @@
     Launch with audio (no MINDATTIC_CLI_MUTED, no -muted).
 .PARAMETER Wait
     Wait for the player to exit and return its exit code.
+.PARAMETER Online
+    Open the online scene (Host, Join by IP, Join by code) instead of the title (passes -online, U.INC-T43).
 #>
 param(
     [switch]$Build,
     [switch]$Sound,
     [switch]$Wait,
+    [switch]$Online,
     [Parameter(ValueFromRemainingArguments = $true)][string[]]$PlayerArgs
 )
 
@@ -36,6 +39,7 @@ New-Item -ItemType Directory -Force (Split-Path $log) | Out-Null
 
 $arguments = @('-logFile', "`"$log`"")
 if (-not $Sound) { $arguments += '-muted' }
+if ($Online) { $arguments += '-online' }
 if ($PlayerArgs) { $arguments += $PlayerArgs }
 
 # The child inherits this process's environment; set the mute only around the launch.

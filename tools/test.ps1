@@ -17,6 +17,11 @@ param([switch]$SkipCore, [switch]$SkipEditMode, [switch]$SkipPlayMode)
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 
+# Only the game's own test assemblies: Netcode for GameObjects is under "testables" (the online test kit
+# needs its helpers, U.INC-T43), so an unlimited run would also run NGO's own suite.
+$editAssemblies = 'Incognito.Tests.EditMode;Incognito.Tests.Online.EditMode'
+$playAssemblies = 'Incognito.Tests.PlayMode;Incognito.Tests.Online'
+
 # Unity's -runTests exits 0 even when it matched zero tests (a wrong -testPlatform, an excluded
 # assembly, or a renamed test all look like success otherwise). Confirm the results file actually
 # names tests, not just that Unity exited 0. A stale file from an earlier run is removed first so a
@@ -43,7 +48,7 @@ if (-not $SkipEditMode) {
     Write-Host '  EditMode tests (Unity batch mode)...' -ForegroundColor Cyan
     $editResults = Join-Path $root 'TestResults-EditMode.xml'
     Remove-Item -LiteralPath $editResults -ErrorAction SilentlyContinue
-    & "$PSScriptRoot/unity.ps1" -Log test-editmode -TestPlatform EditMode -TestResults $editResults
+    & "$PSScriptRoot/unity.ps1" -Log test-editmode -TestPlatform EditMode -TestResults $editResults -AssemblyNames $editAssemblies
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     Confirm-TestResults -Path $editResults
 }
@@ -52,7 +57,7 @@ if (-not $SkipPlayMode) {
     Write-Host '  PlayMode tests (Unity batch mode)...' -ForegroundColor Cyan
     $playResults = Join-Path $root 'TestResults-PlayMode.xml'
     Remove-Item -LiteralPath $playResults -ErrorAction SilentlyContinue
-    & "$PSScriptRoot/unity.ps1" -Log test-playmode -TestPlatform PlayMode -TestResults $playResults
+    & "$PSScriptRoot/unity.ps1" -Log test-playmode -TestPlatform PlayMode -TestResults $playResults -AssemblyNames $playAssemblies
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     Confirm-TestResults -Path $playResults
 }

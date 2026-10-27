@@ -12,6 +12,8 @@
   -TestResults is its own parameter (not folded into -Extra) and always quoted before being added
   to the argument list: -Extra is naively space-split below, which would silently truncate a
   results path containing a space instead of failing loudly.
+  -AssemblyNames (semicolon-separated) limits a test run to those test assemblies: with Netcode for
+  GameObjects listed under "testables" (U.INC-T43), an unlimited run would also run NGO's own suite.
 #>
 param(
     [string]$Method,
@@ -19,6 +21,7 @@ param(
     [switch]$Graphics,
     [string]$TestPlatform = "",
     [string]$TestResults = "",
+    [string]$AssemblyNames = "",
     [string]$Extra = ""
 )
 $ErrorActionPreference = "Stop"
@@ -45,6 +48,7 @@ $argList = @("-batchmode", "-projectPath", "`"$root`"", "-logFile", "`"$logFile`
 if (-not $Graphics) { $argList += "-nographics" }
 if ($Method) { $argList += @("-executeMethod", $Method) }
 if ($TestPlatform) { $argList += @("-runTests", "-testPlatform", $TestPlatform, "-testResults", "`"$TestResults`"") }
+if ($TestPlatform -and $AssemblyNames) { $argList += @("-assemblyNames", "`"$AssemblyNames`"") }
 if ($Extra) { $argList += $Extra.Split(' ') }
 # A -runTests run quits on its own once the suite finishes; an -executeMethod run needs -quit.
 if (-not $TestPlatform -and $Extra -notmatch 'runTests') { $argList += "-quit" }

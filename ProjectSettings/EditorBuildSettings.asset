@@ -17,4 +17,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Incognito/Scenes/Rooms/Shop.unity
     guid: 75ea7139347d9aa4abbb7c12e131f89d
+  - enabled: 1
+    path: Assets/Incognito/Scenes/Online.unity
+    guid: ec289974c9c70dc43b66af56ac07ecdc
   m_configObjects: {}

@@ -168,6 +168,13 @@ namespace Incognito.Tests
         }
 
         [Test]
+        public void OnlineTuning_every_field_round_trips()
+        {
+            JsonObject json = FieldCoverage.Build(typeof(OnlineTuning), out Action<object> verify);
+            verify(OnlineTuning.FromJson(json));
+        }
+
+        [Test]
         public void SettingsRegistry_every_field_round_trips()
         {
             JsonObject json = FieldCoverage.Build(typeof(SettingsRegistry), out Action<object> verify);

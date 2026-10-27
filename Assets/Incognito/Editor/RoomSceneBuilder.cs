@@ -78,7 +78,10 @@ namespace Incognito.EditorTools
 
             if (updateBuildSettings)
             {
-                EditorBuildSettings.scenes = scenes.Select(p => new EditorBuildSettingsScene(p, true)).ToArray();
+                // The rooms go first, in order (a launch opens the title); any other scene already
+                // listed (the online scene, U.INC-T43) keeps its place after them.
+                var others = EditorBuildSettings.scenes.Where(s => !scenes.Contains(s.path));
+                EditorBuildSettings.scenes = scenes.Select(p => new EditorBuildSettingsScene(p, true)).Concat(others).ToArray();
             }
             AssetDatabase.SaveAssets();
         }

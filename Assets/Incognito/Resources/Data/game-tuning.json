@@ -61,5 +61,10 @@
     "ReferenceWidth": 1920.0,
     "ReferenceHeight": 1080.0,
     "StartFullscreen": true
+  },
+  "Online": {
+    "Room": "Street00",
+    "MaxPlayers": 4,
+    "SeatSpacing": 600.0
   }
 }

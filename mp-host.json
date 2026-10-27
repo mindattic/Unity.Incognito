@@ -1,0 +1,5 @@
+{
+  "name": "unity-incognito",
+  "scene": "Assets/Incognito/Scenes/Online.unity",
+  "bots": "A,B"
+}

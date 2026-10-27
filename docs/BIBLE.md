@@ -506,6 +506,42 @@ Every system below is built. Core is `Assets/Incognito/Core` (engine-free), Runt
     ever shrinks the bob until the game restarts, and nothing in the original treats it as a
     mechanic, so it is not ported; the bob height is `Locomotion.BobAmplitude` in `game-tuning.json`.
 
+- **Online-ready (U.INC-T43, rebuild standard point 9).** The original is single-player and has no
+  online play; the rebuild adds the shared Unity.Multiplayer kit beside local play, which is untouched:
+  the title, rooms, keys and scenes are exactly as before and contain none of the kit.
+  - *Where it lives.* `Incognito.Online` (`Assets/Incognito/Online`, compiled only with MindAttic
+    Components present) and `Incognito.Editor.Online`; `Incognito > Build Online Scene`
+    (`OnlineSceneBuilder`) writes `Scenes/Online.unity` (the kit's NetworkManager, `NetBootstrap` and
+    drop-in `NetFrontEnd`, the online room's background slices, the original 1920x1080 camera,
+    `IncognitoOnlineGame`), the `IncognitoNetPlayer` prefab (spr_player at its GameMaker origin) and
+    `mp-host.json`. It goes last in Build Settings (`RoomSceneBuilder` now keeps scenes it didn't make
+    after its rooms), so a launch still opens the title; `-online` (`play.ps1 -Online`), or the kit's
+    `-mode`/`-bot` launch switches, open it instead (`OnlineLaunch`). Its menu's `Play solo` goes back to
+    the title with the kit torn down.
+  - *One authority, commands carrying a seat.* Each connection's `IncognitoNetPlayer` is a `NetEntity`
+    carrying its roster seat; seat N plays as `PlayerId` N+1 (`OnlineSeats`, Core), so a listen server's
+    own seat is local play's `P1`. Its owner reads the same `GameInput` snapshot local play reads and sends
+    it as `[ToServer]` calls; the server turns each into the same Core command local play submits
+    (`SetControls`, `ToggleGun`, `PressAim`, `ReleaseAim`, `PressFire`, `ReleaseFire`) with the sender's
+    seat, so a client only ever moves its own player. The controls travel packed (`OnlineControls`, Core)
+    and the server makes a client's numbers safe (NaN, infinities, a cursor outside the view).
+    `IncognitoAuthority`, on the server only, holds the session's `GameWorld`, steps it once a frame as
+    `GameSession` does, and writes each seat's position, bob, facing, walk mode and aim mode into
+    `[Synced]` fields every peer draws. A released seat is unseated (`GameWorld.RemovePlayer`).
+  - *Data.* `game-tuning.json`'s `Online` section (`OnlineTuning`): the room a session plays in
+    (`Street00`), the seat count (4) and the spacing between seats' starts (600px inward from the room's
+    own start, seat 0 starting where local play does).
+  - *Scope.* The online scene carries the players' walking and the gun's state on one street. The NPC,
+    props, doors, the console and the bullets' presentation stay local-only until a ticket moves them;
+    their rules already run in the one `GameWorld` the authority holds, so moving them is presentation
+    work, not new rules.
+  - *Proof.* Core `OnlineTests`; EditMode `OnlineSceneTests` (the scene's wiring, the title first and the
+    local rooms free of the kit, the launch switches, the kit's prefab validator); PlayMode
+    `IncognitoNetPlayerTests` (`NetSessionTest`: seats, a client's input walking and arming only its own
+    player on the server, unsafe numbers made safe) and `IncognitoBotTests` (`NetBotTest`: two
+    `IncognitoBot`s join a dedicated server by code, walk and draw). `tools/test.ps1` runs only the game's
+    own test assemblies, since Netcode for GameObjects is under `testables` for the test kit.
+
 ## Laws
 
 See AGENTS.md for the non-negotiables (reconstruction is ground truth, data over hard-coding where

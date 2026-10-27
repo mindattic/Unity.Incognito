@@ -22,6 +22,7 @@ namespace Incognito.Settings
         public WeaponTuning Weapon = new WeaponTuning();
         public RainTuning Rain = new RainTuning();
         public DisplayTuning Display = new DisplayTuning();
+        public OnlineTuning Online = new OnlineTuning();
 
         /// <summary>The original's values, for callers that need a registry without loading one.</summary>
         public static SettingsRegistry Default => new SettingsRegistry();
@@ -35,6 +36,7 @@ namespace Incognito.Settings
             if (Weapon == null) throw new SettingsValidationException("SettingsRegistry.Weapon is required.");
             if (Rain == null) throw new SettingsValidationException("SettingsRegistry.Rain is required.");
             if (Display == null) throw new SettingsValidationException("SettingsRegistry.Display is required.");
+            if (Online == null) throw new SettingsValidationException("SettingsRegistry.Online is required.");
 
             Suspicion.Validate();
             Locomotion.Validate();
@@ -42,6 +44,7 @@ namespace Incognito.Settings
             Weapon.Validate();
             Rain.Validate();
             Display.Validate();
+            Online.Validate();
         }
 
         /// <summary>
@@ -61,6 +64,7 @@ namespace Incognito.Settings
                 Weapon = WeaponTuning.FromJson(root.GetObject(nameof(Weapon))),
                 Rain = RainTuning.FromJson(root.GetObject(nameof(Rain))),
                 Display = DisplayTuning.FromJson(root.GetObject(nameof(Display))),
+                Online = OnlineTuning.FromJson(root.GetObject(nameof(Online))),
             };
         }
     }

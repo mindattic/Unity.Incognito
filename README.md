@@ -53,13 +53,24 @@ UI Toolkit). Where the original was plainly broken, the rebuild plays the way it
   music.
 - **Display.** The original's 1920x1080 view, letterboxed on any other aspect, fullscreen from the
   title; F1 toggles fullscreen, F12 shows a debug readout, Escape closes the console or quits.
+- **Online-ready.** Beside the untouched local game, an online scene on the shared
+  [Unity.Multiplayer](https://github.com/mindattic/Unity.Multiplayer) kit: Host, Join by IP, Join by
+  code, a lobby with the roster, reconnect and an Esc menu; every player walks and draws on one street,
+  run by one server authority through the same Core commands local play sends (BIBLE, U.INC-T43).
 
 ## Quick start
 
 Requirements: Windows, Unity **6000.4.3f1** (Unity Hub's default install path), the .NET SDK (for
-the Core tests), and [Unity.Shared](https://github.com/mindattic/Unity.Shared) and
-[MindAttic.Capture](https://github.com/mindattic/MindAttic.Capture) cloned beside this repo, which
-`Packages/manifest.json` references as local `file:` packages.
+the Core tests), and [Unity.Shared](https://github.com/mindattic/Unity.Shared),
+[MindAttic.Capture](https://github.com/mindattic/MindAttic.Capture),
+[Unity.Multiplayer](https://github.com/mindattic/Unity.Multiplayer) and
+[MindAttic.Components](https://github.com/mindattic/MindAttic.Components) cloned beside this repo,
+which `Packages/manifest.json` references as local `file:` packages.
+
+- **Play online:** `powershell -File play.ps1 -Online` (or launch `Incognito.exe -online`) opens the
+  online scene's menu instead of the title; in the Editor, open `Assets/Incognito/Scenes/Online.unity`
+  and press Play. `Incognito/Build Online Scene` regenerates it. A dedicated server and smoke-test bots
+  run it from `mp-host.json` (`mp-host game local`, `mp-host game smoke`).
 
 - **Play in the Editor:** open the project in Unity 6000.4.3f1, open
   `Assets/Incognito/Scenes/Rooms/Titlescreen.unity` and press Play. Rooms rebuild their content
@@ -106,6 +117,7 @@ audible and don't need it.
 | `Incognito.Core` | `Assets/Incognito/Core` | Pure C# (`noEngineReferences`): `GameWorld` and its commands/events, every `*State` rule class, `SuspicionMeter`, `CommandInterpreter`, `ScreenRatio`, `GmText`, the settings registry and content catalog. References only Unity.Shared.Core. |
 | `Incognito.Runtime` | `Assets/Incognito/Scripts` | MonoBehaviours that read input, submit commands, and present state and events: player, NPCs, weapon, eye, camera, hacking overlay, console, rooms, audio, the UI Toolkit HUD (`HudRoot`), `GameDisplay`. |
 | `Incognito.Editor` | `Assets/Incognito/Editor` | Scene and build tooling: `RoomSceneBuilder`, `SandboxSceneBuilder`, `OriginalArt`, `PlayerBuilder`. |
+| `Incognito.Online` | `Assets/Incognito/Online` | Online play on Unity.Multiplayer: `IncognitoNetPlayer` (a `NetEntity` per seat), `IncognitoAuthority` (the server's one `GameWorld`), `IncognitoOnlineGame`, `IncognitoBot`, `OnlineLaunch`. `Incognito.Editor.Online` writes the online scene (`OnlineSceneBuilder`). |
 | Tests | `Tests/Core.Tests`, `Assets/Incognito/Tests/{EditMode,PlayMode}` | `dotnet test` for Core; Unity EditMode for the MonoBehaviour layer; PlayMode for room traversal, the HUD and text. |
 
 - **Commands in, events out.** The game changes only through `GameWorld.Submit(GameCommand)`;

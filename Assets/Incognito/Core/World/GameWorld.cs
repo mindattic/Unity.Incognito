@@ -157,6 +157,20 @@ namespace Incognito.World
             return player;
         }
 
+        /// <summary>
+        /// Unseats a player (an online seat released, U.INC-T43). Their side-exit marks go with them, so
+        /// a later player in the same seat starts fresh. Returns whether they were seated.
+        /// </summary>
+        public bool RemovePlayer(PlayerId id)
+        {
+            PlayerEntity player = FindPlayer(id);
+            if (player == null) return false;
+
+            players.Remove(player);
+            foreach (SideExit exit in sideExits) exit.TakenBy.Remove(id);
+            return true;
+        }
+
         public PlayerEntity FindPlayer(PlayerId id)
         {
             foreach (PlayerEntity player in players)
