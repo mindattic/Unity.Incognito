@@ -1,11 +1,11 @@
-# Unity.Incognito
+# Unity.Rea.Incognito
 
 A Unity 6 rebuild of *Incognito*, a 2013 GameMaker point-and-click stealth prototype: a
 Shadowrun-flavored cyberpunk street, a camera held deliberately close instead of a wide adventure-
 game establishing shot, and a mouse cursor that doubles as the player character's own tracking
 eyeball.
 
-[![Unity](https://img.shields.io/badge/Unity-6000.4.3f1-black)](ProjectSettings/ProjectVersion.txt) [![URP](https://img.shields.io/badge/URP-17.4-2b6cb0)](Packages/manifest.json) [![C#](https://img.shields.io/badge/language-C%23-239120)](Assets/Incognito) [![Core tests](https://img.shields.io/badge/core%20tests-247%20passing-brightgreen)](Tests/Core.Tests) [![Platform](https://img.shields.io/badge/platform-Windows-0078D6)](tools/build.ps1) [![Status](https://img.shields.io/badge/status-feature%20complete-yellow)](docs/USER_STORIES.md)
+[![Unity](https://img.shields.io/badge/Unity-6000.4.3f1-black)](ProjectSettings/ProjectVersion.txt) [![URP](https://img.shields.io/badge/URP-17.4-2b6cb0)](Packages/manifest.json) [![C#](https://img.shields.io/badge/language-C%23-239120)](Assets/Rea.Incognito) [![Core tests](https://img.shields.io/badge/core%20tests-247%20passing-brightgreen)](Tests/Core.Tests) [![Platform](https://img.shields.io/badge/platform-Windows-0078D6)](tools/build.ps1) [![Status](https://img.shields.io/badge/status-feature%20complete-yellow)](docs/USER_STORIES.md)
 
 Every room and mechanic of the original is rebuilt: the title, Bleecher Street (street00), 2nd
 Avenue (street01) and the shop, with the original's art, sounds, music and fonts. There is no
@@ -68,15 +68,15 @@ the Core tests), and [Unity.Shared](https://github.com/mindattic/Unity.Shared),
 which `Packages/manifest.json` references as local `file:` packages.
 
 - **Play online:** `powershell -File play.ps1 -Online` (or launch `Incognito.exe -online`) opens the
-  online scene's menu instead of the title; in the Editor, open `Assets/Incognito/Scenes/Online.unity`
+  online scene's menu instead of the title; in the Editor, open `Assets/Rea.Incognito/Scenes/Online.unity`
   and press Play. `Incognito/Build Online Scene` regenerates it. A dedicated server and smoke-test bots
   run it from `mp-host.json` (`mp-host game local`, `mp-host game smoke`).
 
 - **Play in the Editor:** open the project in Unity 6000.4.3f1, open
-  `Assets/Incognito/Scenes/Rooms/Titlescreen.unity` and press Play. Rooms rebuild their content
+  `Assets/Rea.Incognito/Scenes/Rooms/Titlescreen.unity` and press Play. Rooms rebuild their content
   from data at Awake, so a room scene looks bare until you press Play.
 - **Regenerate the scenes:** `Incognito/Build Room Scenes` in the Editor menu rewrites the four
-  room scenes and the build settings (`Assets/Incognito/Editor/RoomSceneBuilder.cs`).
+  room scenes and the build settings (`Assets/Rea.Incognito/Editor/RoomSceneBuilder.cs`).
 - **Build:** `powershell -File tools/build.ps1` writes `Builds/Windows/Incognito.exe` in batch mode.
 - **Test:** `powershell -File tools/test.ps1` runs the Core, EditMode and PlayMode suites;
   `powershell -File run-core-tests.ps1` runs only the engine-free Core tests with `dotnet test`.
@@ -114,16 +114,16 @@ audible and don't need it.
 
 | Assembly | Folder | What it holds |
 |---|---|---|
-| `Incognito.Core` | `Assets/Incognito/Core` | Pure C# (`noEngineReferences`): `GameWorld` and its commands/events, every `*State` rule class, `SuspicionMeter`, `CommandInterpreter`, `ScreenRatio`, `GmText`, the settings registry and content catalog. References only Unity.Shared.Core. |
-| `Incognito.Runtime` | `Assets/Incognito/Scripts` | MonoBehaviours that read input, submit commands, and present state and events: player, NPCs, weapon, eye, camera, hacking overlay, console, rooms, audio, the UI Toolkit HUD (`HudRoot`), `GameDisplay`. |
-| `Incognito.Editor` | `Assets/Incognito/Editor` | Scene and build tooling: `RoomSceneBuilder`, `SandboxSceneBuilder`, `OriginalArt`, `PlayerBuilder`. |
-| `Incognito.Online` | `Assets/Incognito/Online` | Online play on Unity.Multiplayer: `IncognitoNetPlayer` (a `NetEntity` per seat), `IncognitoAuthority` (the server's one `GameWorld`), `IncognitoOnlineGame`, `IncognitoBot`, `OnlineLaunch`. `Incognito.Editor.Online` writes the online scene (`OnlineSceneBuilder`). |
-| Tests | `Tests/Core.Tests`, `Assets/Incognito/Tests/{EditMode,PlayMode}` | `dotnet test` for Core; Unity EditMode for the MonoBehaviour layer; PlayMode for room traversal, the HUD and text. |
+| `Rea.Incognito.Core` | `Assets/Rea.Incognito/Core` | Pure C# (`noEngineReferences`): `GameWorld` and its commands/events, every `*State` rule class, `SuspicionMeter`, `CommandInterpreter`, `ScreenRatio`, `GmText`, the settings registry and content catalog. References only Unity.Shared.Core. |
+| `Rea.Incognito.Runtime` | `Assets/Rea.Incognito/Scripts` | MonoBehaviours that read input, submit commands, and present state and events: player, NPCs, weapon, eye, camera, hacking overlay, console, rooms, audio, the UI Toolkit HUD (`HudRoot`), `GameDisplay`. |
+| `Rea.Incognito.Editor` | `Assets/Rea.Incognito/Editor` | Scene and build tooling: `RoomSceneBuilder`, `SandboxSceneBuilder`, `OriginalArt`, `PlayerBuilder`. |
+| `Rea.Incognito.Online` | `Assets/Rea.Incognito/Online` | Online play on Unity.Multiplayer: `IncognitoNetPlayer` (a `NetEntity` per seat), `IncognitoAuthority` (the server's one `GameWorld`), `IncognitoOnlineGame`, `IncognitoBot`, `OnlineLaunch`. `Rea.Incognito.Editor.Online` writes the online scene (`OnlineSceneBuilder`). |
+| Tests | `Tests/Core.Tests`, `Assets/Rea.Incognito/Tests/{EditMode,PlayMode}` | `dotnet test` for Core; Unity EditMode for the MonoBehaviour layer; PlayMode for room traversal, the HUD and text. |
 
 - **Commands in, events out.** The game changes only through `GameWorld.Submit(GameCommand)`;
   every command carries a `PlayerId`, and presentation plays the resulting `GameEvent`s. There is
   no global current-player singleton.
-- **Content and tuning are data.** `Assets/Incognito/Resources/Data/game-content.json` (rooms,
+- **Content and tuning are data.** `Assets/Rea.Incognito/Resources/Data/game-content.json` (rooms,
   NPCs, descriptions, the poem, console copy, the art, sound and font catalogs) and
   `game-tuning.json` (locomotion, camera, suspicion, weapon, rain, display) are validated on load
   by `GameSettings`.

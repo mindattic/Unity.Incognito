@@ -1,4 +1,4 @@
-# Unity.Incognito — agent entrypoint
+# Unity.Rea.Incognito — agent entrypoint
 
 Read the shared protocol at ..\mindattic-agent-standard\AGENTS.md, then this file, then
 docs/RECONSTRUCTION.md and docs/BIBLE.md.
@@ -30,7 +30,7 @@ Unity-native implementation, free to clean up incidental GM8 quirks).
    Editor play mode or a build) and confirm the behavior against docs/RECONSTRUCTION.md, not just
    "it compiles."
 5. **One ticket, one story, one commit**, per the workspace standard. Work the tickets in
-   dependency order (`tickets ticket list --repo Unity.Incognito`, `tickets ticket show <id>` for
+   dependency order (`tickets ticket list --repo Unity.Rea.Incognito`, `tickets ticket show <id>` for
    prerequisites).
 6. Commit at verified milestones only; end messages with the session attribution lines.
 
@@ -76,6 +76,6 @@ are the reference architectures: read their AGENTS.md, README and docs/BIBLE.md 
    of the original, and is done.
 9. **Online-ready.** This game is built on the shared Unity.Multiplayer kit so an online version can be set up: one
    authority holds the state, players are NetEntities with seats, and local play goes through the same path. Read
-   Unity.Multiplayer's docs/articles before touching networking. Here (U.INC-T43): `Assets/Incognito/Online` holds
+   Unity.Multiplayer's docs/articles before touching networking. Here (U.INC-T43): `Assets/Rea.Incognito/Online` holds
    the online assembly, `Incognito > Build Online Scene` writes `Scenes/Online.unity`, and an online seat's
    commands are the same Core `GameCommand`s local play submits.

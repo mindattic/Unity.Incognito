@@ -1,6 +1,6 @@
 ---
 codex: 1
-project: Unity.Incognito
+project: Unity.Rea.Incognito
 layer: research
 status: living
 updated: 2026-10-25
@@ -432,7 +432,7 @@ Android, iOS, WinPhone, Windows8, Tizen, Mac, Linux and html5 export configs.
 
 | Standard | State on main | Ticket |
 |---|---|---|
-| Assembly definitions, engine-free Core | one `Incognito.Runtime` asmdef; the `*State` classes import `UnityEngine`; `noEngineReferences` false | T19 |
+| Assembly definitions, engine-free Core | one `Rea.Incognito.Runtime` asmdef; the `*State` classes import `UnityEngine`; `noEngineReferences` false | T19 |
 | Core tested outside Unity | Done: `Tests/Core.Tests` run by `run-core-tests.ps1` (`dotnet test`, C# 9); EditMode keeps the MonoBehaviour layer, PlayMode traversal | T20 |
 | Commands to events, player-id seams | MonoBehaviours read each other directly | T21 |
 | Content and tuning as validated data | tuning is serialized fields on MonoBehaviours | T22 |
@@ -447,7 +447,7 @@ T35 is the final scripted verification; its checklist is section 11.
 
 ## 11. Parity checklist — U.INC-T35 (2026-10-25)
 
-The final verification. `Assets/Incognito/Tests/PlayMode/ParityTourPlayTests.cs` plays the built
+The final verification. `Assets/Rea.Incognito/Tests/PlayMode/ParityTourPlayTests.cs` plays the built
 title, Bleecher Street, 2nd Avenue and shop through a virtual keyboard and mouse (the Input System
 reads them exactly as it reads hardware) and proves each `tour:` row below with a `Row("id")` call;
 `test:` rows are proven by the named existing test over the same built scenes, and `decided:` rows

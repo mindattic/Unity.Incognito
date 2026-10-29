@@ -1,14 +1,14 @@
 <#
 .SYNOPSIS
-  Headless verification gate for Unity.Incognito: the engine-free Core rules (dotnet test, via
+  Headless verification gate for Unity.Rea.Incognito: the engine-free Core rules (dotnet test, via
   run-core-tests.ps1), the Unity EditMode suite, and the Unity PlayMode suite, each run in Unity
   batch mode (tools/unity.ps1; the Editor must be closed). Mirrors Unity.Chain's tools/test.ps1.
 .PARAMETER SkipCore
   Skip Tests/Core.Tests.
 .PARAMETER SkipEditMode
-  Skip the Unity EditMode suite (Assets/Incognito/Tests/EditMode).
+  Skip the Unity EditMode suite (Assets/Rea.Incognito/Tests/EditMode).
 .PARAMETER SkipPlayMode
-  Skip the Unity PlayMode suite (Assets/Incognito/Tests/PlayMode).
+  Skip the Unity PlayMode suite (Assets/Rea.Incognito/Tests/PlayMode).
 .EXAMPLE
   powershell -File tools/test.ps1
   powershell -File tools/test.ps1 -SkipEditMode -SkipPlayMode   # Core.Tests only
@@ -19,8 +19,8 @@ $root = Split-Path -Parent $PSScriptRoot
 
 # Only the game's own test assemblies: Netcode for GameObjects is under "testables" (the online test kit
 # needs its helpers, U.INC-T43), so an unlimited run would also run NGO's own suite.
-$editAssemblies = 'Incognito.Tests.EditMode;Incognito.Tests.Online.EditMode'
-$playAssemblies = 'Incognito.Tests.PlayMode;Incognito.Tests.Online'
+$editAssemblies = 'Rea.Incognito.Tests.EditMode;Rea.Incognito.Tests.Online.EditMode'
+$playAssemblies = 'Rea.Incognito.Tests.PlayMode;Rea.Incognito.Tests.Online'
 
 # Unity's -runTests exits 0 even when it matched zero tests (a wrong -testPlatform, an excluded
 # assembly, or a renamed test all look like success otherwise). Confirm the results file actually

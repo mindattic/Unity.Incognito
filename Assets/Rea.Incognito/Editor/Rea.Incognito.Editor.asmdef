@@ -1,0 +1,19 @@
+{
+    "name": "Rea.Incognito.Editor",
+    "rootNamespace": "Incognito.EditorTools",
+    "references": [
+        "Rea.Incognito.Core",
+        "Rea.Incognito.Runtime"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

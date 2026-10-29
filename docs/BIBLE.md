@@ -1,6 +1,6 @@
 ---
 codex: 1
-project: Unity.Incognito
+project: Unity.Rea.Incognito
 layer: bible
 status: living
 updated: 2026-10-24
@@ -35,9 +35,9 @@ of the usual wide adventure-game establishing shot — the game's whole premise 
 
 ## Systems (status tracked per-story in docs/USER_STORIES.md)
 
-Every system below is built. Core is `Assets/Incognito/Core` (engine-free), Runtime is
-`Assets/Incognito/Scripts`, and the proving tests are in `Tests/Core.Tests` (dotnet test) and
-`Assets/Incognito/Tests/{EditMode,PlayMode}`.
+Every system below is built. Core is `Assets/Rea.Incognito/Core` (engine-free), Runtime is
+`Assets/Rea.Incognito/Scripts`, and the proving tests are in `Tests/Core.Tests` (dotnet test) and
+`Assets/Rea.Incognito/Tests/{EditMode,PlayMode}`.
 
 | System | Reconstruction ref | Code (Core / Runtime) | Ticket | Story | Proved by |
 |---|---|---|---|---|---|
@@ -76,9 +76,9 @@ Every system below is built. Core is `Assets/Incognito/Core` (engine-free), Runt
   letterboxed, so that is always 1920). The original's `y = mouse_y` was a no-op
   (its room was exactly view-height), so the rebuild makes it a direct, instant, bounded pan: mouse
   height on screen maps linearly onto ±135 original px (one eighth of the view height) around the
-  camera's resting height. See `Assets/Incognito/Core/CameraRig/CloseFramingCameraState.cs`.
+  camera's resting height. See `Assets/Rea.Incognito/Core/CameraRig/CloseFramingCameraState.cs`.
 - **Eyeball and eye cursor (U.INC-T5).** Two systems, as in the original: `PlayerEyeball` (obj_eye)
-  and `EyeCursor` (obj_mouse), both under `Assets/Incognito/Scripts/Eye/`. The eye keeps obj_eye's
+  and `EyeCursor` (obj_mouse), both under `Assets/Rea.Incognito/Scripts/Eye/`. The eye keeps obj_eye's
   numbers verbatim (socket -108/+93 px by facing, pupil `7 + dx/160`, `-3 + mouse_y/160`, aim snap
   -1/15, 20px lid at 2px/step, 1-in-161 blink roll). `mouse_y` is read as the cursor's height from
   the top of a 1080px screen — what it equalled in the original's view-tall room — so the T4
@@ -88,7 +88,7 @@ Every system below is built. Core is `Assets/Incognito/Core` (engine-free), Runt
   eye socket; the sandbox placeholder player is therefore spr_player-sized (512x1024, origin
   256,168) with a socket hole. The cursor hides the OS pointer and is an in-world sprite at the
   original 32px size, drawn in front of everything. Original eye and cursor sprites are imported
-  verbatim from the 2013 project (`Assets/Incognito/Art/Original/`) at their GM origins. Aiming is
+  verbatim from the 2013 project (`Assets/Rea.Incognito/Art/Original/`) at their GM origins. Aiming is
   an `Aiming` flag on both components for U.INC-T9 to set; look/talk scrolling (U.INC-T6) and
   pointer mode (U.INC-T7) write `EyeCursor.Mode`.
 - **Look/talk cursor modes (U.INC-T6).** The mouse wheel (either direction) toggles look/talk, as
@@ -104,8 +104,8 @@ Every system below is built. Core is `Assets/Incognito/Core` (engine-free), Runt
   if the player is idle and not aiming); it resumes its route 200 steps after the player's last
   walking step whichever way they walk (the original used 100 when walking left); the description
   box fades with its text and is sized to the text rather than `string_width * 3`. See
-  `Assets/Incognito/Scripts/Npc/NpcInteraction.cs`, `Assets/Incognito/Core/Npc/NpcPatrolState.cs`
-  and `Assets/Incognito/{Core,Scripts}/Typing/`.
+  `Assets/Rea.Incognito/Scripts/Npc/NpcInteraction.cs`, `Assets/Rea.Incognito/Core/Npc/NpcPatrolState.cs`
+  and `Assets/Rea.Incognito/{Core,Scripts}/Typing/`.
 - **Typed console stubs (U.INC-T10).** `help`, `list`, `list sheep`, `clear` and "Command not
   recognized" are ported verbatim (`#` line breaks become `\n`). The original's stubs get small,
   consequence-free implementations: `list camera`/`list computer` follow `list sheep`'s pattern
@@ -115,19 +115,19 @@ Every system below is built. Core is `Assets/Incognito/Core` (engine-free), Runt
   needs it. "Vicinity" means within one view width (1920 original px) of the player, the same
   outer range the suspicion cue uses; the original listed every NPC in the room. The hacking
   overlay (U.INC-T7) opens it; Escape closes it, and movement keys are ignored while it is open.
-  See `Assets/Incognito/Scripts/Terminal/`.
+  See `Assets/Rea.Incognito/Scripts/Terminal/`.
 - **NPC patrol routes (U.INC-T8).** The original had one off-street waypoint and never stopped on
   arrival. The rebuild gives each NPC a data route of X waypoints walked in order and looped,
   turning on arrival (`a_near_b` ±20px); a one-waypoint route walks there and coasts to a stop
   through the original's otherwise-unreached `"stopping"` friction. Speed (5px/step), arrive range
-  and the 2-step start alarm are as the original. See `Assets/Incognito/Core/Npc/NpcPatrolState.cs`.
+  and the 2-step start alarm are as the original. See `Assets/Rea.Incognito/Core/Npc/NpcPatrolState.cs`.
 - **Suspicion meter (U.INC-T8).** Rates, ranges and the accelerating out-of-range decay are the
   original's, as `SuspicionTuning` data (since U.INC-T22, `Suspicion` in game-tuning.json). Three cleanups: suspicion is clamped to
   0–100% (the original went negative and past 100); "facing each other" needs each to face toward
   the other (the original also counted back to back); "looking down" is the cursor in the lower
   half of the screen (the original's `mouse_y > room_height/2`, which equalled the screen since
   room and view were the same height). The range bands use the live view width. What 100% *does*
-  is still open (above). See `Assets/Incognito/Core/Npc/SuspicionMeter.cs`.
+  is still open (above). See `Assets/Rea.Incognito/Core/Npc/SuspicionMeter.cs`.
 - **Weapon (U.INC-T9).** Ported as the original had it: Z draws/holsters, holding the right button
   aims (walking locked), the left button fires a bullet that travels and shoves an NPC 100px on a
   hit (`BulletTarget`). GM quirks cleaned up rather than ported: releasing aim within the 5-step
@@ -145,7 +145,7 @@ Every system below is built. Core is `Assets/Incognito/Core` (engine-free), Runt
   `Aiming` flag on `EyeCursor` (reticle) and `PlayerEyeball` (fixed gaze) every frame. The sandbox
   NPC carries a `BulletTarget`, and `NpcController` routes the shove into its patrol position. The
   arm and bullet placeholders carry the original sprites' sizes and origins, so pivots and the
-  muzzle line up as they did in GM. See `Assets/Incognito/Scripts/Weapon/`.
+  muzzle line up as they did in GM. See `Assets/Rea.Incognito/Scripts/Weapon/`.
 - **Rooms, props and audio (U.INC-T11).** `Incognito/Build Room Scenes` (`RoomSceneBuilder`)
   writes `Scenes/Rooms/{Titlescreen,Street00,Street01,Shop}.unity` from a data table transcribed
   from the `.room.gmx` files, each on a copy of the PlayerSandbox rig (sandbox ground, markers and
@@ -165,11 +165,11 @@ Every system below is built. Core is `Assets/Incognito/Core` (engine-free), Runt
   fresh player rig per scene carries only its facing across a room change (the original's one
   persistent player also kept the gun state). Clouds and the unplaced `obj_lamplight01` /
   `obj_prop_back|front` are not ported (no art, never placed). Text is IMGUI, outlined, at
-  fnt_large's size (since U.INC-T26/T31: UI Toolkit, in each original font's own size). See `Assets/Incognito/Scripts/World/` and `Scripts/Audio/`.
+  fnt_large's size (since U.INC-T26/T31: UI Toolkit, in each original font's own size). See `Assets/Rea.Incognito/Scripts/World/` and `Scripts/Audio/`.
 
 - **URP behind a pipeline-agnostic layer (U.INC-T24).** `com.unity.render-pipelines.universal`
   17.4.0 (the version Unity.SpaceGod and Unity.Hare also pin), set up as a 2D project: a
-  `UniversalRenderPipelineAsset` (`Assets/Incognito/Settings/Incognito_URP.asset`) backed by the 2D
+  `UniversalRenderPipelineAsset` (`Assets/Rea.Incognito/Settings/Incognito_URP.asset`) backed by the 2D
   renderer (`Incognito_Renderer2D.asset`, `Renderer2DData` — no 3D forward/deferred renderer), MSAA
   off and HDR/shadows off (nothing here casts a shadow or needs antialiasing against pixel art),
   assigned in both `GraphicsSettings` and every `QualitySettings` tier. The original's cheap
@@ -181,8 +181,8 @@ Every system below is built. Core is `Assets/Incognito/Core` (engine-free), Runt
   original's depths encoded; the layer is the coarse band a sprite can never cross out of
   regardless of its order. Core and gameplay code reference only `SpriteRenderer.sortingLayerName`
   (plain Unity, not URP) and never `UnityEngine.Rendering.Universal`; no asmdef gained a pipeline
-  reference. See `Assets/Incognito/Editor/{Room,Sandbox}SceneBuilder.cs`,
-  `Assets/Incognito/Scripts/Eye/EyeCursor.cs`, `Assets/Incognito/Scripts/World/RainEmitter.cs`.
+  reference. See `Assets/Rea.Incognito/Editor/{Room,Sandbox}SceneBuilder.cs`,
+  `Assets/Rea.Incognito/Scripts/Eye/EyeCursor.cs`, `Assets/Rea.Incognito/Scripts/World/RainEmitter.cs`.
 
 - **Hacking overlay (U.INC-T7).** Ported from what the original actually wired (RECONSTRUCTION
   §5, re-read): Q toggles the console view, which puts the cursor in pointer mode, fades
@@ -198,12 +198,12 @@ Every system below is built. Core is `Assets/Incognito/Core` (engine-free), Runt
   original left both up) and restores the cursor mode in use before Q (the original always
   restored "look"); clicks on the icon or panel don't also click the NPC behind them. Q no longer
   opens the prompt by itself. A program-icon click plays obj_mouse_gui's `sfx_flick` (U.INC-T28). See
-  `Assets/Incognito/Scripts/Hacking/`.
+  `Assets/Rea.Incognito/Scripts/Hacking/`.
 
 - **Rooms built from data at runtime, and IMGUI replaced with UI Toolkit (U.INC-T26).** The four
-  committed room scenes (`Assets/Incognito/Scenes/Rooms/*.unity`) no longer bake a room's
+  committed room scenes (`Assets/Rea.Incognito/Scenes/Rooms/*.unity`) no longer bake a room's
   background slices, lampposts, mailboxes, rain or exits into the scene file: `RoomBootstrap`
-  (Runtime, `Assets/Incognito/Scripts/World/RoomBootstrap.cs`) rebuilds all of it at Awake, every
+  (Runtime, `Assets/Rea.Incognito/Scripts/World/RoomBootstrap.cs`) rebuilds all of it at Awake, every
   time the scene loads, from `GameSettings.Content.FindRoom(roomId)` — the same validated data the
   room/NPC/console catalog already used (U.INC-T22) — via `RoomComposer`, an engine-but-not-editor
   static class the editor's Incognito/Build Room Scenes also calls indirectly (it only resolves and
@@ -219,7 +219,7 @@ Every system below is built. Core is `Assets/Incognito/Core` (engine-free), Runt
 
   The 7 OnGUI (IMGUI) classes — `Room`, `DoorExit`, `DescriptionTypewriter`, `CommandPrompt`,
   `HackingOverlay`, `RoomFade`, `DebugHotkeys` — now draw through `HudRoot`
-  (`Assets/Incognito/Scripts/UI/HudRoot.cs`), one code-built `UIDocument`/`PanelSettings` whose
+  (`Assets/Rea.Incognito/Scripts/UI/HudRoot.cs`), one code-built `UIDocument`/`PanelSettings` whose
   reference resolution (1920x1080, matched by height; since U.INC-T32 fitted keeping its aspect,
   inside a 1920x1080 stage on the letterboxed picture) replaces every class's own
   `Screen.height / 1080f` scale math: elements are laid out in plain original pixels and the panel
@@ -268,7 +268,7 @@ Every system below is built. Core is `Assets/Incognito/Core` (engine-free), Runt
   bytes diffed against the original.
 
 - **HUD pistol icon and GUI-layer clicks (U.INC-T30).** `HudPistolIcon`
-  (`Assets/Incognito/Scripts/Weapon/HudPistolIcon.cs`) ports obj_icon_pistol: a 96x96 GUI icon
+  (`Assets/Rea.Incognito/Scripts/Weapon/HudPistolIcon.cs`) ports obj_icon_pistol: a 96x96 GUI icon
   40px in from the right edge (start_game.gml's `room_width - sprite_get_width(spr_icon_pistol) -
   40` on the 1920px view) that eases up from below the screen to `room_height - sprite_height`
   (984) with obj_program's own step code (`ProgramIconSlide`), drawn above the room fade (its
@@ -343,10 +343,10 @@ Every system below is built. Core is `Assets/Incognito/Core` (engine-free), Runt
   "Setup Screen Ratio" sizes view 0's port to the window (`view_wport/hport =
   window_get_width/height()`) while the view stays 1920x1080, and the config's `option_scale = -1`
   ("keep aspect ratio") draws that port at the largest uniform scale that fits, centred, with
-  black bars on the leftover axis. `ScreenRatio` (Core, `Assets/Incognito/Core/Display/`) is that
+  black bars on the leftover axis. `ScreenRatio` (Core, `Assets/Rea.Incognito/Core/Display/`) is that
   maths, engine-free and tested in `Tests/Core.Tests/ScreenRatioTests.cs`: the fitted view rect in
   whole screen pixels, the camera viewport it makes, and screen-to-view (and back) point and rect
-  mapping. `GameDisplay` (`Assets/Incognito/Scripts/Display/GameDisplay.cs`, installed before the
+  mapping. `GameDisplay` (`Assets/Rea.Incognito/Scripts/Display/GameDisplay.cs`, installed before the
   first scene and kept across rooms) gives every screen camera that viewport each frame (a camera
   rendering into a texture keeps the whole texture), clears the bars to black with a camera that
   draws nothing, and is the one place screen points become view pixels: the HUD panel
@@ -467,9 +467,9 @@ Every system below is built. Core is `Assets/Incognito/Core` (engine-free), Runt
 
 - **Architecture to the rebuild standard (U.INC-T19 to T23, T25, T27).** The code was rebuilt to
   AGENTS.md's rebuild standard after the mechanics were ported; none of it changes gameplay.
-  - *Assemblies (T19).* `Incognito.Core` (`Assets/Incognito/Core`, `noEngineReferences`, its own
-    `Vec2`/`CoreMath` in place of `Vector2`/`Mathf`) holds every rule; `Incognito.Runtime`
-    (`Scripts`) references Core; `Incognito.Editor` and the EditMode/PlayMode test assemblies sit
+  - *Assemblies (T19).* `Rea.Incognito.Core` (`Assets/Rea.Incognito/Core`, `noEngineReferences`, its own
+    `Vec2`/`CoreMath` in place of `Vector2`/`Mathf`) holds every rule; `Rea.Incognito.Runtime`
+    (`Scripts`) references Core; `Rea.Incognito.Editor` and the EditMode/PlayMode test assemblies sit
     on top. References are one-way and every asmdef is explicit.
   - *Core tests outside Unity (T20).* `Tests/Core.Tests` compiles the Core sources into a plain
     .NET test project run by `dotnet test` (`run-core-tests.ps1`); EditMode keeps the
@@ -509,8 +509,8 @@ Every system below is built. Core is `Assets/Incognito/Core` (engine-free), Runt
 - **Online-ready (U.INC-T43, rebuild standard point 9).** The original is single-player and has no
   online play; the rebuild adds the shared Unity.Multiplayer kit beside local play, which is untouched:
   the title, rooms, keys and scenes are exactly as before and contain none of the kit.
-  - *Where it lives.* `Incognito.Online` (`Assets/Incognito/Online`, compiled only with MindAttic
-    Components present) and `Incognito.Editor.Online`; `Incognito > Build Online Scene`
+  - *Where it lives.* `Rea.Incognito.Online` (`Assets/Rea.Incognito/Online`, compiled only with MindAttic
+    Components present) and `Rea.Incognito.Editor.Online`; `Incognito > Build Online Scene`
     (`OnlineSceneBuilder`) writes `Scenes/Online.unity` (the kit's NetworkManager, `NetBootstrap` and
     drop-in `NetFrontEnd`, the online room's background slices, the original 1920x1080 camera,
     `IncognitoOnlineGame`), the `IncognitoNetPlayer` prefab (spr_player at its GameMaker origin) and

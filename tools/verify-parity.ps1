@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  Runs the final parity tour (U.INC-T35): Assets/Incognito/Tests/PlayMode/ParityTourPlayTests.cs plays
+  Runs the final parity tour (U.INC-T35): Assets/Rea.Incognito/Tests/PlayMode/ParityTourPlayTests.cs plays
   the title, Bleecher Street, 2nd Avenue and the shop through a virtual keyboard and mouse and exercises
   every mechanic in docs/RECONSTRUCTION.md, writing screenshots and a report of the checklist rows it
   proved. Run with the Editor closed. Muted by default, like play.ps1.

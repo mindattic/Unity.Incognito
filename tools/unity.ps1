@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  Runs Unity.Incognito in Unity batch mode and surfaces compile/test errors -- the shared helper
+  Runs Unity.Rea.Incognito in Unity batch mode and surfaces compile/test errors -- the shared helper
   build.ps1 and test.ps1 both call (same pattern as Unity.Chain's, Unity.Hare's and
   Unity.GridGame's own tools/unity.ps1).
 .EXAMPLE
@@ -36,7 +36,7 @@ if (Test-Path "$root/Temp/UnityLockfile") {
     if ($locked) {
         # $ErrorActionPreference = "Stop" turns Write-Error into a terminating exception (a nonzero
         # but not the documented exit code below), so report and exit explicitly instead.
-        Write-Host "Unity.Incognito is open in the Unity Editor. Close it (File > Quit) and re-run." -ForegroundColor Red
+        Write-Host "Unity.Rea.Incognito is open in the Unity Editor. Close it (File > Quit) and re-run." -ForegroundColor Red
         exit 3
     }
 }

@@ -1,0 +1,25 @@
+{
+    "name": "Rea.Incognito.Tests.PlayMode",
+    "rootNamespace": "Incognito.Tests",
+    "references": [
+        "Rea.Incognito.Core",
+        "Rea.Incognito.Runtime",
+        "Unity.Shared.Core",
+        "Unity.InputSystem",
+        "MindAttic.Capture.Unity",
+        "UnityEngine.TestRunner"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

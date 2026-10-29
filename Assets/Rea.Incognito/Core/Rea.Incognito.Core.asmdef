@@ -1,0 +1,16 @@
+{
+    "name": "Rea.Incognito.Core",
+    "rootNamespace": "Incognito",
+    "references": [
+        "Unity.Shared.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}
