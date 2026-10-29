@@ -12,7 +12,7 @@ namespace Incognito.Tests
     /// U.INC-T28: every sound a live original object or script plays (RECONSTRUCTION.md §8, read
     /// from the original's <c>audio_play_sound</c> calls that are not commented out) is in the
     /// shipped game-content.json catalog, wired, and its file is actually in
-    /// Assets/Incognito/Audio/Original; and the whispers ambient the title only names in a
+    /// Assets/Rea.Incognito/Audio/Original; and the whispers ambient the title only names in a
     /// commented-out line is imported and catalogued, but left unwired as in the original.
     /// Reads the real shipped files from the repo, not a fixture.
     /// </summary>
@@ -60,15 +60,15 @@ namespace Incognito.Tests
         public void LoadShippedContent()
         {
             var dir = new DirectoryInfo(TestContext.CurrentContext.TestDirectory);
-            while (dir != null && !File.Exists(Path.Combine(dir.FullName, "Assets", "Incognito", "Resources", "Data", "game-content.json")))
+            while (dir != null && !File.Exists(Path.Combine(dir.FullName, "Assets", "Rea.Incognito", "Resources", "Data", "game-content.json")))
                 dir = dir.Parent;
-            Assert.IsNotNull(dir, "Could not find the repo root (Assets/Incognito/Resources/Data/game-content.json) above the test directory.");
+            Assert.IsNotNull(dir, "Could not find the repo root (Assets/Rea.Incognito/Resources/Data/game-content.json) above the test directory.");
             repoRoot = dir.FullName;
-            content = GameContent.FromJson(File.ReadAllText(Path.Combine(repoRoot, "Assets", "Incognito", "Resources", "Data", "game-content.json")));
+            content = GameContent.FromJson(File.ReadAllText(Path.Combine(repoRoot, "Assets", "Rea.Incognito", "Resources", "Data", "game-content.json")));
         }
 
         private static string AudioFile(SoundDefinition sound) =>
-            Path.Combine(repoRoot, "Assets", "Incognito", "Audio", "Original", sound.File);
+            Path.Combine(repoRoot, "Assets", "Rea.Incognito", "Audio", "Original", sound.File);
 
         [Test]
         public void The_shipped_content_validates()
@@ -84,7 +84,7 @@ namespace Incognito.Tests
                 SoundDefinition sound = content.FindSound(play.Key);
                 Assert.IsNotNull(sound, play.Key + " (played by " + play.Value + ") is not in game-content.json's Sounds");
                 Assert.IsTrue(sound.Wired, play.Key + " is played live by " + play.Value + " but catalogued as unwired");
-                Assert.IsTrue(File.Exists(AudioFile(sound)), play.Key + "'s file " + sound.File + " is not in Assets/Incognito/Audio/Original");
+                Assert.IsTrue(File.Exists(AudioFile(sound)), play.Key + "'s file " + sound.File + " is not in Assets/Rea.Incognito/Audio/Original");
             }
         }
 
@@ -106,13 +106,13 @@ namespace Incognito.Tests
         public void Every_catalogued_sound_has_its_file_on_disk()
         {
             foreach (SoundDefinition sound in content.Sounds)
-                Assert.IsTrue(File.Exists(AudioFile(sound)), sound.Id + "'s file " + sound.File + " is not in Assets/Incognito/Audio/Original");
+                Assert.IsTrue(File.Exists(AudioFile(sound)), sound.Id + "'s file " + sound.File + " is not in Assets/Rea.Incognito/Audio/Original");
         }
 
         [Test]
         public void Every_sound_file_on_disk_is_catalogued()
         {
-            string dir = Path.Combine(repoRoot, "Assets", "Incognito", "Audio", "Original");
+            string dir = Path.Combine(repoRoot, "Assets", "Rea.Incognito", "Audio", "Original");
             var catalogued = new HashSet<string>(content.Sounds.Select(s => s.File));
             foreach (string file in Directory.GetFiles(dir).Where(f => !f.EndsWith(".meta")))
                 Assert.IsTrue(catalogued.Contains(Path.GetFileName(file)), Path.GetFileName(file) + " is in Audio/Original but not in game-content.json's Sounds");

@@ -14,7 +14,7 @@ namespace Incognito.Tests
     /// <summary>
     /// U.INC-T29: the asset parity sweep. Every sprite and background a live original object or room
     /// draws (or collides with) is in the shipped game-content.json Art catalog at its GameMaker
-    /// origin and size, and its image is actually in Assets/Incognito/Art/Original; and every one of
+    /// origin and size, and its image is actually in Assets/Rea.Incognito/Art/Original; and every one of
     /// the original's 88 sprites and 21 backgrounds is accounted for as live, imported-but-unused, or
     /// dead with the reason. Liveness was read from the 09-05-13 source: the objects the four rooms
     /// in play place, the objects start_game.gml and live code create, each one's sprite_index (drawn
@@ -169,14 +169,14 @@ namespace Incognito.Tests
         public void LoadShippedContent()
         {
             var dir = new DirectoryInfo(TestContext.CurrentContext.TestDirectory);
-            while (dir != null && !File.Exists(Path.Combine(dir.FullName, "Assets", "Incognito", "Resources", "Data", "game-content.json")))
+            while (dir != null && !File.Exists(Path.Combine(dir.FullName, "Assets", "Rea.Incognito", "Resources", "Data", "game-content.json")))
                 dir = dir.Parent;
-            Assert.IsNotNull(dir, "Could not find the repo root (Assets/Incognito/Resources/Data/game-content.json) above the test directory.");
+            Assert.IsNotNull(dir, "Could not find the repo root (Assets/Rea.Incognito/Resources/Data/game-content.json) above the test directory.");
             repoRoot = dir.FullName;
-            content = GameContent.FromJson(File.ReadAllText(Path.Combine(repoRoot, "Assets", "Incognito", "Resources", "Data", "game-content.json")));
+            content = GameContent.FromJson(File.ReadAllText(Path.Combine(repoRoot, "Assets", "Rea.Incognito", "Resources", "Data", "game-content.json")));
         }
 
-        private static string ArtDir => Path.Combine(repoRoot, "Assets", "Incognito", "Art", "Original");
+        private static string ArtDir => Path.Combine(repoRoot, "Assets", "Rea.Incognito", "Art", "Original");
 
         private static string ArtFile(ArtDefinition art) => Path.Combine(ArtDir, art.File.Replace('/', Path.DirectorySeparatorChar));
 

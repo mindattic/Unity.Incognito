@@ -16,7 +16,7 @@ using UnityEngine;
 namespace Incognito.EditorTools
 {
     /// <summary>
-    /// Builds Assets/Incognito/Scenes/PlayerSandbox.unity: a flat-ground street00-sized scene to exercise <see cref="PlayerLocomotion"/>,
+    /// Builds Assets/Rea.Incognito/Scenes/PlayerSandbox.unity: a flat-ground street00-sized scene to exercise <see cref="PlayerLocomotion"/>,
     /// <see cref="CloseFramingCamera"/>, <see cref="PlayerEyeball"/>, <see cref="EyeCursor"/> and
     /// the typed <see cref="CommandPrompt"/> behind the <see cref="HackingOverlay"/>, and
     /// <see cref="PlayerWeapon"/>, plus a patrolling
@@ -26,10 +26,10 @@ namespace Incognito.EditorTools
     /// </summary>
     public static class SandboxSceneBuilder
     {
-        private const string SceneDir = "Assets/Incognito/Scenes";
+        private const string SceneDir = "Assets/Rea.Incognito/Scenes";
         private const string ScenePath = SceneDir + "/PlayerSandbox.unity";
-        private const string ArtDir = "Assets/Incognito/Art/Placeholder";
-        private const string InvertShaderPath = "Assets/Incognito/Art/Shaders/InvertBlend.shader";
+        private const string ArtDir = "Assets/Rea.Incognito/Art/Placeholder";
+        private const string InvertShaderPath = "Assets/Rea.Incognito/Art/Shaders/InvertBlend.shader";
 
         // Street backdrop sits behind everything, including the bullet (obj_bullet depth 5). Its
         // own sorting layer (ProjectSettings/TagManager.asset) keeps it behind gameplay sprites
@@ -251,7 +251,7 @@ namespace Incognito.EditorTools
 
             if (!AssetDatabase.IsValidFolder(SceneDir))
             {
-                AssetDatabase.CreateFolder("Assets/Incognito", "Scenes");
+                AssetDatabase.CreateFolder("Assets/Rea.Incognito", "Scenes");
             }
 
             EditorSceneManager.SaveScene(scene, ScenePath);

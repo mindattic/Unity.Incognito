@@ -47,7 +47,7 @@ namespace Incognito.Tests
         [Test]
         public void Every_tour_row_is_proved_by_the_tour_and_the_tour_proves_nothing_unlisted()
         {
-            string tour = File.ReadAllText(Path.Combine(repoRoot, "Assets", "Incognito", "Tests", "PlayMode", "ParityTourPlayTests.cs"));
+            string tour = File.ReadAllText(Path.Combine(repoRoot, "Assets", "Rea.Incognito", "Tests", "PlayMode", "ParityTourPlayTests.cs"));
             var proved = Regex.Matches(tour, @"Row\(""([a-z]+\.[^""]+)""\)").Cast<Match>().Select(m => m.Groups[1].Value).ToList();
             var listed = Ids("tour").ToList();
 
@@ -58,7 +58,7 @@ namespace Incognito.Tests
         [Test]
         public void Every_test_row_names_a_test_class_that_exists()
         {
-            string tests = string.Join("\n", Directory.GetFiles(Path.Combine(repoRoot, "Assets", "Incognito", "Tests"), "*.cs", SearchOption.AllDirectories)
+            string tests = string.Join("\n", Directory.GetFiles(Path.Combine(repoRoot, "Assets", "Rea.Incognito", "Tests"), "*.cs", SearchOption.AllDirectories)
                 .Concat(Directory.GetFiles(Path.Combine(repoRoot, "Tests", "Core.Tests"), "*.cs"))
                 .Select(File.ReadAllText));
 

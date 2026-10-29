@@ -21,8 +21,8 @@ namespace Incognito.Tests.Online.EditMode
     /// </summary>
     public class OnlineSceneTests
     {
-        private const string TitleScenePath = "Assets/Incognito/Scenes/Rooms/Titlescreen.unity";
-        private const string Street00Path = "Assets/Incognito/Scenes/Rooms/Street00.unity";
+        private const string TitleScenePath = "Assets/Rea.Incognito/Scenes/Rooms/Titlescreen.unity";
+        private const string Street00Path = "Assets/Rea.Incognito/Scenes/Rooms/Street00.unity";
 
         [Test]
         public void The_online_scene_has_the_kits_network_manager_front_end_and_the_player_prefab()
@@ -86,7 +86,7 @@ namespace Incognito.Tests.Online.EditMode
         [Test]
         public void Every_network_prefab_passes_the_kits_validator()
         {
-            NetPrefabValidationReport report = NetPrefabValidator.ValidateProject(new[] { "Assets/Incognito" });
+            NetPrefabValidationReport report = NetPrefabValidator.ValidateProject(new[] { "Assets/Rea.Incognito" });
             report.Log();
             Assert.That(report.HasErrors, Is.False, "see the validator's messages in the log");
         }

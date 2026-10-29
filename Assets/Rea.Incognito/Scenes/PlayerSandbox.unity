@@ -511,7 +511,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8f1b7562d0554504b96a73648addcac7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Incognito.Runtime::Incognito.World.GameSession
+  m_EditorClassIdentifier: Rea.Incognito.Runtime::Incognito.World.GameSession
 --- !u!4 &130475009
 Transform:
   m_ObjectHideFlags: 0
@@ -919,7 +919,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 02740f8104b8ff94d960fe0edf966d2a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Incognito.Runtime::Incognito.Eye.PlayerEyeball
+  m_EditorClassIdentifier: Rea.Incognito.Runtime::Incognito.Eye.PlayerEyeball
   player: {fileID: 2025232960}
   viewCamera: {fileID: 653478669}
   eyeWhite: {fileID: 21300000, guid: e254049feded92a4386401e19dd635cb, type: 3}
@@ -975,7 +975,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fa05a536224707f44931c445341d172c, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Incognito.Runtime::Incognito.Npc.NpcInteraction
+  m_EditorClassIdentifier: Rea.Incognito.Runtime::Incognito.Npc.NpcInteraction
   cursor: {fileID: 828668792}
   viewCamera: {fileID: 653478669}
   description: 'A young woman with tell tale red eyes and a meandering gait.
@@ -994,7 +994,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 85fc24b479ca99645967c2b63f413c18, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Incognito.Runtime::Incognito.Npc.NpcController
+  m_EditorClassIdentifier: Rea.Incognito.Runtime::Incognito.Npc.NpcController
   player: {fileID: 2025232960}
   waypoints:
   - 9000
@@ -1014,7 +1014,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c27e35c40912a4b4390fa098501a77d1, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Incognito.Runtime::Incognito.Terminal.ConsoleTarget
+  m_EditorClassIdentifier: Rea.Incognito.Runtime::Incognito.Terminal.ConsoleTarget
   session: {fileID: 0}
   type: 0
   id: 0097
@@ -1029,7 +1029,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 405fd5327c79b7f4ea7a60d5f8239f6c, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Incognito.Runtime::Incognito.Weapon.BulletTarget
+  m_EditorClassIdentifier: Rea.Incognito.Runtime::Incognito.Weapon.BulletTarget
   knockback: 100
 --- !u!61 &367762939
 BoxCollider2D:
@@ -1270,7 +1270,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 60d3603b7e4d3f146afd19e262c1ed4a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Incognito.Runtime::Incognito.Terminal.CommandPrompt
+  m_EditorClassIdentifier: Rea.Incognito.Runtime::Incognito.Terminal.CommandPrompt
   player: {fileID: 2025232960}
   origin: {fileID: 2025232961}
   vicinityRadius: 1920
@@ -1594,7 +1594,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 45970c9dc2e032945a93e85fc2e6d23b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Incognito.Runtime::Incognito.CameraRig.CloseFramingCamera
+  m_EditorClassIdentifier: Rea.Incognito.Runtime::Incognito.CameraRig.CloseFramingCamera
   player: {fileID: 2025232960}
   roomMinX: 0
   roomMaxX: 360
@@ -2148,7 +2148,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 209a239430eded04bbf4791614201137, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Incognito.Runtime::Incognito.Eye.EyeCursor
+  m_EditorClassIdentifier: Rea.Incognito.Runtime::Incognito.Eye.EyeCursor
   viewCamera: {fileID: 653478669}
   player: {fileID: 2025232960}
   mode: 0
@@ -2549,7 +2549,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c27e35c40912a4b4390fa098501a77d1, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Incognito.Runtime::Incognito.Terminal.ConsoleTarget
+  m_EditorClassIdentifier: Rea.Incognito.Runtime::Incognito.Terminal.ConsoleTarget
   session: {fileID: 130475008}
   type: 1
   id: 07
@@ -2640,7 +2640,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 488b27a69c65b47498fadc67eedf8db5, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Incognito.Runtime::Incognito.Hacking.HackingOverlay
+  m_EditorClassIdentifier: Rea.Incognito.Runtime::Incognito.Hacking.HackingOverlay
   cursor: {fileID: 828668792}
   prompt: {fileID: 442837467}
   viewCamera: {fileID: 653478668}
@@ -3597,7 +3597,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c27e35c40912a4b4390fa098501a77d1, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Incognito.Runtime::Incognito.Terminal.ConsoleTarget
+  m_EditorClassIdentifier: Rea.Incognito.Runtime::Incognito.Terminal.ConsoleTarget
   session: {fileID: 130475008}
   type: 0
   id: 0102
@@ -4466,7 +4466,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c27e35c40912a4b4390fa098501a77d1, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Incognito.Runtime::Incognito.Terminal.ConsoleTarget
+  m_EditorClassIdentifier: Rea.Incognito.Runtime::Incognito.Terminal.ConsoleTarget
   session: {fileID: 130475008}
   type: 0
   id: 0451
@@ -4742,7 +4742,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5df9f728da44a6341bb83e60292440bd, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Incognito.Runtime::Incognito.Player.PlayerLocomotion
+  m_EditorClassIdentifier: Rea.Incognito.Runtime::Incognito.Player.PlayerLocomotion
   session: {fileID: 130475008}
   playerId: 1
 --- !u!4 &2025232961
@@ -4870,7 +4870,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: eb5a19ab9dec64b4c8f9eb17b71f6975, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Incognito.Runtime::Incognito.Weapon.PlayerWeapon
+  m_EditorClassIdentifier: Rea.Incognito.Runtime::Incognito.Weapon.PlayerWeapon
   supportArm: {fileID: 1775993880}
   gunArm: {fileID: 2075863047}
   shoulderOffset: {x: 60, y: -220}
@@ -5074,7 +5074,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 962f5661bb33de848bd7cf5bc79cd088, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Incognito.Runtime::Incognito.Weapon.HudPistolIcon
+  m_EditorClassIdentifier: Rea.Incognito.Runtime::Incognito.Weapon.HudPistolIcon
   player: {fileID: 2025232960}
   icon: {fileID: 2800000, guid: 4eff577ba1143a84d97596b24bdd55a1, type: 3}
   iconSelected: {fileID: 2800000, guid: d3aeaec8f7ff7b7469ebeec394001015, type: 3}

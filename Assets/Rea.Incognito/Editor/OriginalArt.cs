@@ -10,7 +10,7 @@ namespace Incognito.EditorTools
 {
     /// <summary>
     /// Imports the original's sprites and backgrounds (copied verbatim into
-    /// Assets/Incognito/Art/Original) through <see cref="GameContent.Art"/>, the validated catalog in
+    /// Assets/Rea.Incognito/Art/Original) through <see cref="GameContent.Art"/>, the validated catalog in
     /// game-content.json (U.INC-T29). Each image is a single point-filtered sprite whose pivot is
     /// GameMaker's origin (<see cref="ArtDefinition.OriginX"/>/<see cref="ArtDefinition.OriginY"/>,
     /// from the top-left) at 1 original px = 1/32 unit; painted world art imports compressed as a
@@ -20,7 +20,7 @@ namespace Incognito.EditorTools
     /// </summary>
     public static class OriginalArt
     {
-        public const string ArtDir = "Assets/Incognito/Art/Original";
+        public const string ArtDir = "Assets/Rea.Incognito/Art/Original";
 
         /// <summary>The project path of a catalogued image.</summary>
         public static string PathOf(ArtDefinition art) => $"{ArtDir}/{art.File}";

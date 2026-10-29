@@ -102,9 +102,9 @@ namespace Incognito.Tests
         public void The_shipped_online_room_is_a_room_in_the_content()
         {
             var dir = new System.IO.DirectoryInfo(TestContext.CurrentContext.TestDirectory);
-            while (dir != null && !System.IO.File.Exists(System.IO.Path.Combine(dir.FullName, "Assets", "Incognito", "Resources", "Data", "game-tuning.json"))) dir = dir.Parent;
-            Assert.IsNotNull(dir, "Could not find Assets/Incognito/Resources/Data above the test directory.");
-            string data = System.IO.Path.Combine(dir.FullName, "Assets", "Incognito", "Resources", "Data");
+            while (dir != null && !System.IO.File.Exists(System.IO.Path.Combine(dir.FullName, "Assets", "Rea.Incognito", "Resources", "Data", "game-tuning.json"))) dir = dir.Parent;
+            Assert.IsNotNull(dir, "Could not find Assets/Rea.Incognito/Resources/Data above the test directory.");
+            string data = System.IO.Path.Combine(dir.FullName, "Assets", "Rea.Incognito", "Resources", "Data");
             var tuning = SettingsRegistry.FromJson(System.IO.File.ReadAllText(System.IO.Path.Combine(data, "game-tuning.json")));
             var content = Incognito.Content.GameContent.FromJson(System.IO.File.ReadAllText(System.IO.Path.Combine(data, "game-content.json")));
             tuning.Validate();

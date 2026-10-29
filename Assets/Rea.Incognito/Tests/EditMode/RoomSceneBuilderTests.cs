@@ -35,14 +35,14 @@ namespace Incognito.Tests
     /// </summary>
     public class RoomSceneBuilderTests
     {
-        private const string OutputDir = "Assets/Incognito/Scenes/__RoomSceneBuilderTestOutput__";
+        private const string OutputDir = "Assets/Rea.Incognito/Scenes/__RoomSceneBuilderTestOutput__";
 
         private static readonly (string Name, string CommittedPath)[] Scenes =
         {
-            ("Titlescreen", "Assets/Incognito/Scenes/Rooms/Titlescreen.unity"),
-            ("Street00", "Assets/Incognito/Scenes/Rooms/Street00.unity"),
-            ("Street01", "Assets/Incognito/Scenes/Rooms/Street01.unity"),
-            ("Shop", "Assets/Incognito/Scenes/Rooms/Shop.unity"),
+            ("Titlescreen", "Assets/Rea.Incognito/Scenes/Rooms/Titlescreen.unity"),
+            ("Street00", "Assets/Rea.Incognito/Scenes/Rooms/Street00.unity"),
+            ("Street01", "Assets/Rea.Incognito/Scenes/Rooms/Street01.unity"),
+            ("Shop", "Assets/Rea.Incognito/Scenes/Rooms/Shop.unity"),
         };
 
         [TearDown]

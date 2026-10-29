@@ -76,10 +76,10 @@ namespace Incognito.Tests
         private static string ContentPath()
         {
             var dir = new DirectoryInfo(TestContext.CurrentContext.TestDirectory);
-            while (dir != null && !File.Exists(Path.Combine(dir.FullName, "Assets", "Incognito", "Resources", "Data", "game-content.json")))
+            while (dir != null && !File.Exists(Path.Combine(dir.FullName, "Assets", "Rea.Incognito", "Resources", "Data", "game-content.json")))
                 dir = dir.Parent;
             Assert.IsNotNull(dir, "Could not find the repo root above the test directory.");
-            return Path.Combine(dir.FullName, "Assets", "Incognito", "Resources", "Data", "game-content.json");
+            return Path.Combine(dir.FullName, "Assets", "Rea.Incognito", "Resources", "Data", "game-content.json");
         }
 
         [Test]

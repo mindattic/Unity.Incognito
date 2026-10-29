@@ -239,7 +239,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 37d98196038dbe1438e4fd6790bbda89, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Incognito.Runtime::Incognito.World.ScrollingBackground
+  m_EditorClassIdentifier: Rea.Incognito.Runtime::Incognito.World.ScrollingBackground
   hspeed: -2
 --- !u!212 &666548077
 SpriteRenderer:
@@ -435,7 +435,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 84ba4202d92ec8d4bb704576c7b5c678, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Incognito.Runtime::Incognito.World.TitleScreen
+  m_EditorClassIdentifier: Rea.Incognito.Runtime::Incognito.World.TitleScreen
   firstRoom: Street00
   music: {fileID: 8300000, guid: d7919ee143377d24ab00ad1f7e3ba3ec, type: 3}
   musicVolume: 1

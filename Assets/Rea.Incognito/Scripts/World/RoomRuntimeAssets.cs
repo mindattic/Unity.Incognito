@@ -8,7 +8,7 @@ namespace Incognito.World
     /// of the sandbox player rig: background tiles, prop sprites, the exit icon, the description
     /// border and the per-room sound clips. The editor's Incognito/Build Room Scenes
     /// (<see cref="EditorTools.RoomSceneBuilder"/>) resolves these once per room (importing the
-    /// original art and audio under Assets/Incognito/{Art,Audio}/Original) and writes the result
+    /// original art and audio under Assets/Rea.Incognito/{Art,Audio}/Original) and writes the result
     /// here as plain object references — never the room's layout itself, which
     /// <see cref="RoomBootstrap"/> reads back out of game-content.json at Awake (U.INC-T26).
     /// </summary>

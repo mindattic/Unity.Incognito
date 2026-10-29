@@ -13,13 +13,13 @@ namespace Incognito.EditorTools
 {
     /// <summary>
     /// Builds the original's playable rooms (RECONSTRUCTION.md §7–8) as scenes under
-    /// Assets/Incognito/Scenes/Rooms/: Titlescreen, Street00 (Bleecher Street), Street01 (2nd
+    /// Assets/Rea.Incognito/Scenes/Rooms/: Titlescreen, Street00 (Bleecher Street), Street01 (2nd
     /// Avenue) and Shop (Simon's Pawn and Loan), and puts them in the build with the title first.
     ///
     /// Every room is laid out from <see cref="GameSettings.Content"/>'s validated
     /// <see cref="RoomDefinition"/>s (U.INC-T22) — transcribed from the original rooms/*.room.gmx
     /// (tile slices, instance positions and creation code) into
-    /// Assets/Incognito/Resources/Data/game-content.json, instead of a hard-coded table here — on
+    /// Assets/Rea.Incognito/Resources/Data/game-content.json, instead of a hard-coded table here — on
     /// top of a copy of the player rig in PlayerSandbox.unity — player, arms, eyeball, eye cursor,
     /// close camera, typed console (and the street00 NPC) — minus the sandbox's placeholder
     /// ground, markers and console targets.
@@ -38,9 +38,9 @@ namespace Incognito.EditorTools
     /// </summary>
     public static class RoomSceneBuilder
     {
-        private const string SandboxPath = "Assets/Incognito/Scenes/PlayerSandbox.unity";
-        private const string RoomsDir = "Assets/Incognito/Scenes/Rooms";
-        private const string AudioDir = "Assets/Incognito/Audio/Original";
+        private const string SandboxPath = "Assets/Rea.Incognito/Scenes/PlayerSandbox.unity";
+        private const string RoomsDir = "Assets/Rea.Incognito/Scenes/Rooms";
+        private const string AudioDir = "Assets/Rea.Incognito/Audio/Original";
 
         private const float Px = PlayerLocomotion.WorldUnitsPerOriginalPixel;
         private const float ViewWidth = 1920f;
@@ -62,7 +62,7 @@ namespace Incognito.EditorTools
 
         /// <summary>
         /// Builds the title and every <see cref="RoomDefinition"/> room into <paramref name="roomsDir"/>
-        /// (the real Assets/Incognito/Scenes/Rooms by default). <paramref name="updateBuildSettings"/>
+        /// (the real Assets/Rea.Incognito/Scenes/Rooms by default). <paramref name="updateBuildSettings"/>
         /// lets a test build into a scratch directory (e.g. Tests/EditMode/RoomSceneBuilderTests.cs)
         /// without touching the project's actual EditorBuildSettings scene list.
         /// </summary>

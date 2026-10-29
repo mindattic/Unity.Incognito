@@ -7,7 +7,7 @@ namespace Incognito.Content
     /// <summary>
     /// One of the original's sounds (RECONSTRUCTION.md §8, U.INC-T28), as data: its
     /// <c>sound/*.sound.gmx</c> name, the file it was imported from (copied verbatim into
-    /// Assets/Incognito/Audio/Original), whether the original streamed it (the .sound.gmx
+    /// Assets/Rea.Incognito/Audio/Original), whether the original streamed it (the .sound.gmx
     /// <c>&lt;streamed&gt;</c> flag: music and the whispers ambient yes, effects no), and where the
     /// original plays or references it. Every sound the rebuild loads goes through this catalog
     /// (<see cref="GameContent.Sounds"/>) by <see cref="Id"/>, so the editor builder resolves no
@@ -19,7 +19,7 @@ namespace Incognito.Content
         /// <summary>The original's resource name, e.g. <c>sfx_flick</c>.</summary>
         public string Id = string.Empty;
 
-        /// <summary>File name under Assets/Incognito/Audio/Original, e.g. <c>sfx_flick.wav</c>.</summary>
+        /// <summary>File name under Assets/Rea.Incognito/Audio/Original, e.g. <c>sfx_flick.wav</c>.</summary>
         public string File = string.Empty;
 
         /// <summary>The .sound.gmx <c>&lt;streamed&gt;</c> flag: streamed clips import as Streaming,

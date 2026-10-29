@@ -7,7 +7,7 @@ namespace Incognito.Content
     /// <summary>
     /// One of the original's sprites or backgrounds (RECONSTRUCTION.md §10, U.INC-T29), as data:
     /// its <c>sprites/*.sprite.gmx</c> or <c>background/*.background.gmx</c> name, the image it was
-    /// copied from verbatim (under Assets/Incognito/Art/Original), its size and GameMaker origin
+    /// copied from verbatim (under Assets/Rea.Incognito/Art/Original), its size and GameMaker origin
     /// (<c>xorig</c>/<c>yorigin</c>, from the top-left; backgrounds have none, so 0,0), how it imports,
     /// and where the original uses it. Every original image the editor builders import goes through
     /// this catalog (<see cref="GameContent.Art"/>) by <see cref="Id"/>, so no builder carries an
@@ -19,7 +19,7 @@ namespace Incognito.Content
         /// <summary>The original's resource name, e.g. <c>spr_icon_pistol</c> or <c>bg_black</c>.</summary>
         public string Id = string.Empty;
 
-        /// <summary>Path under Assets/Incognito/Art/Original, forward slashes, e.g.
+        /// <summary>Path under Assets/Rea.Incognito/Art/Original, forward slashes, e.g.
         /// <c>spr_icon_pistol.png</c> or <c>Backgrounds/bg_black.png</c>.</summary>
         public string File = string.Empty;
 

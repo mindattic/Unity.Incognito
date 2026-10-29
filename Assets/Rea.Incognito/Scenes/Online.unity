@@ -230,7 +230,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e7834cc95f67ad14b907b5909e0af88e, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Incognito.Online::Incognito.Online.IncognitoOnlineGame
+  m_EditorClassIdentifier: Rea.Incognito.Online::Incognito.Online.IncognitoOnlineGame
 --- !u!4 &61728577
 Transform:
   m_ObjectHideFlags: 0

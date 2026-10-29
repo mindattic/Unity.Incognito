@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <!-- Runs Incognito.Core's rules outside Unity (dotnet test). Core is compiled in from its asmdef
+  <!-- Runs Rea.Incognito.Core's rules outside Unity (dotnet test). Core is compiled in from its asmdef
        folder, so there is one source of truth and nothing here can reach UnityEngine. C# 9 matches
-       what Unity builds, so nothing newer sneaks into Core. Core's Incognito.Core.asmdef references
+       what Unity builds, so nothing newer sneaks into Core. Core's Rea.Incognito.Core.asmdef references
        Unity.Shared.Core (U.INC-T25) for the dependency-free JSON reader/writer the settings
        registry and content catalog parse with, so its Json sources are compiled in the same way,
        from the sibling Unity.Shared checkout (../../../Unity.Shared from here, matching the
@@ -17,7 +17,7 @@
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="../../Assets/Incognito/Core/**/*.cs" Link="Core/%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="../../Assets/Rea.Incognito/Core/**/*.cs" Link="Core/%(RecursiveDir)%(Filename)%(Extension)" />
     <Compile Include="../../../Unity.Shared/unity/com.mindattic.unity.shared/Runtime/Core/Json/**/*.cs" Link="SharedJson/%(RecursiveDir)%(Filename)%(Extension)" />
     <Compile Include="*.cs" />
   </ItemGroup>

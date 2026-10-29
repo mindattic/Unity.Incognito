@@ -26,9 +26,9 @@ namespace Incognito.EditorTools.Online
     /// </summary>
     public static class OnlineSceneBuilder
     {
-        public const string ScenePath = "Assets/Incognito/Scenes/Online.unity";
-        public const string PrefabPath = "Assets/Incognito/Resources/" + IncognitoNetPlayer.PrefabResource + ".prefab";
-        public const string PrefabListPath = "Assets/Incognito/Online/IncognitoNetPrefabs.asset";
+        public const string ScenePath = "Assets/Rea.Incognito/Scenes/Online.unity";
+        public const string PrefabPath = "Assets/Rea.Incognito/Resources/" + IncognitoNetPlayer.PrefabResource + ".prefab";
+        public const string PrefabListPath = "Assets/Rea.Incognito/Online/IncognitoNetPrefabs.asset";
         public const string MpHostPath = "mp-host.json";
 
         /// <summary>mp-host's defaults: the server and the smoke test's bots run the online scene.</summary>

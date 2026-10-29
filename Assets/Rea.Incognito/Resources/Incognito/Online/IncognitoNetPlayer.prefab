@@ -129,5 +129,5 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ce5d40965825e1a4c80f91d44b15ae3a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Incognito.Online::Incognito.Online.IncognitoNetPlayer
+  m_EditorClassIdentifier: Rea.Incognito.Online::Incognito.Online.IncognitoNetPlayer
   ShowTopMostFoldoutHeaderGroup: 1

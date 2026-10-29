@@ -15,7 +15,7 @@ namespace Incognito.World
     /// Builds one room scene's data-driven content at Awake, by id, out of
     /// <see cref="GameSettings.Content"/>'s validated <see cref="RoomDefinition"/>s — a single
     /// runtime bootstrap, not a scene full of individually-authored props and exits (U.INC-T26).
-    /// The committed room scenes (Assets/Incognito/Scenes/Rooms/*.unity) hold only a copy of the
+    /// The committed room scenes (Assets/Rea.Incognito/Scenes/Rooms/*.unity) hold only a copy of the
     /// sandbox player rig plus one "Room Bootstrap" game object carrying this component with its
     /// <see cref="RoomRuntimeAssets"/> — the few static art/audio references the editor's
     /// Incognito/Build Room Scenes (<see cref="EditorTools.RoomSceneBuilder"/>) resolves — so the

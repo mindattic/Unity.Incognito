@@ -34,10 +34,10 @@ namespace Incognito.Tests
         public void LoadShippedContent()
         {
             var dir = new DirectoryInfo(TestContext.CurrentContext.TestDirectory);
-            while (dir != null && !File.Exists(Path.Combine(dir.FullName, "Assets", "Incognito", "Resources", "Data", "game-content.json")))
+            while (dir != null && !File.Exists(Path.Combine(dir.FullName, "Assets", "Rea.Incognito", "Resources", "Data", "game-content.json")))
                 dir = dir.Parent;
             Assert.IsNotNull(dir, "Could not find the repo root above the test directory.");
-            content = GameContent.FromJson(File.ReadAllText(Path.Combine(dir.FullName, "Assets", "Incognito", "Resources", "Data", "game-content.json")));
+            content = GameContent.FromJson(File.ReadAllText(Path.Combine(dir.FullName, "Assets", "Rea.Incognito", "Resources", "Data", "game-content.json")));
         }
 
         [Test]
